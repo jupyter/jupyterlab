@@ -24,6 +24,7 @@ import {
   ISettingRegistry,
   IStateDB,
   PageConfig,
+  PathExt,
   URLExt
 } from '@jupyterlab/coreutils';
 
@@ -65,7 +66,7 @@ import {
 
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 
-import { ServiceManager } from '@jupyterlab/services';
+import { ServiceManager, ServerConnection } from '@jupyterlab/services';
 
 import { IStatusBar } from '@jupyterlab/statusbar';
 
@@ -1130,7 +1131,7 @@ function addCommands(
 
       return (args['isPalette'] ? 'Export Notebook to ' : '') + formatLabel;
     },
-    execute: args => {
+    execute: async args => {
       const current = getCurrent(args);
 
       if (!current) {
@@ -1138,6 +1139,7 @@ function addCommands(
       }
 
       const notebookPath = URLExt.encodeParts(current.context.path);
+
       const url =
         URLExt.join(
           services.serverSettings.baseUrl,
@@ -1145,18 +1147,63 @@ function addCommands(
           args['format'] as string,
           notebookPath
         ) + '?download=true';
-      const child = window.open('', '_blank');
+      const settings: ServerConnection.ISettings = ServerConnection.makeSettings();
       const { context } = current;
 
-      child.opener = null;
-      if (context.model.dirty && !context.model.readOnly) {
-        return context.save().then(() => {
-          child.location.assign(url);
+      try {
+        if (context.model.dirty && !context.model.readOnly) {
+          await context.save();
+        }
+        const response = await ServerConnection.makeRequest(
+          url,
+          { method: 'GET' },
+          settings
+        );
+        // FIXME - fix the regex
+        const attachmentRegex = /attachment; filename\*=utf-8\'\'(.*)/;
+        const filename = attachmentRegex.exec(
+          response.headers.get('Content-Disposition')
+        )[1];
+        const model = await services.contents.newUntitled({
+          path: PathExt.dirname(context.path),
+          ext: PathExt.extname(filename),
+          type: 'file'
         });
-      }
+        const blob = await response.blob();
+        const isText = blob.type.split('/')[0] === 'text';
 
+        const reader = new FileReader();
+        if (isText) {
+          reader.readAsText(blob);
+        } else {
+          reader.readAsDataURL(blob);
+        }
+        reader.onload = async function(e) {
+          await services.contents.save(model.path, {
+            content: reader.result,
+            format: isText ? 'text' : 'base64',
+            mimetype: isText ? 'text/plain' : 'application/octet-stream',
+            type: 'file',
+            name: filename
+          });
+          /*try {
+            // Fails if an exported file with that name already exists
+            await services.contents.rename(
+              persistedModel.path,
+              PathExt.join(PathExt.dirname(persistedModel.path), filename)
+            );
+          } catch (e) {
+            showDialog({
+              title: 'Rename failed',
+              body: `File with name ${persistedModel.name} already exists. File is named {persistedModel.name} instead`.
+
+            })
+          }*/
+        }
+      } catch (e) {
+        console.error(`Failed to export file. Error: ${e.message}`);
+      }
       return new Promise<void>(resolve => {
-        child.location.assign(url);
         resolve(undefined);
       });
     },
