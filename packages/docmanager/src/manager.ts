@@ -145,7 +145,7 @@ export class DocumentManager implements IDocumentManager {
   /**
    * Clone a widget.
    *
-   * @param widget - The source widget.
+   * @param widget - The source IDocumentWidget.
    *
    * @returns A new widget or `undefined`.
    *
@@ -153,7 +153,7 @@ export class DocumentManager implements IDocumentManager {
    *  Uses the same widget factory and context as the source, or returns
    *  `undefined` if the source widget is not managed by this manager.
    */
-  cloneWidget(widget: Widget): IDocumentWidget | undefined {
+  cloneWidget(widget: IDocumentWidget): IDocumentWidget | undefined {
     return this._widgetManager.cloneWidget(widget);
   }
 
@@ -256,28 +256,28 @@ export class DocumentManager implements IDocumentManager {
   }
 
   /**
-   * See if a widget already exists for the given path and widget name.
+   * Return widgets that already exist for the given path and widget name.
    *
    * @param path - The file path to use.
    *
    * @param widgetName - The name of the widget factory to use. 'default' will use the default widget.
    *
-   * @returns The found widget, or `undefined`.
+   * @returns The list of found widgets, or `undefined`.
    *
    * #### Notes
    * This can be used to find an existing widget instead of opening
    * a new widget.
    */
-  findWidget(
+  findWidgets(
     path: string,
     widgetName: string | null = 'default'
-  ): IDocumentWidget | undefined {
+  ): IDocumentWidget[] {
     let newPath = PathExt.normalize(path);
     let widgetNames = [widgetName];
     if (widgetName === 'default') {
       let factory = this.registry.defaultWidgetFactory(newPath);
       if (!factory) {
-        return undefined;
+        return [];
       }
       widgetNames = [factory.name];
     } else if (widgetName === null) {
@@ -286,15 +286,13 @@ export class DocumentManager implements IDocumentManager {
         .map(f => f.name);
     }
 
+    const widgets: IDocumentWidget[] = [];
     for (let context of this._contextsForPath(newPath)) {
       for (const widgetName of widgetNames) {
-        let widget = this._widgetManager.findWidget(context, widgetName);
-        if (widget) {
-          return widget;
-        }
+        widgets.push(...this._widgetManager.findWidgets(context, widgetName));
       }
     }
-    return undefined;
+    return widgets;
   }
 
   /**
@@ -361,10 +359,10 @@ export class DocumentManager implements IDocumentManager {
     kernel?: Partial<Kernel.IModel>,
     options?: DocumentRegistry.IOpenOptions
   ): IDocumentWidget | undefined {
-    let widget = this.findWidget(path, widgetName);
-    if (widget) {
-      this._opener.open(widget, options || {});
-      return widget;
+    let widgets = this.findWidgets(path, widgetName);
+    if (widgets.length) {
+      this._opener.open(widgets[0], options || {});
+      return widgets[0];
     }
     return this.open(path, widgetName, kernel, options || {});
   }

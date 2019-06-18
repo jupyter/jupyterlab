@@ -1190,10 +1190,10 @@ export class DirListing extends Widget {
           return;
         }
         let path = item.path;
-        let widget = this._manager.findWidget(path);
-        if (!widget) {
-          widget = this._manager.open(item.path);
-        }
+        let widgets = this._manager.findWidgets(path);
+        let widget = widgets.length
+          ? widgets[0]
+          : this._manager.open(item.path);
         if (otherPaths.length) {
           const firstWidgetPlaced = new PromiseDelegate<void>();
           void firstWidgetPlaced.promise.then(() => {

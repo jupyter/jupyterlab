@@ -30,7 +30,7 @@ import {
   SavingStatus
 } from '@jupyterlab/docmanager';
 
-import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 
 import { IMainMenu } from '@jupyterlab/mainmenu';
 
@@ -574,20 +574,39 @@ function addLabCommands(
 ): void {
   const { commands } = app;
 
-  // Returns the doc widget associated with the most recent contextmenu event.
-  const contextMenuWidget = (): Widget => {
+  /**
+   * Retrieve the intended document widget if there is one.
+   *
+   * If there is currently a context menu event, this retrieves the document
+   * widget associated with the context menu event if possible. If there is not
+   * a context menu event, it returns the shell's current widget if it is a
+   * document widget.
+   */
+  function contextMenuWidget(): IDocumentWidget | undefined {
+    // This hit test tries to recover a path from a click on a tab too. It is
+    // somewhat brittle, in that it actually recovers any node with a title
+    // attribute matching this particular regex.
     const pathRe = /[Pp]ath:\s?(.*)\n?/;
-    const test = (node: HTMLElement) =>
-      node['title'] && !!node['title'].match(pathRe);
-    const node = app.contextMenuHitTest(test);
+    const node = app.contextMenuHitTest(
+      (node: HTMLElement) => node['title'] && !!node['title'].match(pathRe)
+    );
 
-    if (!node) {
-      // Fall back to active doc widget if path cannot be obtained from event.
-      return labShell.currentWidget;
+    if (node) {
+      const pathMatch = node['title'].match(pathRe);
+      let widgets = docManager.findWidgets(pathMatch[1]);
+      // How do we pick out the right widget? The node may correspond to a tab,
+      // not a widget itself, so we cannot test w.node.contains(node). Can we
+      // recover a tab widget from its node? TODO: have an app hit test that, if
+      // the hit is on a tab, returns the associated widget.
+      return widgets[0];
     }
-    const pathMatch = node['title'].match(pathRe);
-    return docManager.findWidget(pathMatch[1], null);
-  };
+
+    // Fall back to current widget if it is an IDocumentWidget.
+    const { currentWidget } = labShell;
+    if (currentWidget && docManager.contextForWidget(currentWidget)) {
+      return currentWidget as IDocumentWidget;
+    }
+  }
 
   // Returns `true` if the current widget has a document context.
   const isEnabled = () => {
@@ -600,12 +619,12 @@ function addLabCommands(
     isEnabled,
     execute: args => {
       const widget = contextMenuWidget();
-      const options = (args['options'] as DocumentRegistry.IOpenOptions) || {
-        mode: 'split-right'
-      };
       if (!widget) {
         return;
       }
+      const options = (args['options'] as DocumentRegistry.IOpenOptions) || {
+        mode: 'split-right'
+      };
       // Clone the widget.
       let child = docManager.cloneWidget(widget);
       if (child) {

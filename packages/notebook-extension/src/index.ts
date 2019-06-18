@@ -1547,10 +1547,14 @@ function addCommands(
       let path = args.path as string | undefined | null;
       let index = args.index as number | undefined | null;
       if (path && index !== undefined && index !== null) {
-        current = docManager.findWidget(path, FACTORY) as NotebookPanel;
-        if (!current) {
+        const widgets = docManager.findWidgets(
+          path,
+          FACTORY
+        ) as NotebookPanel[];
+        if (!widgets.length) {
           return;
         }
+        current = widgets[0];
       } else {
         current = getCurrent({ ...args, activate: false });
         if (!current) {

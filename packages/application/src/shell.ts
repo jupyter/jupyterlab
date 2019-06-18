@@ -296,6 +296,20 @@ export class LabShell extends Widget implements JupyterFrontEnd.IShell {
   }
 
   /**
+   * The current widget associated with a context menu event.
+   *
+   * #### Notes
+   * If the context event happened on a tab, this will return the widget
+   * associated with the tab. Otherwise it returns the widget associated with
+   * the context event. As a last resort, it will return the current widget.
+   */
+  get contextWidget(): Widget | null {
+    // Check if we have a context menu event
+    this.contex;
+    return null;
+  }
+
+  /**
    * A signal emitted when the main area's layout is modified.
    */
   get layoutModified(): ISignal<this, void> {
@@ -875,7 +889,7 @@ export class LabShell extends Widget implements JupyterFrontEnd.IShell {
   }
 
   /*
-   * Return the TabBar that has the currently active Widget or null.
+   * Return the TabBar that has the current widget or null.
    */
   private _currentTabBar(): TabBar<Widget> | null {
     const current = this._tracker.currentWidget;
@@ -886,6 +900,22 @@ export class LabShell extends Widget implements JupyterFrontEnd.IShell {
     const title = current.title;
     const bars = this._dockPanel.tabBars();
     return find(bars, bar => bar.titles.indexOf(title) > -1) || null;
+  }
+
+  /**
+   * Return the tab that contains the node or undefined.
+   */
+  findTab(node: HTMLElement): Widget {
+    const bars = this._dockPanel.tabBars();
+    const bar = find(bars, bar => bar.node.contains(node));
+    if (bar) {
+      const tab = find(bar.contentNode.children, tab =>
+        tab.node.contains(node)
+      );
+      if (tab) {
+        return tab;
+      }
+    }
   }
 
   /**
