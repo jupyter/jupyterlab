@@ -114,6 +114,20 @@ export class ConsolePanel extends Panel {
     return this._session;
   }
 
+  setConfig(config: ConsolePanel.IConsoleConfig): void {
+    this.console.node.dataset.jpInteractionMode = config.interactionMode;
+    let shutdownOnClose = config.kernelShutdown;
+    // Dirty fix to turn off kernel shutdown for console open on a notebook
+    if (PathExt.extname(this.session.path) === '.ipynb') {
+      shutdownOnClose = false;
+    }
+    const kernelPreference = this.session.kernelPreference;
+    this.session.kernelPreference = {
+      ...kernelPreference,
+      shutdownOnClose
+    };
+  }
+
   /**
    * Dispose of the resources held by the widget.
    */
@@ -219,6 +233,28 @@ export namespace ConsolePanel {
      */
     setBusy?: () => IDisposable;
   }
+
+  /**
+   * A config object for the console
+   */
+  export interface IConsoleConfig {
+    /**
+     * User preferred interaction mode
+     */
+    interactionMode: 'notebook' | 'terminal';
+    /**
+     * Whether shut down the kernel when the widget is closed or not
+     */
+    kernelShutdown: boolean;
+  }
+
+  /**
+   * The default configuration options for a console
+   */
+  export const defaultConfig: IConsoleConfig = {
+    interactionMode: 'notebook',
+    kernelShutdown: false
+  };
 
   /**
    * The console panel renderer.

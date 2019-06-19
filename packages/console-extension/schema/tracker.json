@@ -35,6 +35,12 @@
       "type": "string",
       "enum": ["notebook", "terminal"],
       "default": "notebook"
+    },
+    "kernelShutdown": {
+      "title": "Shut down kernel",
+      "description": "Whether to shut down or not the kernel when closing a console.",
+      "type": "boolean",
+      "default": false
     }
   },
   "additionalProperties": false,

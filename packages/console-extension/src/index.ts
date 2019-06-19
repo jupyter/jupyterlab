@@ -141,6 +141,9 @@ async function activateConsole(
   const { commands, shell } = app;
   const category = 'Console';
 
+  // An object for tracking the current console settings.
+  let consoleConfig = ConsolePanel.defaultConfig;
+
   // Create an instance tracker for all console panels.
   const tracker = new InstanceTracker<ConsolePanel>({ namespace: 'console' });
 
@@ -238,12 +241,7 @@ async function activateConsole(
       setBusy: status ? status.setBusy.bind(status) : undefined,
       ...(options as Partial<ConsolePanel.IOptions>)
     });
-
-    const interactionMode: string = (await settingRegistry.get(
-      '@jupyterlab/console-extension:tracker',
-      'interactionMode'
-    )).composite as string;
-    panel.console.node.dataset.jpInteractionMode = interactionMode;
+    panel.setConfig(consoleConfig);
 
     // Add the console panel to the tracker. We want the panel to show up before
     // any kernel selection dialog, so we do not await panel.session.ready;
@@ -259,20 +257,21 @@ async function activateConsole(
   }
 
   const pluginId = '@jupyterlab/console-extension:tracker';
-  let interactionMode: string;
-  async function updateSettings() {
-    interactionMode = (await settingRegistry.get(pluginId, 'interactionMode'))
-      .composite as string;
+  function updateSettings(settings: ISettingRegistry.ISettings) {
+    consoleConfig.interactionMode = settings.get('interactionMode')
+      .composite as 'notebook' | 'terminal';
+    consoleConfig.kernelShutdown = settings.get('kernelShutdown')
+      .composite as boolean;
     tracker.forEach(panel => {
-      panel.console.node.dataset.jpInteractionMode = interactionMode;
+      panel.setConfig(consoleConfig);
     });
   }
-  settingRegistry.pluginChanged.connect((sender, plugin) => {
-    if (plugin === pluginId) {
-      void updateSettings();
-    }
+
+  let settings = await settingRegistry.load(pluginId);
+  updateSettings(settings);
+  settings.changed.connect(() => {
+    updateSettings(settings);
   });
-  await updateSettings();
 
   /**
    * Whether there is an active console.
@@ -582,14 +581,14 @@ async function activateConsole(
     execute: async args => {
       const key = 'keyMap';
       try {
-        await settingRegistry.set(pluginId, 'interactionMode', args[
+        await settings.set('interactionMode', args[
           'interactionMode'
         ] as string);
       } catch (reason) {
         console.error(`Failed to set ${pluginId}:${key} - ${reason.message}`);
       }
     },
-    isToggled: args => args['interactionMode'] === interactionMode
+    isToggled: args => args['interactionMode'] === consoleConfig.interactionMode
   });
 
   const executeMenu = new Menu({ commands });
