@@ -150,7 +150,8 @@ export interface IDocumentManager extends IDisposable {
    */
   findWidget(
     path: string,
-    widgetName?: string | null
+    widgetName?: string | null,
+    options?: DocumentRegistry.IFindOptions
   ): IDocumentWidget | undefined;
 
   /**
