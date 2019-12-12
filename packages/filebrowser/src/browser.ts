@@ -1,7 +1,12 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { showErrorMessage, Toolbar, ToolbarButton } from '@jupyterlab/apputils';
+import {
+  SideBarWidget,
+  showErrorMessage,
+  Toolbar,
+  ToolbarButton
+} from '@jupyterlab/apputils';
 
 import { IDocumentManager } from '@jupyterlab/docmanager';
 
@@ -46,7 +51,7 @@ const LISTING_CLASS = 'jp-FileBrowser-listing';
  * and presents itself as a flat list of files and directories with
  * breadcrumbs.
  */
-export class FileBrowser extends Widget {
+export class FileBrowser extends SideBarWidget {
   /**
    * Construct a new file browser.
    *

@@ -1,8 +1,6 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { Contents, Kernel } from '@jupyterlab/services';
-
 import {
   ArrayExt,
   ArrayIterator,
@@ -21,7 +19,7 @@ import { ISignal, Signal } from '@lumino/signaling';
 
 import { DockLayout, Widget } from '@lumino/widgets';
 
-import { IClientSession, Toolbar } from '@jupyterlab/apputils';
+import { IClientSession, SideBarWidget, Toolbar } from '@jupyterlab/apputils';
 
 import { CodeEditor } from '@jupyterlab/codeeditor';
 
@@ -33,6 +31,8 @@ import {
 import { IModelDB } from '@jupyterlab/observables';
 
 import { IRenderMime } from '@jupyterlab/rendermime-interfaces';
+
+import { Contents, Kernel } from '@jupyterlab/services';
 
 import { TextModelFactory } from './default';
 
@@ -1172,9 +1172,15 @@ export namespace DocumentRegistry {
     readonly iconLabel?: string;
 
     /**
+     * If content type is 'dirlike', this is the browser associated with this
+     * file type.  If undefined, the default browser is assumed.
+     */
+    readonly browser?: SideBarWidget;
+
+    /**
      * The content type of the new file.
      */
-    readonly contentType: Contents.ContentType;
+    readonly contentType: Contents.ContentType | 'dirlike';
 
     /**
      * The format of the new file.

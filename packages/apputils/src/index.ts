@@ -14,6 +14,7 @@ export * from './inputdialog';
 export * from './mainareawidget';
 export * from './printing';
 export * from './sanitizer';
+export * from './sidebarwidget';
 export * from './spinner';
 export * from './splash';
 export * from './styling';
