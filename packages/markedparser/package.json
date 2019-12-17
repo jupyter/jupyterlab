@@ -1,7 +1,7 @@
 {
-  "name": "@jupyterlab/rendermime",
-  "version": "2.0.0-alpha.4",
-  "description": "JupyterLab - RenderMime",
+  "name": "@jupyterlab/markedparser",
+  "version": "2.0.0-alpha.1",
+  "description": "A Marked based Markdown parser provider for JupyterLab",
   "homepage": "https://github.com/jupyterlab/jupyterlab",
   "bugs": {
     "url": "https://github.com/jupyterlab/jupyterlab/issues"
@@ -13,9 +13,7 @@
   "license": "BSD-3-Clause",
   "author": "Project Jupyter",
   "files": [
-    "lib/*.d.ts",
-    "lib/*.js.map",
-    "lib/*.js",
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/*.css"
   ],
   "sideEffects": [
@@ -30,27 +28,17 @@
   "scripts": {
     "build": "tsc -b",
     "clean": "rimraf lib",
-    "docs": "typedoc src",
+    "docs": "typedoc --options tdoptions.json --theme ../../typedoc-theme src",
     "prepublishOnly": "npm run build",
     "watch": "tsc -b --watch"
   },
   "dependencies": {
-    "@jupyterlab/apputils": "^2.0.0-alpha.4",
-    "@jupyterlab/coreutils": "^4.0.0-alpha.4",
-    "@jupyterlab/markedparser": "^2.0.0-alpha.1",
-    "@jupyterlab/observables": "^3.0.0-alpha.4",
+    "@jupyterlab/codemirror": "^2.0.0-alpha.4",
     "@jupyterlab/rendermime-interfaces": "^2.0.0-alpha.4",
-    "@jupyterlab/services": "^5.0.0-alpha.4",
-    "@lumino/algorithm": "^1.2.0",
-    "@lumino/coreutils": "^1.4.0",
-    "@lumino/messaging": "^1.3.0",
-    "@lumino/signaling": "^1.3.0",
-    "@lumino/widgets": "^1.9.0",
-    "lodash.escape": "^4.0.1",
     "marked": "^0.7.0"
   },
   "devDependencies": {
-    "@types/lodash.escape": "^4.0.6",
+    "@types/marked": "^0.6.5",
     "rimraf": "~2.6.2",
     "typedoc": "^0.15.2",
     "typescript": "~3.7.2"

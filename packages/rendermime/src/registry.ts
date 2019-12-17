@@ -41,6 +41,7 @@ export class RenderMimeRegistry implements IRenderMimeRegistry {
     this.resolver = options.resolver || null;
     this.linkHandler = options.linkHandler || null;
     this.latexTypesetter = options.latexTypesetter || null;
+    this.markdownParser = options.markdownParser || null;
     this.sanitizer = options.sanitizer || defaultSanitizer;
 
     // Add the initial factories.
@@ -70,6 +71,11 @@ export class RenderMimeRegistry implements IRenderMimeRegistry {
    * The LaTeX typesetter for the rendermime.
    */
   readonly latexTypesetter: IRenderMime.ILatexTypesetter | null;
+
+  /**
+   * The Markdown parser for the rendermime.
+   */
+  readonly markdownParser: IRenderMime.IMarkdownParser | null;
 
   /**
    * The ordered list of mimeTypes.
@@ -138,7 +144,8 @@ export class RenderMimeRegistry implements IRenderMimeRegistry {
       resolver: this.resolver,
       sanitizer: this.sanitizer,
       linkHandler: this.linkHandler,
-      latexTypesetter: this.latexTypesetter
+      latexTypesetter: this.latexTypesetter,
+      markdownParser: this.markdownParser
     });
   }
 
@@ -166,7 +173,8 @@ export class RenderMimeRegistry implements IRenderMimeRegistry {
       resolver: options.resolver || this.resolver || undefined,
       sanitizer: options.sanitizer || this.sanitizer || undefined,
       linkHandler: options.linkHandler || this.linkHandler || undefined,
-      latexTypesetter: options.latexTypesetter || this.latexTypesetter
+      latexTypesetter: options.latexTypesetter || this.latexTypesetter,
+      markdownParser: options.markdownParser || this.markdownParser
     });
 
     // Clone the internal state.
@@ -301,6 +309,11 @@ export namespace RenderMimeRegistry {
      * An optional LaTeX typesetter.
      */
     latexTypesetter?: IRenderMime.ILatexTypesetter;
+
+    /**
+     * An optional Markdown parser.
+     */
+    markdownParser?: IRenderMime.IMarkdownParser;
   }
 
   /**

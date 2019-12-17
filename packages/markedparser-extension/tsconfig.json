@@ -7,22 +7,13 @@
   "include": ["src/*"],
   "references": [
     {
-      "path": "../apputils"
-    },
-    {
-      "path": "../coreutils"
+      "path": "../application"
     },
     {
       "path": "../markedparser"
     },
     {
-      "path": "../observables"
-    },
-    {
-      "path": "../rendermime-interfaces"
-    },
-    {
-      "path": "../services"
+      "path": "../rendermime"
     }
   ]
 }

@@ -29,6 +29,7 @@ export abstract class RenderedCommon extends Widget
     this.resolver = options.resolver;
     this.linkHandler = options.linkHandler;
     this.latexTypesetter = options.latexTypesetter;
+    this.markdownParser = options.markdownParser;
     this.node.dataset['mimeType'] = this.mimeType;
   }
 
@@ -56,6 +57,11 @@ export abstract class RenderedCommon extends Widget
    * The latexTypesetter.
    */
   readonly latexTypesetter: IRenderMime.ILatexTypesetter;
+
+  /**
+   * The markdownParser.
+   */
+  readonly markdownParser: IRenderMime.IMarkdownParser;
 
   /**
    * Render a mime model.
@@ -286,7 +292,8 @@ export class RenderedMarkdown extends RenderedHTMLCommon {
       sanitizer: this.sanitizer,
       linkHandler: this.linkHandler,
       shouldTypeset: this.isAttached,
-      latexTypesetter: this.latexTypesetter
+      latexTypesetter: this.latexTypesetter,
+      markdownParser: this.markdownParser
     });
   }
 

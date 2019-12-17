@@ -1,0 +1,47 @@
+{
+  "name": "@jupyterlab/markedparser-extension",
+  "version": "2.0.0-alpha.1",
+  "description": "A JupyterLab extension providing markedjs Markdown parser",
+  "homepage": "https://github.com/jupyterlab/jupyterlab",
+  "bugs": {
+    "url": "https://github.com/jupyterlab/jupyterlab/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jupyterlab/jupyterlab.git"
+  },
+  "license": "BSD-3-Clause",
+  "author": "Project Jupyter",
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}"
+  ],
+  "sideEffects": false,
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "directories": {
+    "lib": "lib/"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rimraf lib",
+    "docs": "typedoc --options tdoptions.json --theme ../../typedoc-theme src",
+    "prepublishOnly": "npm run build",
+    "watch": "tsc -b --watch"
+  },
+  "dependencies": {
+    "@jupyterlab/application": "^2.0.0-alpha.4",
+    "@jupyterlab/markedparser": "^2.0.0-alpha.1",
+    "@jupyterlab/rendermime": "^2.0.0-alpha.4"
+  },
+  "devDependencies": {
+    "rimraf": "~2.6.2",
+    "typedoc": "^0.15.2",
+    "typescript": "~3.7.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "jupyterlab": {
+    "extension": true
+  }
+}

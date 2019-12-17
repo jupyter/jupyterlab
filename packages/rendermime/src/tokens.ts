@@ -41,6 +41,11 @@ export interface IRenderMimeRegistry {
   readonly latexTypesetter: IRenderMime.ILatexTypesetter | null;
 
   /**
+   * The Markdown parser for the rendermime.
+   */
+  readonly markdownParser: IRenderMime.IMarkdownParser | null;
+
+  /**
    * The ordered list of mimeTypes.
    */
   readonly mimeTypes: ReadonlyArray<string>;
@@ -170,6 +175,11 @@ export namespace IRenderMimeRegistry {
      * The new LaTeX typesetter.
      */
     latexTypesetter?: IRenderMime.ILatexTypesetter;
+
+    /**
+     * The new Markdown parser.
+     */
+    markdownParser?: IRenderMime.IMarkdownParser;
   }
 }
 
@@ -184,4 +194,10 @@ export const ILatexTypesetter = new Token<IRenderMime.ILatexTypesetter>(
 );
 
 export interface ILatexTypesetter extends IRenderMime.ILatexTypesetter {}
+
+export const IMarkdownParser = new Token<IRenderMime.IMarkdownParser>(
+  '@jupyterlab/rendermime:IMarkdownParser'
+);
+
+export interface IMarkdownParser extends IRenderMime.IMarkdownParser {}
 /* tslint:enable */

@@ -1,0 +1,15 @@
+{
+  "excludeNotExported": true,
+  "mode": "file",
+  "target": "es2017",
+  "module": "es5",
+  "lib": ["lib.dom.d.ts", "lib.es2017.d.ts"],
+  "out": "../../docs/api/markedparser",
+  "baseUrl": ".",
+  "paths": {
+    "@jupyterlab/*": ["../packages/*"]
+  },
+  "esModuleInterop": true,
+  "jsx": "react",
+  "types": []
+}

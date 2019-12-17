@@ -3,13 +3,11 @@
 | Distributed under the terms of the Modified BSD License.
 |----------------------------------------------------------------------------*/
 
-import marked from 'marked';
-
 import { ISanitizer } from '@jupyterlab/apputils';
 
-import { Mode, CodeMirrorEditor } from '@jupyterlab/codemirror';
-
 import { URLExt } from '@jupyterlab/coreutils';
+
+import { MarkedParser } from '@jupyterlab/markedparser';
 
 import { IRenderMime } from '@jupyterlab/rendermime-interfaces';
 
@@ -316,7 +314,7 @@ export async function renderMarkdown(
   options: renderMarkdown.IRenderOptions
 ): Promise<void> {
   // Unpack the options.
-  let { host, source, ...others } = options;
+  let { host, markdownParser, source, ...others } = options;
 
   // Clear the content if there is no source.
   if (!source) {
@@ -325,10 +323,15 @@ export async function renderMarkdown(
   }
 
   // Separate math from normal markdown text.
-  let parts = removeMath(source);
+  const parts = removeMath(source);
+
+  // Use the Markdown parser based on Marked if no other is provided.
+  if (!markdownParser) {
+    markdownParser = new MarkedParser();
+  }
 
   // Convert the markdown to HTML.
-  let html = await Private.renderMarked(parts['text']);
+  let html = await markdownParser.render(parts['text']);
 
   // Replace math.
   html = replaceMath(html, parts['math']);
@@ -391,6 +394,11 @@ export namespace renderMarkdown {
      * The LaTeX typesetter for the application.
      */
     latexTypesetter: IRenderMime.ILatexTypesetter | null;
+
+    /**
+     * The Markdown parser.
+     */
+    markdownParser: IRenderMime.IMarkdownParser;
   }
 }
 
@@ -554,26 +562,6 @@ namespace Private {
       // Replace the old script in the parent.
       script.parentNode.replaceChild(clone, script);
     }
-  }
-
-  /**
-   * Render markdown for the specified content.
-   *
-   * @param content - The string of markdown to render.
-   *
-   * @return A promise which resolves with the rendered content.
-   */
-  export function renderMarked(content: string): Promise<string> {
-    initializeMarked();
-    return new Promise<string>((resolve, reject) => {
-      marked(content, (err: any, content: string) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(content);
-        }
-      });
-    });
   }
 
   /**
@@ -765,58 +753,6 @@ namespace Private {
         // just make it an empty link.
         anchor.href = '';
       });
-  }
-
-  let markedInitialized = false;
-
-  /**
-   * Support GitHub flavored Markdown, leave sanitizing to external library.
-   */
-  function initializeMarked(): void {
-    if (markedInitialized) {
-      return;
-    }
-    markedInitialized = true;
-    marked.setOptions({
-      gfm: true,
-      sanitize: false,
-      tables: true,
-      // breaks: true; We can't use GFM breaks as it causes problems with tables
-      langPrefix: `cm-s-${CodeMirrorEditor.defaultConfig.theme} language-`,
-      highlight: (code, lang, callback) => {
-        let cb = (err: Error | null, code: string) => {
-          if (callback) {
-            callback(err, code);
-          }
-          return code;
-        };
-        if (!lang) {
-          // no language, no highlight
-          return cb(null, code);
-        }
-        Mode.ensure(lang)
-          .then(spec => {
-            let el = document.createElement('div');
-            if (!spec) {
-              console.log(`No CodeMirror mode: ${lang}`);
-              return cb(null, code);
-            }
-            try {
-              Mode.run(code, spec.mime, el);
-              return cb(null, el.innerHTML);
-            } catch (err) {
-              console.log(`Failed to highlight ${lang} code`, err);
-              return cb(err, code);
-            }
-          })
-          .catch(err => {
-            console.log(`No CodeMirror mode: ${lang}`);
-            console.log(`Require CodeMirror mode error: ${err}`);
-            return cb(null, code);
-          });
-        return code;
-      }
-    });
   }
 
   let ANSI_COLORS = [

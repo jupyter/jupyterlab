@@ -148,6 +148,12 @@
       "path": "../markdownviewer-extension"
     },
     {
+      "path": "../markedparser"
+    },
+    {
+      "path": "../markedparser-extension"
+    },
+    {
       "path": "../mathjax2"
     },
     {

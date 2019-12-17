@@ -12,6 +12,7 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 
 import {
   ILatexTypesetter,
+  IMarkdownParser,
   IRenderMimeRegistry,
   RenderMimeRegistry,
   standardRendererFactories
@@ -27,7 +28,7 @@ namespace CommandIDs {
 const plugin: JupyterFrontEndPlugin<IRenderMimeRegistry> = {
   id: '@jupyterlab/rendermime-extension:plugin',
   requires: [],
-  optional: [IDocumentManager, ILatexTypesetter],
+  optional: [IDocumentManager, ILatexTypesetter, IMarkdownParser],
   provides: IRenderMimeRegistry,
   activate: activate,
   autoStart: true
@@ -44,7 +45,8 @@ export default plugin;
 function activate(
   app: JupyterFrontEnd,
   docManager: IDocumentManager | null,
-  latexTypesetter: ILatexTypesetter | null
+  latexTypesetter: ILatexTypesetter | null,
+  markdownParser: IMarkdownParser | null
 ) {
   if (docManager) {
     app.commands.addCommand(CommandIDs.handleLink, {
@@ -91,6 +93,7 @@ function activate(
             });
           }
         },
-    latexTypesetter
+    latexTypesetter,
+    markdownParser
   });
 }
