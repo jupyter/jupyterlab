@@ -9,6 +9,8 @@ import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 
 import { ServerConnection } from '../serverconnection';
 
+import {Signal, ISignal} from '@lumino/signaling';
+
 /**
  * The url for the lab workspaces service.
  */
@@ -31,6 +33,14 @@ export class WorkspaceManager extends DataConnector<Workspace.IWorkspace> {
    * The server settings used to make API requests.
    */
   readonly serverSettings: ServerConnection.ISettings;
+
+  get workspaceUpdated(): ISignal<this, Workspace.IWorkspace> {
+    return this._workspaceUpdated;
+  }
+
+  get workspaceRemoved(): ISignal<this, string> {
+    return this._workspaceRemoved;
+  }
 
   /**
    * Fetch a workspace.
@@ -95,6 +105,7 @@ export class WorkspaceManager extends DataConnector<Workspace.IWorkspace> {
     if (response.status !== 204) {
       throw new ResponseError(response);
     }
+    this._workspaceRemoved.emit(id);
   }
 
   /**
@@ -118,7 +129,11 @@ export class WorkspaceManager extends DataConnector<Workspace.IWorkspace> {
     if (response.status !== 204) {
       throw new ResponseError(response);
     }
+    this._workspaceUpdated.emit(workspace);
   }
+
+  private _workspaceUpdated = new Signal<this, Workspace.IWorkspace>(this);
+  private _workspaceRemoved = new Signal<this, string>(this);
 }
 
 /**

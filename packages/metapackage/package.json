@@ -112,7 +112,8 @@
     "@jupyterlab/ui-components-extension": "^2.0.0-rc.1",
     "@jupyterlab/vdom": "^2.0.0-rc.1",
     "@jupyterlab/vdom-extension": "^2.0.0-rc.1",
-    "@jupyterlab/vega5-extension": "^2.0.0-rc.1"
+    "@jupyterlab/vega5-extension": "^2.0.0-rc.1",
+    "@jupyterlab/workspaces-extension": "^2.0.0-rc"
   },
   "devDependencies": {
     "fs-extra": "^8.1.0",

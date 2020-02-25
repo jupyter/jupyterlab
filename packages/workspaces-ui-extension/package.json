@@ -1,0 +1,59 @@
+{
+  "name": "@jupyterlab/workspaces-extension",
+  "version": "2.0.0-rc",
+  "description": "JupyterLab - Workspaces manager extension",
+  "homepage": "https://github.com/jupyterlab/jupyterlab",
+  "bugs": {
+    "url": "https://github.com/jupyterlab/jupyterlab/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jupyterlab/jupyterlab.git"
+  },
+  "license": "BSD-3-Clause",
+  "author": "Project Jupyter",
+  "files": [
+    "lib/*.d.ts",
+    "lib/*.js.map",
+    "lib/*.js",
+    "schema/*.json",
+    "style/**/*.css"
+  ],
+  "sideEffects": [
+    "style/**/*.css"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "style": "style/index.css",
+  "directories": {
+    "lib": "lib/"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rimraf lib",
+    "docs": "typedoc src",
+    "prepublishOnly": "npm run build",
+    "watch": "tsc -b --watch"
+  },
+  "dependencies": {
+    "@jupyterlab/application": "^2.0.0-rc.1",
+    "@jupyterlab/apputils": "^2.0.0-rc.1",
+    "@jupyterlab/coreutils": "^4.0.0-rc.1",
+    "@jupyterlab/launcher": "^2.0.0-rc.1",
+    "@jupyterlab/services": "^5.0.0-rc.1",
+    "@jupyterlab/ui-components": "^2.0.0-rc.2",
+    "@lumino/polling": "^1.0.3",
+    "react": "~16.9.0"
+  },
+  "devDependencies": {
+    "rimraf": "~3.0.0",
+    "typedoc": "^0.15.4",
+    "typescript": "~3.7.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "jupyterlab": {
+    "extension": true
+  }
+}

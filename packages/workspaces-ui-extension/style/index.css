@@ -1,0 +1,51 @@
+.jp-Workspaces {
+  background-color: var(--jp-layout-color1);
+}
+
+.jp-Workspaces--header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: solid var(--jp-border-color2) var(--jp-border-width);
+  padding: 8px 12px;
+  align-items: center;
+}
+
+.jp-Workspaces--header--title {
+  font-size: var(--jp-ui-font-size0);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.jp-Workspaces--list {
+  list-style-type: none;
+  margin-left: 10px;
+  padding: 5px;
+}
+
+.jp-Workspaces--list--item {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: var(--jpui-font-size1);
+  letter-spacing: 1px;
+}
+
+.jp-Workspaces--list--item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.jp-Workspaces--list--item--toolbar {
+  display: flex;
+}
+
+.jp-Workspaces--list--item--editToolbar {
+  display: flex;
+  margin-bottom: '8px';
+}
+
+.jp-Workspaces--dialog--label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}

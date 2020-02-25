@@ -248,6 +248,9 @@
     },
     {
       "path": "../vega5-extension"
+    },
+    {
+      "path": "../workspaces-ui-extension"
     }
   ]
 }
