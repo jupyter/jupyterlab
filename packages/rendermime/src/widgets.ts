@@ -273,6 +273,7 @@ export class RenderedMarkdown extends RenderedHTMLCommon {
   constructor(options: IRenderMime.IRendererOptions) {
     super(options);
     this.addClass('jp-RenderedMarkdown');
+    this.node.setAttribute('role', 'gridcell');
   }
 
   /**

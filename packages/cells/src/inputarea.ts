@@ -47,6 +47,7 @@ export class InputArea extends Widget {
   constructor(options: InputArea.IOptions) {
     super();
     this.addClass(INPUT_AREA_CLASS);
+    this.node.setAttribute('role', 'gridcell');
     let model = (this.model = options.model);
     let contentFactory = (this.contentFactory =
       options.contentFactory || InputArea.defaultContentFactory);
@@ -63,6 +64,7 @@ export class InputArea extends Widget {
     };
     let editor = (this._editor = new CodeEditorWrapper(editorOptions));
     editor.addClass(INPUT_AREA_EDITOR_CLASS);
+    editor.node.setAttribute('role', 'gridcell');
 
     let layout = (this.layout = new PanelLayout());
     layout.addWidget(prompt);
@@ -287,6 +289,7 @@ export class InputPrompt extends Widget implements IInputPrompt {
   constructor() {
     super();
     this.addClass(INPUT_PROMPT_CLASS);
+    this.node.setAttribute('role', 'gridcell');
   }
 
   /**

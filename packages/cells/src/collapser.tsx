@@ -44,6 +44,7 @@ export abstract class Collapser extends ReactWidget {
   constructor() {
     super();
     this.addClass(COLLAPSER_CLASS);
+    this.node.setAttribute('role', 'gridcell');
   }
 
   /**
@@ -114,6 +115,7 @@ export class OutputCollapser extends Collapser {
   constructor() {
     super();
     this.addClass(OUTPUT_COLLAPSER);
+    this.node.setAttribute('role', 'gridcell');
   }
 
   /**

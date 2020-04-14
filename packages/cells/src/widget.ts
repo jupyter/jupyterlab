@@ -178,6 +178,7 @@ export class Cell extends Widget {
   constructor(options: Cell.IOptions) {
     super();
     this.addClass(CELL_CLASS);
+    this.node.setAttribute('role', 'row');
     let model = (this._model = options.model);
     let contentFactory = (this.contentFactory =
       options.contentFactory || Cell.defaultContentFactory);
