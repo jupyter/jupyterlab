@@ -409,13 +409,13 @@ export class Context<T extends DocumentRegistry.IModel>
         };
       }
       this._path = newPath;
-      void this.sessionContext.session?.setPath(newPath);
+      this.sessionContext.path = newPath;
       const updateModel = {
         ...this._contentsModel,
         ...changeModel
       };
       const localPath = this._manager.contents.localPath(newPath);
-      void this.sessionContext.session?.setName(PathExt.basename(localPath));
+      this.sessionContext.name = PathExt.basename(localPath);
       this._updateContentsModel(updateModel as Contents.IModel);
       this._pathChanged.emit(this._path);
     }
@@ -428,7 +428,7 @@ export class Context<T extends DocumentRegistry.IModel>
     if (type !== 'path') {
       return;
     }
-    let path = this.sessionContext.session!.path;
+    let path = this.sessionContext.path;
     if (path !== this._path) {
       this._path = path;
       this._pathChanged.emit(path);
@@ -779,16 +779,13 @@ export class Context<T extends DocumentRegistry.IModel>
    */
   private async _finishSaveAs(newPath: string): Promise<void> {
     this._path = newPath;
-    return this.sessionContext.session
-      ?.setPath(newPath)
-      .then(() => {
-        void this.sessionContext.session?.setName(newPath.split('/').pop()!);
-        return this.save();
-      })
-      .then(() => {
-        this._pathChanged.emit(this._path);
-        return this._maybeCheckpoint(true);
-      });
+    if (this.sessionContext.session) {
+      await this.sessionContext.session.setPath(newPath);
+      this.sessionContext.name = newPath.split('/').pop()!;
+      await this.save();
+      this._pathChanged.emit(this._path);
+      await this._maybeCheckpoint(true);
+    }
   }
 
   private _manager: ServiceManager.IManager;

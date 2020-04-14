@@ -313,6 +313,13 @@ export class SessionContext implements ISessionContext {
   get path(): string {
     return this._path;
   }
+  set path(value: string) {
+    this._path = value;
+
+    if (this._session) {
+      void this._session.setPath(value);
+    }
+  }
 
   /**
    * The session type.
@@ -324,6 +331,13 @@ export class SessionContext implements ISessionContext {
   get type(): string {
     return this._type;
   }
+  set type(value: string) {
+    this._type = value;
+
+    if (this._session) {
+      void this._session.setType(value);
+    }
+  }
 
   /**
    * The session name.
@@ -334,6 +348,13 @@ export class SessionContext implements ISessionContext {
    */
   get name(): string {
     return this._name;
+  }
+  set name(value: string) {
+    this._name = value;
+
+    if (this._session) {
+      void this._session.setName(value);
+    }
   }
 
   /**
