@@ -29,6 +29,12 @@
       "description": "Length of save interval in seconds",
       "default": 120
     },
+    "lastModifiedCheckMargin": {
+      "type": "number",
+      "title": "Set time difference",
+      "description": "Difference between disk time and client time",
+      "default": 500
+    },
     "defaultViewers": {
       "type": "object",
       "title": "Default Viewers",

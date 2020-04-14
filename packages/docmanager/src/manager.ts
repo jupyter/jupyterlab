@@ -121,6 +121,26 @@ export class DocumentManager implements IDocumentManager {
   }
 
   /**
+   * Determines the last modified check margin for autosave in seconds.
+   */
+  get lastModifiedCheckMargin(): number {
+    return this._lastModifiedCheckMargin;
+  }
+
+  set lastModifiedCheckMargin(value: number) {
+    this._lastModifiedCheckMargin = value;
+
+    // For each existing context, set the save interval as needed.
+    // this._contexts.forEach(context => {
+    //   const handler = Private.saveHandlerProperty.get(context);
+    //   if (!handler) {
+    //     return;
+    //   }
+    //   handler.lastModifiedCheckMargin = value || 500;
+    // });
+  }
+
+  /**
    * Get whether the document manager has been disposed.
    */
   get isDisposed(): boolean {
@@ -475,7 +495,8 @@ export class DocumentManager implements IDocumentManager {
       kernelPreference,
       modelDBFactory,
       setBusy: this._setBusy,
-      sessionDialogs: this._dialogs
+      sessionDialogs: this._dialogs,
+      lastModifiedCheckMargin: this._lastModifiedCheckMargin
     });
     let handler = new SaveHandler({
       context,
@@ -598,6 +619,7 @@ export class DocumentManager implements IDocumentManager {
   private _isDisposed = false;
   private _autosave = true;
   private _autosaveInterval = 120;
+  private _lastModifiedCheckMargin = 500;
   private _when: Promise<void>;
   private _setBusy: (() => IDisposable) | undefined;
   private _dialogs: ISessionContext.IDialogs;

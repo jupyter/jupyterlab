@@ -52,7 +52,7 @@ export class Context<T extends DocumentRegistry.IModel>
     this._path = this._manager.contents.normalize(options.path);
     const localPath = this._manager.contents.localPath(this._path);
     let lang = this._factory.preferredLanguage(PathExt.basename(localPath));
-
+    this.lastModifiedCheckMargin = options.lastModifiedCheckMargin;
     let dbFactory = options.modelDBFactory;
     if (dbFactory) {
       const localPath = manager.contents.localPath(this._path);
@@ -644,10 +644,14 @@ export class Context<T extends DocumentRegistry.IModel>
         let modified = this.contentsModel?.last_modified;
         let tClient = modified ? new Date(modified) : new Date();
         let tDisk = new Date(model.last_modified);
-        if (modified && tDisk.getTime() - tClient.getTime() > 500) {
+        if (
+          modified &&
+          tDisk.getTime() - tClient.getTime() > this.lastModifiedCheckMargin
+        ) {
           // 500 ms
           return this._timeConflict(tClient, model, options);
         }
+
         return this._manager.contents.save(path, options);
       },
       err => {
@@ -812,6 +816,7 @@ export class Context<T extends DocumentRegistry.IModel>
   private _saveState = new Signal<this, DocumentRegistry.SaveState>(this);
   private _disposed = new Signal<this, void>(this);
   private _dialogs: ISessionContext.IDialogs;
+  private lastModifiedCheckMargin: number;
 }
 
 /**
@@ -861,6 +866,8 @@ export namespace Context {
      * The dialogs used for the session context.
      */
     sessionDialogs?: ISessionContext.IDialogs;
+
+    lastModifiedCheckMargin: number;
   }
 }
 
