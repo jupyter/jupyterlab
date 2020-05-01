@@ -217,7 +217,7 @@ describe('@jupyterlab/notebook', () => {
             'run',
             'interrupt',
             'restart',
-            'restart-and-run',
+            'restart-and-run-all',
             'cellType',
             'spacer',
             'kernelName',
@@ -318,8 +318,11 @@ describe('@jupyterlab/notebook', () => {
           const button = ToolbarItems.createRestartRunAllButton(panel);
           Widget.attach(button, document.body);
           await framePromise();
-          expect(button.node.querySelector("[data-icon$='fast-forward']")).to
-            .exist;
+          expect(
+            button.node.querySelector(
+              "[data-icon$='ui-components:restart-and-run']"
+            )
+          ).to.exist;
         });
       });
     });

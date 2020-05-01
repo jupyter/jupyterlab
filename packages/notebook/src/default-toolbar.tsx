@@ -217,7 +217,7 @@ export namespace ToolbarItems {
         )
       },
       {
-        name: 'restart-and-run',
+        name: 'restart-and-run-all',
         widget: createRestartRunAllButton(panel, sessionDialogs)
       },
       { name: 'cellType', widget: createCellTypeItem(panel) },
