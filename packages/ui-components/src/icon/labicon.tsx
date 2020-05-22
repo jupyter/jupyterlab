@@ -321,7 +321,12 @@ export class LabIcon implements LabIcon.ILabIcon, VirtualElement.IRenderer {
 
     // check if icon element is already set
     const maybeSvgElement = container?.firstChild as HTMLElement;
-    if (maybeSvgElement?.dataset?.iconId === this._uuid) {
+    if (
+      maybeSvgElement?.dataset?.iconId === this._uuid &&
+      container?.title === title &&
+      container?.textContent === label &&
+      container?.tagName === tag
+    ) {
       // return the existing icon element
       return maybeSvgElement;
     }

@@ -4,8 +4,9 @@
 import { Text } from '@jupyterlab/coreutils';
 import {
   Button,
+  circleCrossIcon,
   circleEmptyIcon,
-  circleIcon,
+  circleTickIcon,
   classes,
   LabIcon,
   refreshIcon,
@@ -727,36 +728,24 @@ namespace Private {
         return;
       }
 
-      const status = sessionContext.kernelDisplayStatus;
+      let icon: LabIcon;
+      const connection_status = sessionContext.kernelConnectionStatus;
+
+      if (connection_status === undefined) {
+        icon = circleEmptyIcon;
+      } else if (connection_status === 'connected') {
+        icon = circleTickIcon;
+      } else {
+        icon = circleCrossIcon;
+      }
 
       // set the icon
-      if (this._isBusy(status)) {
-        circleIcon.element({
-          container: this.node,
-          title: `Kernel ${Text.titleCase(status)}`,
+      icon.element({
+        container: this.node,
+        title: `Kernel ${Text.titleCase(sessionContext.kernelDisplayStatus)}`,
 
-          stylesheet: 'toolbarButton'
-        });
-      } else {
-        circleEmptyIcon.element({
-          container: this.node,
-          title: `Kernel ${Text.titleCase(status)}`,
-
-          stylesheet: 'toolbarButton'
-        });
-      }
-    }
-
-    /**
-     * Check if status should be shown as busy.
-     */
-    private _isBusy(status: ISessionContext.KernelDisplayStatus): boolean {
-      return (
-        status === 'busy' ||
-        status === 'starting' ||
-        status === 'restarting' ||
-        status === 'initializing'
-      );
+        stylesheet: 'toolbarButton'
+      });
     }
   }
 }

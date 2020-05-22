@@ -24,7 +24,9 @@
   --jp-icon-caret-up: url('icons/arrow/caret-up.svg');
   --jp-icon-case-sensitive: url('icons/search/case-sensitive.svg');
   --jp-icon-check: url('icons/toolbar/check.svg');
+  --jp-icon-circle-cross: url('icons/toolbar/circle-cross.svg');
   --jp-icon-circle-empty: url('icons/toolbar/circle-empty.svg');
+  --jp-icon-circle-tick: url('icons/toolbar/circle-tick.svg');
   --jp-icon-circle: url('icons/toolbar/circle.svg');
   --jp-icon-clear: url('icons/toolbar/clear.svg');
   --jp-icon-close: url('icons/toolbar/close.svg');
@@ -119,11 +121,17 @@
 .jp-CheckIcon {
   background-image: var(--jp-icon-check);
 }
+.jp-CircleCrossIcon {
+  background-image: var(--jp-icon-circle-cross);
+}
 .jp-CircleEmptyIcon {
   background-image: var(--jp-icon-circle-empty);
 }
 .jp-CircleIcon {
   background-image: var(--jp-icon-circle);
+}
+.jp-CircleTickIcon {
+  background-image: var(--jp-icon-circle-tick);
 }
 .jp-ClearIcon {
   background-image: var(--jp-icon-clear);

@@ -7,7 +7,7 @@ import { ISessionContext, VDomRenderer, VDomModel } from '@jupyterlab/apputils';
 
 import { Text } from '@jupyterlab/coreutils';
 
-import { Session } from '@jupyterlab/services';
+import { Session, Kernel } from '@jupyterlab/services';
 
 import { interactiveItem, TextItem } from '..';
 
@@ -28,6 +28,7 @@ function KernelStatusComponent(
       onClick={props.handleClick}
       source={`${props.kernelName}${statusText}`}
       title={`Change kernel for ${props.activityName}`}
+      className={props.classes.join(' ')}
     />
   );
 }
@@ -60,6 +61,11 @@ namespace KernelStatusComponent {
      * The status of the kernel.
      */
     status?: string;
+
+    /**
+     * Style for the status line.
+     */
+    classes: string[];
   }
 }
 
@@ -89,6 +95,7 @@ export class KernelStatus extends VDomRenderer<KernelStatus.Model> {
           kernelName={this.model.kernelName}
           activityName={this.model.activityName}
           handleClick={this._handleClick}
+          classes={this.model.classes}
         />
       );
     }
@@ -132,6 +139,24 @@ export namespace KernelStatus {
       }
       this._activityName = val;
       this.stateChanged.emit(void 0);
+    }
+
+    /**
+     * extra classes to style the component.
+     */
+    get classes(): string[] {
+      let extra_classes = [];
+      if (typeof this.status === 'string') {
+        if (
+          this._CiriticalKernelStatus.includes(this.status as Kernel.Status)
+        ) {
+          extra_classes.push('kernel-status-critical');
+        }
+        if (this.status === 'connecting') {
+          extra_classes.push('waiting-dots');
+        }
+      }
+      return extra_classes;
     }
 
     /**
@@ -196,6 +221,12 @@ export namespace KernelStatus {
     private _kernelName: string = 'No Kernel!';
     private _kernelStatus: string | undefined = '';
     private _sessionContext: ISessionContext | null = null;
+    private _CiriticalKernelStatus: ISessionContext.KernelDisplayStatus[] = [
+      'disconnected',
+      'connecting',
+      'dead',
+      'unknown'
+    ];
   }
 
   /**

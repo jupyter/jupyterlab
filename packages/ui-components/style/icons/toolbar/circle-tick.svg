@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" viewBox="0 0 24 24">
+  <g class="jp-icon3">
+    <circle cx="12" cy="12" r="9"
+            fill="#00b050"
+            stroke="#017d39"
+            stroke-width="2"/>
+
+    <g transform="translate(5.636038969321072 16.949747468305834)">
+      <rect width="6" height="2" rx="0.5"
+            x="-0.17157287525381015"
+            y="-3.82842712474619"
+            fill="white"
+            transform="rotate(45, 2.82842712474619, -2.82842712474619)"/>
+
+      <rect width="12" height="2" rx="0.5"
+            x="1.7781745930520225"
+            y="-5.949747468305833"
+            fill="white"
+            transform="rotate(-45, 7.7781745930520225, -4.949747468305833)"/>
+    </g>
+  </g>
+</svg>

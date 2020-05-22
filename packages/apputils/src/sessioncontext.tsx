@@ -131,6 +131,11 @@ export interface ISessionContext extends IObservableDisposable {
   readonly kernelDisplayName: string;
 
   /**
+   * The connection status of the current kernel.
+   */
+  readonly kernelConnectionStatus: Kernel.ConnectionStatus | undefined;
+
+  /**
    * A sensible status to display
    *
    * #### Notes
@@ -475,6 +480,13 @@ export class SessionContext implements ISessionContext {
       this.specsManager.specs?.kernelspecs[kernel.name]?.display_name ??
       kernel.name
     );
+  }
+
+  /**
+   * The connection status of the current kernel.
+   */
+  get kernelConnectionStatus(): Kernel.ConnectionStatus | undefined {
+    return this.session?.kernel?.connectionStatus;
   }
 
   /**

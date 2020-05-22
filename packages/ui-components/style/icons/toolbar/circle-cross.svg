@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" viewBox="0 0 24 24">
+  <g class="jp-icon3">
+    <circle cx="12" cy="12" r="9"
+            fill="#C00000"
+            stroke="#A30000"
+            stroke-width="2"/>
+
+    <g transform="translate(5 11)">
+        <rect width="14" height="2" rx="0.5"
+            fill="white"
+            transform="rotate(45, 7, 1)"/>
+
+        <rect width="14" height="2" rx="0.5"
+            fill="white"
+            transform="rotate(-45, 7, 1)"/>
+    </g>
+  </g>
+</svg>
