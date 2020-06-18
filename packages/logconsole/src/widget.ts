@@ -98,6 +98,13 @@ class LogConsoleOutputArea extends OutputArea {
   readonly model: LoggerOutputAreaModel;
 
   /**
+   * Customize the default IOutputPrompt instance.
+   */
+  protected createOutputPrompt(): IOutputPrompt {
+    return new LogConsoleOutputPrompt();
+  }
+
+  /**
    * Create an output item with a prompt and actual output
    */
   protected createOutputItem(model: LogOutputModel): Widget | null {
@@ -122,19 +129,6 @@ class LogConsoleOutputArea extends OutputArea {
     future: Kernel.IShellFuture
   ): void {
     return;
-  }
-}
-
-/**
- * Implementation of `IContentFactory` for Output Area
- * which creates custom output prompts.
- */
-class LogConsoleContentFactory extends OutputArea.ContentFactory {
-  /**
-   * Create the output prompt for the widget.
-   */
-  createOutputPrompt(): LogConsoleOutputPrompt {
-    return new LogConsoleOutputPrompt();
   }
 }
 
@@ -421,7 +415,6 @@ export class LogConsolePanel extends StackedPanel {
       if (!this._outputAreas.has(viewId)) {
         const outputArea = new LogConsoleOutputArea({
           rendermime: logger.rendermime,
-          contentFactory: new LogConsoleContentFactory(),
           model: logger.outputAreaModel
         });
         outputArea.id = viewId;

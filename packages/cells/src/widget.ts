@@ -17,14 +17,7 @@ import * as nbformat from '@jupyterlab/nbformat';
 
 import { IObservableMap, IObservableJSON } from '@jupyterlab/observables';
 
-import {
-  OutputArea,
-  SimplifiedOutputArea,
-  IOutputPrompt,
-  OutputPrompt,
-  IStdin,
-  Stdin
-} from '@jupyterlab/outputarea';
+import { OutputArea, SimplifiedOutputArea } from '@jupyterlab/outputarea';
 
 import {
   IRenderMime,
@@ -53,14 +46,9 @@ import { PanelLayout, Panel, Widget } from '@lumino/widgets';
 
 import { InputCollapser, OutputCollapser } from './collapser';
 
-import {
-  CellHeader,
-  CellFooter,
-  ICellHeader,
-  ICellFooter
-} from './headerfooter';
+import { CellHeader, CellFooter } from './headerfooter';
 
-import { InputArea, IInputPrompt, InputPrompt } from './inputarea';
+import { InputArea } from './inputarea';
 
 import {
   IAttachmentsCellModel,
@@ -179,23 +167,23 @@ export class Cell extends Widget {
     super();
     this.addClass(CELL_CLASS);
     const model = (this._model = options.model);
-    const contentFactory = (this.contentFactory =
-      options.contentFactory || Cell.defaultContentFactory);
     this.layout = new PanelLayout();
 
     // Header
-    const header = contentFactory.createCellHeader();
+    const header = new CellHeader();
     header.addClass(CELL_HEADER_CLASS);
     (this.layout as PanelLayout).addWidget(header);
 
     // Input
+    this._editorFactory =
+      options.editorFactory || InputArea.defaultEditorFactory;
     const inputWrapper = (this._inputWrapper = new Panel());
     inputWrapper.addClass(CELL_INPUT_WRAPPER_CLASS);
     const inputCollapser = new InputCollapser();
     inputCollapser.addClass(CELL_INPUT_COLLAPSER_CLASS);
     const input = (this._input = new InputArea({
       model,
-      contentFactory,
+      editorFactory: this.editorFactory,
       updateOnShow: options.updateEditorOnShow
     }));
     input.addClass(CELL_INPUT_AREA_CLASS);
@@ -208,7 +196,7 @@ export class Cell extends Widget {
     });
 
     // Footer
-    const footer = this.contentFactory.createCellFooter();
+    const footer = new CellFooter();
     footer.addClass(CELL_FOOTER_CLASS);
     (this.layout as PanelLayout).addWidget(footer);
 
@@ -238,11 +226,6 @@ export class Cell extends Widget {
   }
 
   /**
-   * The content factory used by the widget.
-   */
-  readonly contentFactory: Cell.IContentFactory;
-
-  /**
    * Get the prompt node used by the cell.
    */
   get promptNode(): HTMLElement {
@@ -252,6 +235,13 @@ export class Cell extends Widget {
       return (this._inputPlaceholder!.node as HTMLElement)
         .firstElementChild as HTMLElement;
     }
+  }
+
+  /**
+   * The readonly editor factory that create code editors
+   */
+  get editorFactory(): CodeEditor.Factory {
+    return this._editorFactory;
   }
 
   /**
@@ -450,7 +440,7 @@ export class Cell extends Widget {
     const constructor = this.constructor as typeof Cell;
     return new constructor({
       model: this.model,
-      contentFactory: this.contentFactory
+      editorFactory: this.editorFactory
     });
   }
 
@@ -536,6 +526,7 @@ export class Cell extends Widget {
   private _inputPlaceholder: InputPlaceholder;
   private _syncCollapse = false;
   private _syncEditable = false;
+  private _editorFactory: CodeEditor.Factory;
 }
 
 /**
@@ -551,10 +542,7 @@ export namespace Cell {
      */
     model: ICellModel;
 
-    /**
-     * The factory object for customizable cell children.
-     */
-    contentFactory?: IContentFactory;
+    editorFactory?: CodeEditor.Factory;
 
     /**
      * The configuration options for the text editor widget.
@@ -566,111 +554,6 @@ export namespace Cell {
      */
     updateEditorOnShow?: boolean;
   }
-
-  /**
-   * The factory object for customizable cell children.
-   *
-   * This is used to allow users of cells to customize child content.
-   *
-   * This inherits from `OutputArea.IContentFactory` to avoid needless nesting and
-   * provide a single factory object for all notebook/cell/outputarea related
-   * widgets.
-   */
-  export interface IContentFactory
-    extends OutputArea.IContentFactory,
-      InputArea.IContentFactory {
-    /**
-     * Create a new cell header for the parent widget.
-     */
-    createCellHeader(): ICellHeader;
-
-    /**
-     * Create a new cell header for the parent widget.
-     */
-    createCellFooter(): ICellFooter;
-  }
-
-  /**
-   * The default implementation of an `IContentFactory`.
-   *
-   * This includes a CodeMirror editor factory to make it easy to use out of the box.
-   */
-  export class ContentFactory implements IContentFactory {
-    /**
-     * Create a content factory for a cell.
-     */
-    constructor(options: ContentFactory.IOptions = {}) {
-      this._editorFactory =
-        options.editorFactory || InputArea.defaultEditorFactory;
-    }
-
-    /**
-     * The readonly editor factory that create code editors
-     */
-    get editorFactory(): CodeEditor.Factory {
-      return this._editorFactory;
-    }
-
-    /**
-     * Create a new cell header for the parent widget.
-     */
-    createCellHeader(): ICellHeader {
-      return new CellHeader();
-    }
-
-    /**
-     * Create a new cell header for the parent widget.
-     */
-    createCellFooter(): ICellFooter {
-      return new CellFooter();
-    }
-
-    /**
-     * Create an input prompt.
-     */
-    createInputPrompt(): IInputPrompt {
-      return new InputPrompt();
-    }
-
-    /**
-     * Create the output prompt for the widget.
-     */
-    createOutputPrompt(): IOutputPrompt {
-      return new OutputPrompt();
-    }
-
-    /**
-     * Create an stdin widget.
-     */
-    createStdin(options: Stdin.IOptions): IStdin {
-      return new Stdin(options);
-    }
-
-    private _editorFactory: CodeEditor.Factory;
-  }
-
-  /**
-   * A namespace for cell content factory.
-   */
-  export namespace ContentFactory {
-    /**
-     * Options for the content factory.
-     */
-    export interface IOptions {
-      /**
-       * The editor factory used by the content factory.
-       *
-       * If this is not passed, a default CodeMirror editor factory
-       * will be used.
-       */
-      editorFactory?: CodeEditor.Factory;
-    }
-  }
-
-  /**
-   * The default content factory for cells.
-   */
-  export const defaultContentFactory = new ContentFactory();
 }
 
 /** ****************************************************************************
@@ -690,7 +573,6 @@ export class CodeCell extends Cell {
 
     // Only save options not handled by parent constructor.
     const rendermime = (this._rendermime = options.rendermime);
-    const contentFactory = this.contentFactory;
     const model = this.model;
 
     // Insert the output before the cell footer.
@@ -700,8 +582,7 @@ export class CodeCell extends Cell {
     outputCollapser.addClass(CELL_OUTPUT_COLLAPSER_CLASS);
     const output = (this._output = new OutputArea({
       model: model.outputs,
-      rendermime,
-      contentFactory: contentFactory
+      rendermime
     }));
     output.addClass(CELL_OUTPUT_AREA_CLASS);
     // Set a CSS if there are no outputs, and connect a signal for future
@@ -912,7 +793,7 @@ export class CodeCell extends Cell {
     const constructor = this.constructor as typeof CodeCell;
     return new constructor({
       model: this.model,
-      contentFactory: this.contentFactory,
+      editorFactory: this.editorFactory,
       rendermime: this._rendermime
     });
   }
@@ -923,7 +804,6 @@ export class CodeCell extends Cell {
   cloneOutputArea(): OutputArea {
     return new SimplifiedOutputArea({
       model: this.model.outputs!,
-      contentFactory: this.contentFactory,
       rendermime: this._rendermime
     });
   }
@@ -1526,7 +1406,7 @@ export class MarkdownCell extends AttachmentsCell {
     const constructor = this.constructor as typeof MarkdownCell;
     return new constructor({
       model: this.model,
-      contentFactory: this.contentFactory,
+      editorFactory: this.editorFactory,
       rendermime: this._rendermime
     });
   }
@@ -1582,7 +1462,7 @@ export class RawCell extends Cell {
     const constructor = this.constructor as typeof RawCell;
     return new constructor({
       model: this.model,
-      contentFactory: this.contentFactory
+      editorFactory: this.editorFactory
     });
   }
 

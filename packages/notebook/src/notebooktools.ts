@@ -458,7 +458,7 @@ export namespace NotebookTools {
         ? (activeCell.promptNode.cloneNode(true) as HTMLElement)
         : undefined;
       const prompt = new Widget({ node: promptNode });
-      const factory = activeCell.contentFactory.editorFactory;
+      const factory = activeCell.editorFactory;
 
       const cellModel = (this._cellModel = activeCell.model);
       cellModel.value.changed.connect(this._onValueChanged, this);

@@ -48,17 +48,17 @@ export class InputArea extends Widget {
     super();
     this.addClass(INPUT_AREA_CLASS);
     const model = (this.model = options.model);
-    const contentFactory = (this.contentFactory =
-      options.contentFactory || InputArea.defaultContentFactory);
 
     // Prompt
-    const prompt = (this._prompt = contentFactory.createInputPrompt());
+    const prompt = (this._prompt = new InputPrompt());
     prompt.addClass(INPUT_AREA_PROMPT_CLASS);
 
     // Editor
+    this._editorFactory =
+      options.editorFactory || InputArea.defaultEditorFactory;
     const editorOptions = {
       model,
-      factory: contentFactory.editorFactory,
+      factory: this.editorFactory,
       updateOnShow: options.updateOnShow
     };
     const editor = (this._editor = new CodeEditorWrapper(editorOptions));
@@ -74,10 +74,9 @@ export class InputArea extends Widget {
    */
   readonly model: ICellModel;
 
-  /**
-   * The content factory used by the widget.
-   */
-  readonly contentFactory: InputArea.IContentFactory;
+  get editorFactory(): CodeEditor.Factory {
+    return this._editorFactory;
+  }
 
   /**
    * Get the CodeEditorWrapper used by the cell.
@@ -147,6 +146,7 @@ export class InputArea extends Widget {
   private _prompt: IInputPrompt;
   private _editor: CodeEditorWrapper;
   private _rendered: Widget;
+  private _editorFactory: CodeEditor.Factory;
 }
 
 /**
@@ -163,85 +163,14 @@ export namespace InputArea {
     model: ICellModel;
 
     /**
-     * The content factory used by the widget to create children.
-     *
-     * Defaults to one that uses CodeMirror.
+     * The editor factory used to create editor instances.
      */
-    contentFactory?: IContentFactory;
+    editorFactory?: CodeEditor.Factory;
 
     /**
      * Whether to send an update request to the editor when it is shown.
      */
     updateOnShow?: boolean;
-  }
-
-  /**
-   * An input area widget content factory.
-   *
-   * The content factory is used to create children in a way
-   * that can be customized.
-   */
-  export interface IContentFactory {
-    /**
-     * The editor factory we need to include in `CodeEditorWratter.IOptions`.
-     *
-     * This is a separate readonly attribute rather than a factory method as we need
-     * to pass it around.
-     */
-    readonly editorFactory: CodeEditor.Factory;
-
-    /**
-     * Create an input prompt.
-     */
-    createInputPrompt(): IInputPrompt;
-  }
-
-  /**
-   * Default implementation of `IContentFactory`.
-   *
-   * This defaults to using an `editorFactory` based on CodeMirror.
-   */
-  export class ContentFactory implements IContentFactory {
-    /**
-     * Construct a `ContentFactory`.
-     */
-    constructor(options: ContentFactory.IOptions = {}) {
-      this._editor = options.editorFactory || defaultEditorFactory;
-    }
-
-    /**
-     * Return the `CodeEditor.Factory` being used.
-     */
-    get editorFactory(): CodeEditor.Factory {
-      return this._editor;
-    }
-
-    /**
-     * Create an input prompt.
-     */
-    createInputPrompt(): IInputPrompt {
-      return new InputPrompt();
-    }
-
-    private _editor: CodeEditor.Factory;
-  }
-
-  /**
-   * A namespace for the input area content factory.
-   */
-  export namespace ContentFactory {
-    /**
-     * Options for the content factory.
-     */
-    export interface IOptions {
-      /**
-       * The editor factory used by the content factory.
-       *
-       * If this is not passed, a default CodeMirror editor factory
-       * will be used.
-       */
-      editorFactory?: CodeEditor.Factory;
-    }
   }
 
   /**
@@ -256,11 +185,6 @@ export namespace InputArea {
    * The default editor factory singleton based on CodeMirror.
    */
   export const defaultEditorFactory: CodeEditor.Factory = _createDefaultEditorFactory();
-
-  /**
-   * The default `ContentFactory` instance.
-   */
-  export const defaultContentFactory = new ContentFactory({});
 }
 
 /** ****************************************************************************

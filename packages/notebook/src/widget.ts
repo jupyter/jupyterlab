@@ -167,8 +167,6 @@ export class StaticNotebook extends Widget {
     this.node.dataset[UNDOER] = 'true';
     this.rendermime = options.rendermime;
     this.layout = new Private.NotebookPanelLayout();
-    this.contentFactory =
-      options.contentFactory || StaticNotebook.defaultContentFactory;
     this.editorConfig =
       options.editorConfig || StaticNotebook.defaultEditorConfig;
     this.notebookConfig =
@@ -192,11 +190,6 @@ export class StaticNotebook extends Widget {
   get modelContentChanged(): ISignal<this, void> {
     return this._modelContentChanged;
   }
-
-  /**
-   * The cell factory used by the widget.
-   */
-  readonly contentFactory: StaticNotebook.IContentFactory;
 
   /**
    * The Rendermime instance used by the widget.
@@ -483,16 +476,14 @@ export class StaticNotebook extends Widget {
    */
   private _createCodeCell(model: ICodeCellModel): CodeCell {
     const rendermime = this.rendermime;
-    const contentFactory = this.contentFactory;
     const editorConfig = this.editorConfig.code;
     const options = {
       editorConfig,
       model,
       rendermime,
-      contentFactory,
       updateEditorOnShow: false
     };
-    const cell = this.contentFactory.createCodeCell(options, this);
+    const cell = new CodeCell(options).initializeState();
     cell.syncCollapse = true;
     cell.syncEditable = true;
     cell.syncScrolled = true;
@@ -504,16 +495,14 @@ export class StaticNotebook extends Widget {
    */
   private _createMarkdownCell(model: IMarkdownCellModel): MarkdownCell {
     const rendermime = this.rendermime;
-    const contentFactory = this.contentFactory;
     const editorConfig = this.editorConfig.markdown;
     const options = {
       editorConfig,
       model,
       rendermime,
-      contentFactory,
       updateEditorOnShow: false
     };
-    const cell = this.contentFactory.createMarkdownCell(options, this);
+    const cell = new MarkdownCell(options).initializeState();
     cell.syncCollapse = true;
     cell.syncEditable = true;
     return cell;
@@ -523,15 +512,13 @@ export class StaticNotebook extends Widget {
    * Create a raw cell widget from a raw cell model.
    */
   private _createRawCell(model: IRawCellModel): RawCell {
-    const contentFactory = this.contentFactory;
     const editorConfig = this.editorConfig.raw;
     const options = {
       editorConfig,
       model,
-      contentFactory,
       updateEditorOnShow: false
     };
-    const cell = this.contentFactory.createRawCell(options, this);
+    const cell = new RawCell(options).initializeState();
     cell.syncCollapse = true;
     cell.syncEditable = true;
     return cell;
@@ -655,11 +642,6 @@ export namespace StaticNotebook {
     languagePreference?: string;
 
     /**
-     * A factory for creating content.
-     */
-    contentFactory?: IContentFactory;
-
-    /**
      * A configuration object for the cell editor settings.
      */
     editorConfig?: IEditorConfig;
@@ -673,37 +655,6 @@ export namespace StaticNotebook {
      * The service used to look up mime types.
      */
     mimeTypeService: IEditorMimeTypeService;
-  }
-
-  /**
-   * A factory for creating notebook content.
-   *
-   * #### Notes
-   * This extends the content factory of the cell itself, which extends the content
-   * factory of the output area and input area. The result is that there is a single
-   * factory for creating all child content of a notebook.
-   */
-  export interface IContentFactory extends Cell.IContentFactory {
-    /**
-     * Create a new code cell widget.
-     */
-    createCodeCell(
-      options: CodeCell.IOptions,
-      parent: StaticNotebook
-    ): CodeCell;
-
-    /**
-     * Create a new markdown cell widget.
-     */
-    createMarkdownCell(
-      options: MarkdownCell.IOptions,
-      parent: StaticNotebook
-    ): MarkdownCell;
-
-    /**
-     * Create a new raw cell widget.
-     */
-    createRawCell(options: RawCell.IOptions, parent: StaticNotebook): RawCell;
   }
 
   /**
@@ -775,75 +726,6 @@ export namespace StaticNotebook {
     defaultCell: 'code',
     recordTiming: false
   };
-
-  /**
-   * The default implementation of an `IContentFactory`.
-   */
-  export class ContentFactory extends Cell.ContentFactory
-    implements IContentFactory {
-    /**
-     * Create a new code cell widget.
-     *
-     * #### Notes
-     * If no cell content factory is passed in with the options, the one on the
-     * notebook content factory is used.
-     */
-    createCodeCell(
-      options: CodeCell.IOptions,
-      parent: StaticNotebook
-    ): CodeCell {
-      if (!options.contentFactory) {
-        options.contentFactory = this;
-      }
-      return new CodeCell(options).initializeState();
-    }
-
-    /**
-     * Create a new markdown cell widget.
-     *
-     * #### Notes
-     * If no cell content factory is passed in with the options, the one on the
-     * notebook content factory is used.
-     */
-    createMarkdownCell(
-      options: MarkdownCell.IOptions,
-      parent: StaticNotebook
-    ): MarkdownCell {
-      if (!options.contentFactory) {
-        options.contentFactory = this;
-      }
-      return new MarkdownCell(options).initializeState();
-    }
-
-    /**
-     * Create a new raw cell widget.
-     *
-     * #### Notes
-     * If no cell content factory is passed in with the options, the one on the
-     * notebook content factory is used.
-     */
-    createRawCell(options: RawCell.IOptions, parent: StaticNotebook): RawCell {
-      if (!options.contentFactory) {
-        options.contentFactory = this;
-      }
-      return new RawCell(options).initializeState();
-    }
-  }
-
-  /**
-   * A namespace for the staic notebook content factory.
-   */
-  export namespace ContentFactory {
-    /**
-     * Options for the content factory.
-     */
-    export interface IOptions extends Cell.ContentFactory.IOptions {}
-  }
-
-  /**
-   * Default content factory for the static notebook widget.
-   */
-  export const defaultContentFactory: IContentFactory = new ContentFactory();
 }
 
 /**
@@ -2158,32 +2040,6 @@ export namespace Notebook {
    * An options object for initializing a notebook widget.
    */
   export interface IOptions extends StaticNotebook.IOptions {}
-
-  /**
-   * The content factory for the notebook widget.
-   */
-  export interface IContentFactory extends StaticNotebook.IContentFactory {}
-
-  /**
-   * The default implementation of a notebook content factory..
-   *
-   * #### Notes
-   * Override methods on this class to customize the default notebook factory
-   * methods that create notebook content.
-   */
-  export class ContentFactory extends StaticNotebook.ContentFactory {}
-
-  /**
-   * A namespace for the notebook content factory.
-   */
-  export namespace ContentFactory {
-    /**
-     * An options object for initializing a notebook content factory.
-     */
-    export interface IOptions extends StaticNotebook.ContentFactory.IOptions {}
-  }
-
-  export const defaultContentFactory: IContentFactory = new ContentFactory();
 }
 
 /**
@@ -2284,15 +2140,10 @@ namespace Private {
    * This defaults the content factory to that in the `Notebook` namespace.
    */
   export function processNotebookOptions(options: Notebook.IOptions) {
-    if (options.contentFactory) {
-      return options;
-    } else {
-      return {
-        rendermime: options.rendermime,
-        languagePreference: options.languagePreference,
-        contentFactory: Notebook.defaultContentFactory,
-        mimeTypeService: options.mimeTypeService
-      };
-    }
+    return {
+      rendermime: options.rendermime,
+      languagePreference: options.languagePreference,
+      mimeTypeService: options.mimeTypeService
+    };
   }
 }

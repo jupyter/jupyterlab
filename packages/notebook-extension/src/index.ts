@@ -283,20 +283,6 @@ const trackerPlugin: JupyterFrontEndPlugin<INotebookTracker> = {
 };
 
 /**
- * The notebook cell factory provider.
- */
-const factory: JupyterFrontEndPlugin<NotebookPanel.IContentFactory> = {
-  id: '@jupyterlab/notebook-extension:factory',
-  provides: NotebookPanel.IContentFactory,
-  requires: [IEditorServices],
-  autoStart: true,
-  activate: (app: JupyterFrontEnd, editorServices: IEditorServices) => {
-    const editorFactory = editorServices.factoryService.newInlineEditor;
-    return new NotebookPanel.ContentFactory({ editorFactory });
-  }
-};
-
-/**
  * The notebook tools extension.
  */
 const tools: JupyterFrontEndPlugin<INotebookTools> = {
@@ -393,11 +379,7 @@ export const notebookTrustItem: JupyterFrontEndPlugin<void> = {
 const widgetFactoryPlugin: JupyterFrontEndPlugin<NotebookWidgetFactory.IFactory> = {
   id: '@jupyterlab/notebook-extension:widget-factory',
   provides: INotebookWidgetFactory,
-  requires: [
-    NotebookPanel.IContentFactory,
-    IEditorServices,
-    IRenderMimeRegistry
-  ],
+  requires: [IEditorServices, IRenderMimeRegistry],
   activate: activateWidgetFactory,
   autoStart: true
 };
@@ -406,7 +388,7 @@ const widgetFactoryPlugin: JupyterFrontEndPlugin<NotebookWidgetFactory.IFactory>
  * Export the plugins as default.
  */
 const plugins: JupyterFrontEndPlugin<any>[] = [
-  factory,
+  // factory,
   trackerPlugin,
   tools,
   commandEditItem,
@@ -508,10 +490,10 @@ function activateNotebookTools(
  */
 function activateWidgetFactory(
   app: JupyterFrontEnd,
-  contentFactory: NotebookPanel.IContentFactory,
   editorServices: IEditorServices,
   rendermime: IRenderMimeRegistry
 ): NotebookWidgetFactory.IFactory {
+  const editorFactory = editorServices.factoryService.newInlineEditor;
   const factory = new NotebookWidgetFactory({
     name: FACTORY,
     fileTypes: ['notebook'],
@@ -520,7 +502,7 @@ function activateWidgetFactory(
     preferKernel: true,
     canStartKernel: true,
     rendermime: rendermime,
-    contentFactory,
+    editorFactory,
     editorConfig: StaticNotebook.defaultEditorConfig,
     notebookConfig: StaticNotebook.defaultNotebookConfig,
     mimeTypeService: editorServices.mimeTypeService

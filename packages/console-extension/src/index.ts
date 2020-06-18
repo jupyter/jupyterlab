@@ -101,7 +101,6 @@ const tracker: JupyterFrontEndPlugin<IConsoleTracker> = {
   id: '@jupyterlab/console-extension:tracker',
   provides: IConsoleTracker,
   requires: [
-    ConsolePanel.IContentFactory,
     IEditorServices,
     ILayoutRestorer,
     IFileBrowserFactory,
@@ -120,23 +119,9 @@ const tracker: JupyterFrontEndPlugin<IConsoleTracker> = {
 };
 
 /**
- * The console widget content factory.
- */
-const factory: JupyterFrontEndPlugin<ConsolePanel.IContentFactory> = {
-  id: '@jupyterlab/console-extension:factory',
-  provides: ConsolePanel.IContentFactory,
-  requires: [IEditorServices],
-  autoStart: true,
-  activate: (app: JupyterFrontEnd, editorServices: IEditorServices) => {
-    const editorFactory = editorServices.factoryService.newInlineEditor;
-    return new ConsolePanel.ContentFactory({ editorFactory });
-  }
-};
-
-/**
  * Export the plugins as the default.
  */
-const plugins: JupyterFrontEndPlugin<any>[] = [factory, tracker, foreign];
+const plugins: JupyterFrontEndPlugin<any>[] = [tracker, foreign];
 export default plugins;
 
 /**
@@ -144,7 +129,6 @@ export default plugins;
  */
 async function activateConsole(
   app: JupyterFrontEnd,
-  contentFactory: ConsolePanel.IContentFactory,
   editorServices: IEditorServices,
   restorer: ILayoutRestorer,
   browserFactory: IFileBrowserFactory,
@@ -258,7 +242,6 @@ async function activateConsole(
 
     const panel = new ConsolePanel({
       manager,
-      contentFactory,
       mimeTypeService: editorServices.mimeTypeService,
       rendermime,
       setBusy: (status && (() => status.setBusy())) ?? undefined,

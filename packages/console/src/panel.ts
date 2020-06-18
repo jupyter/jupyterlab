@@ -16,7 +16,7 @@ import {
 import { ServiceManager } from '@jupyterlab/services';
 import { consoleIcon } from '@jupyterlab/ui-components';
 
-import { Token, UUID } from '@lumino/coreutils';
+import { UUID } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
 import { Panel } from '@lumino/widgets';
@@ -48,8 +48,6 @@ export class ConsolePanel extends MainAreaWidget<Panel> {
       modelFactory,
       sessionContext
     } = options;
-    const contentFactory = (this.contentFactory =
-      options.contentFactory || ConsolePanel.defaultContentFactory);
     const count = Private.count++;
     if (!path) {
       path = `${basePath || ''}/console-${count}-${UUID.uuid4()}`;
@@ -73,11 +71,10 @@ export class ConsolePanel extends MainAreaWidget<Panel> {
     });
     rendermime = rendermime.clone({ resolver });
 
-    this.console = contentFactory.createConsole({
+    this.console = new CodeConsole({
       rendermime,
       sessionContext: sessionContext,
       mimeTypeService,
-      contentFactory,
       modelFactory
     });
     this.content.addWidget(this.console);
@@ -99,11 +96,6 @@ export class ConsolePanel extends MainAreaWidget<Panel> {
     this.title.closable = true;
     this.id = `console-${count}`;
   }
-
-  /**
-   * The content factory used by the console panel.
-   */
-  readonly contentFactory: ConsolePanel.IContentFactory;
 
   /**
    * The console widget used by the panel.
@@ -178,11 +170,6 @@ export namespace ConsolePanel {
     rendermime: IRenderMimeRegistry;
 
     /**
-     * The content factory for the panel.
-     */
-    contentFactory: IContentFactory;
-
-    /**
      * The service manager used by the panel.
      */
     manager: ServiceManager.IManager;
@@ -227,53 +214,6 @@ export namespace ConsolePanel {
      */
     setBusy?: () => IDisposable;
   }
-
-  /**
-   * The console panel renderer.
-   */
-  export interface IContentFactory extends CodeConsole.IContentFactory {
-    /**
-     * Create a new console panel.
-     */
-    createConsole(options: CodeConsole.IOptions): CodeConsole;
-  }
-
-  /**
-   * Default implementation of `IContentFactory`.
-   */
-  export class ContentFactory extends CodeConsole.ContentFactory
-    implements IContentFactory {
-    /**
-     * Create a new console panel.
-     */
-    createConsole(options: CodeConsole.IOptions): CodeConsole {
-      return new CodeConsole(options);
-    }
-  }
-
-  /**
-   * A namespace for the console panel content factory.
-   */
-  export namespace ContentFactory {
-    /**
-     * Options for the code console content factory.
-     */
-    export interface IOptions extends CodeConsole.ContentFactory.IOptions {}
-  }
-
-  /**
-   * A default code console content factory.
-   */
-  export const defaultContentFactory: IContentFactory = new ContentFactory();
-
-  /* tslint:disable */
-  /**
-   * The console renderer token.
-   */
-  export const IContentFactory = new Token<IContentFactory>(
-    '@jupyterlab/console:IContentFactory'
-  );
-  /* tslint:enable */
 }
 
 /**

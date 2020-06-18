@@ -10,6 +10,7 @@ import {
   CodeCell,
   CodeCellModel,
   ICodeCellModel,
+  InputArea,
   isCodeCellModel,
   IRawCellModel,
   RawCell,
@@ -114,8 +115,8 @@ export class CodeConsole extends Widget {
     this._content = new Panel();
     this._input = new Panel();
 
-    this.contentFactory =
-      options.contentFactory || CodeConsole.defaultContentFactory;
+    this.editorFactory =
+      options.editorFactory || InputArea.defaultEditorFactory;
     this.modelFactory = options.modelFactory || CodeConsole.defaultModelFactory;
     this.rendermime = options.rendermime;
     this.sessionContext = options.sessionContext;
@@ -157,14 +158,11 @@ export class CodeConsole extends Widget {
   }
 
   /**
-   * The content factory used by the console.
-   */
-  readonly contentFactory: CodeConsole.IContentFactory;
-
-  /**
    * The model factory for the console widget.
    */
   readonly modelFactory: CodeConsole.IModelFactory;
+
+  readonly editorFactory: CodeEditor.Factory;
 
   /**
    * The rendermime instance used by the console.
@@ -235,7 +233,7 @@ export class CodeConsole extends Widget {
     model.value.text = '...';
     const banner = (this._banner = new RawCell({
       model,
-      contentFactory: this.contentFactory
+      editorFactory: this.editorFactory
     })).initializeState();
     banner.addClass(BANNER_CLASS);
     banner.readOnly = true;
@@ -257,9 +255,8 @@ export class CodeConsole extends Widget {
    * Create a new cell with the built-in factory.
    */
   createCodeCell(): CodeCell {
-    const factory = this.contentFactory;
     const options = this._createCodeCellOptions();
-    const cell = factory.createCodeCell(options);
+    const cell = new CodeCell(options).initializeState();
     cell.readOnly = true;
     cell.model.mimeType = this._mimetype;
     return cell;
@@ -598,9 +595,8 @@ export class CodeConsole extends Widget {
     }
 
     // Create the new prompt cell.
-    const factory = this.contentFactory;
     const options = this._createCodeCellOptions();
-    promptCell = factory.createCodeCell(options);
+    promptCell = new CodeCell(options).initializeState();
     promptCell.model.mimeType = this._mimetype;
     promptCell.addClass(PROMPT_CLASS);
 
@@ -727,11 +723,11 @@ export class CodeConsole extends Widget {
    * Create the options used to initialize a code cell widget.
    */
   private _createCodeCellOptions(): CodeCell.IOptions {
-    const contentFactory = this.contentFactory;
     const modelFactory = this.modelFactory;
     const model = modelFactory.createCodeCell({});
     const rendermime = this.rendermime;
-    return { model, rendermime, contentFactory };
+    const editorFactory = this.editorFactory;
+    return { model, rendermime, editorFactory };
   }
 
   /**
@@ -849,14 +845,14 @@ export namespace CodeConsole {
    */
   export interface IOptions {
     /**
-     * The content factory for the console widget.
-     */
-    contentFactory: IContentFactory;
-
-    /**
      * The model factory for the console widget.
      */
     modelFactory?: IModelFactory;
+
+    /**
+     * The editor factory used to create editor instances.
+     */
+    editorFactory?: CodeEditor.Factory;
 
     /**
      * The mime renderer for the console widget.
@@ -873,70 +869,6 @@ export namespace CodeConsole {
      */
     mimeTypeService: IEditorMimeTypeService;
   }
-
-  /**
-   * A content factory for console children.
-   */
-  export interface IContentFactory extends Cell.IContentFactory {
-    /**
-     * Create a new code cell widget.
-     */
-    createCodeCell(options: CodeCell.IOptions): CodeCell;
-
-    /**
-     * Create a new raw cell widget.
-     */
-    createRawCell(options: RawCell.IOptions): RawCell;
-  }
-
-  /**
-   * Default implementation of `IContentFactory`.
-   */
-  export class ContentFactory extends Cell.ContentFactory
-    implements IContentFactory {
-    /**
-     * Create a new code cell widget.
-     *
-     * #### Notes
-     * If no cell content factory is passed in with the options, the one on the
-     * notebook content factory is used.
-     */
-    createCodeCell(options: CodeCell.IOptions): CodeCell {
-      if (!options.contentFactory) {
-        options.contentFactory = this;
-      }
-      return new CodeCell(options).initializeState();
-    }
-
-    /**
-     * Create a new raw cell widget.
-     *
-     * #### Notes
-     * If no cell content factory is passed in with the options, the one on the
-     * notebook content factory is used.
-     */
-    createRawCell(options: RawCell.IOptions): RawCell {
-      if (!options.contentFactory) {
-        options.contentFactory = this;
-      }
-      return new RawCell(options).initializeState();
-    }
-  }
-
-  /**
-   * A namespace for the code console content factory.
-   */
-  export namespace ContentFactory {
-    /**
-     * An initialize options for `ContentFactory`.
-     */
-    export interface IOptions extends Cell.IContentFactory {}
-  }
-
-  /**
-   * A default content factory for the code console.
-   */
-  export const defaultContentFactory: IContentFactory = new ContentFactory();
 
   /**
    * A model factory for a console widget.

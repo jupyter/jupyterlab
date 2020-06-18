@@ -102,8 +102,6 @@ export class OutputArea extends Widget {
     const model = (this.model = options.model);
     this.addClass(OUTPUT_AREA_CLASS);
     this.rendermime = options.rendermime;
-    this.contentFactory =
-      options.contentFactory || OutputArea.defaultContentFactory;
     this.layout = new PanelLayout();
     for (let i = 0; i < model.length; i++) {
       const output = model.get(i);
@@ -117,11 +115,6 @@ export class OutputArea extends Widget {
    * The model used by the widget.
    */
   readonly model: IOutputAreaModel;
-
-  /**
-   * The content factory used by the widget.
-   */
-  readonly contentFactory: OutputArea.IContentFactory;
 
   /**
    * The rendermime instance used by the widget.
@@ -342,7 +335,6 @@ export class OutputArea extends Widget {
     future: Kernel.IShellFuture
   ): void {
     // Add an output widget to the end.
-    const factory = this.contentFactory;
     const stdinPrompt = msg.content.prompt;
     const password = msg.content.password;
 
@@ -350,11 +342,11 @@ export class OutputArea extends Widget {
     panel.addClass(OUTPUT_AREA_ITEM_CLASS);
     panel.addClass(OUTPUT_AREA_STDIN_ITEM_CLASS);
 
-    const prompt = factory.createOutputPrompt();
+    const prompt = this.createOutputPrompt();
     prompt.addClass(OUTPUT_AREA_PROMPT_CLASS);
     panel.addWidget(prompt);
 
-    const input = factory.createStdin({
+    const input = this.createStdin({
       prompt: stdinPrompt,
       password,
       future
@@ -440,7 +432,7 @@ export class OutputArea extends Widget {
 
     panel.addClass(OUTPUT_AREA_ITEM_CLASS);
 
-    const prompt = this.contentFactory.createOutputPrompt();
+    const prompt = this.createOutputPrompt();
     prompt.executionCount = model.executionCount;
     prompt.addClass(OUTPUT_AREA_PROMPT_CLASS);
     panel.addWidget(prompt);
@@ -448,6 +440,20 @@ export class OutputArea extends Widget {
     output.addClass(OUTPUT_AREA_OUTPUT_CLASS);
     panel.addWidget(output);
     return panel;
+  }
+
+  /**
+   * Create an OutputPrompt instance.
+   */
+  protected createOutputPrompt(): IOutputPrompt {
+    return new OutputPrompt();
+  }
+
+  /**
+   * Create an Stdin widget instance.
+   */
+  protected createStdin(options: Stdin.IOptions): IStdin {
+    return new Stdin(options);
   }
 
   /**
@@ -601,11 +607,6 @@ export namespace OutputArea {
     model: IOutputAreaModel;
 
     /**
-     * The content factory used by the widget to create children.
-     */
-    contentFactory?: IContentFactory;
-
-    /**
      * The rendermime instance used by the widget.
      */
     rendermime: IRenderMimeRegistry;
@@ -656,48 +657,6 @@ export namespace OutputArea {
       return !!metadata['isolated'];
     }
   }
-
-  /**
-   * An output area widget content factory.
-   *
-   * The content factory is used to create children in a way
-   * that can be customized.
-   */
-  export interface IContentFactory {
-    /**
-     * Create an output prompt.
-     */
-    createOutputPrompt(): IOutputPrompt;
-
-    /**
-     * Create an stdin widget.
-     */
-    createStdin(options: Stdin.IOptions): IStdin;
-  }
-
-  /**
-   * The default implementation of `IContentFactory`.
-   */
-  export class ContentFactory implements IContentFactory {
-    /**
-     * Create the output prompt for the widget.
-     */
-    createOutputPrompt(): IOutputPrompt {
-      return new OutputPrompt();
-    }
-
-    /**
-     * Create an stdin widget.
-     */
-    createStdin(options: Stdin.IOptions): IStdin {
-      return new Stdin(options);
-    }
-  }
-
-  /**
-   * The default `ContentFactory` instance.
-   */
-  export const defaultContentFactory = new ContentFactory();
 }
 
 /** ****************************************************************************

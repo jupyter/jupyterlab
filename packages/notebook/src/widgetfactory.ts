@@ -1,7 +1,9 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { IEditorMimeTypeService } from '@jupyterlab/codeeditor';
+import { InputArea } from '@jupyterlab/cells';
+
+import { IEditorMimeTypeService, CodeEditor } from '@jupyterlab/codeeditor';
 
 import { ABCWidgetFactory, DocumentRegistry } from '@jupyterlab/docregistry';
 
@@ -13,7 +15,7 @@ import { INotebookModel } from './model';
 
 import { NotebookPanel } from './panel';
 
-import { StaticNotebook } from './widget';
+import { StaticNotebook, Notebook } from './widget';
 
 import {
   ISessionContextDialogs,
@@ -35,9 +37,9 @@ export class NotebookWidgetFactory extends ABCWidgetFactory<
   constructor(options: NotebookWidgetFactory.IOptions<NotebookPanel>) {
     super(options);
     this.rendermime = options.rendermime;
-    this.contentFactory =
-      options.contentFactory || NotebookPanel.defaultContentFactory;
     this.mimeTypeService = options.mimeTypeService;
+    this.editorFactory =
+      options.editorFactory || InputArea.defaultEditorFactory;
     this._editorConfig =
       options.editorConfig || StaticNotebook.defaultEditorConfig;
     this._notebookConfig =
@@ -51,14 +53,11 @@ export class NotebookWidgetFactory extends ABCWidgetFactory<
   readonly rendermime: IRenderMimeRegistry;
 
   /**
-   * The content factory used by the widget factory.
-   */
-  readonly contentFactory: NotebookPanel.IContentFactory;
-
-  /**
    * The service used to look up mime types.
    */
   readonly mimeTypeService: IEditorMimeTypeService;
+
+  readonly editorFactory: CodeEditor.Factory;
 
   /**
    * A configuration object for cell editor settings.
@@ -94,14 +93,14 @@ export class NotebookWidgetFactory extends ABCWidgetFactory<
       rendermime: source
         ? source.content.rendermime
         : this.rendermime.clone({ resolver: context.urlResolver }),
-      contentFactory: this.contentFactory,
       mimeTypeService: this.mimeTypeService,
       editorConfig: source ? source.content.editorConfig : this._editorConfig,
+      editorFactory: this.editorFactory,
       notebookConfig: source
         ? source.content.notebookConfig
         : this._notebookConfig
     };
-    const content = this.contentFactory.createNotebook(nbOptions);
+    const content = new Notebook(nbOptions);
 
     return new NotebookPanel({ context, content });
   }
@@ -135,11 +134,6 @@ export namespace NotebookWidgetFactory {
     rendermime: IRenderMimeRegistry;
 
     /**
-     * A notebook panel content factory.
-     */
-    contentFactory: NotebookPanel.IContentFactory;
-
-    /**
      * The service used to look up mime types.
      */
     mimeTypeService: IEditorMimeTypeService;
@@ -148,6 +142,11 @@ export namespace NotebookWidgetFactory {
      * The notebook cell editor configuration.
      */
     editorConfig?: StaticNotebook.IEditorConfig;
+
+    /**
+     * The editor factory used to create editor instances.
+     */
+    editorFactory?: CodeEditor.Factory;
 
     /**
      * The notebook configuration.
@@ -165,6 +164,7 @@ export namespace NotebookWidgetFactory {
    */
   export interface IFactory
     extends DocumentRegistry.IWidgetFactory<NotebookPanel, INotebookModel> {
+    editorFactory: CodeEditor.Factory;
     /**
      * A configuration object for cell editor settings.
      */

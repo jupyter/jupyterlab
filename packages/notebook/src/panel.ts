@@ -6,9 +6,6 @@ import { isMarkdownCellModel } from '@jupyterlab/cells';
 import { Kernel, KernelMessage, Session } from '@jupyterlab/services';
 
 import { each } from '@lumino/algorithm';
-
-import { Token } from '@lumino/coreutils';
-
 import {
   ISessionContext,
   Printing,
@@ -263,41 +260,4 @@ export namespace NotebookPanel {
      */
     kernelShutdown: boolean;
   }
-
-  /**
-   * A content factory interface for NotebookPanel.
-   */
-  export interface IContentFactory extends Notebook.IContentFactory {
-    /**
-     * Create a new content area for the panel.
-     */
-    createNotebook(options: Notebook.IOptions): Notebook;
-  }
-
-  /**
-   * The default implementation of an `IContentFactory`.
-   */
-  export class ContentFactory extends Notebook.ContentFactory
-    implements IContentFactory {
-    /**
-     * Create a new content area for the panel.
-     */
-    createNotebook(options: Notebook.IOptions): Notebook {
-      return new Notebook(options);
-    }
-  }
-
-  /**
-   * Default content factory for the notebook panel.
-   */
-  export const defaultContentFactory: ContentFactory = new ContentFactory();
-
-  /* tslint:disable */
-  /**
-   * The notebook renderer token.
-   */
-  export const IContentFactory = new Token<IContentFactory>(
-    '@jupyterlab/notebook:IContentFactory'
-  );
-  /* tslint:enable */
 }
