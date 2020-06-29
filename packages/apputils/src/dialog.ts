@@ -269,10 +269,15 @@ export class Dialog<T> extends Widget {
       'jp-Dialog-content'
     )[0] as HTMLElement;
     if (!content.contains(event.target as HTMLElement)) {
-      event.stopPropagation();
-      event.preventDefault();
-      this.reject();
-      return;
+      for (let button of this._buttons) {
+        // accept false refers to cancel button
+        if (button.accept === false) {
+          event.stopPropagation();
+          event.preventDefault();
+          this.reject();
+          return;
+        }
+      }
     }
     for (const buttonNode of this._buttonNodes) {
       if (buttonNode.contains(event.target as HTMLElement)) {
@@ -291,9 +296,15 @@ export class Dialog<T> extends Widget {
     // Check for escape key
     switch (event.keyCode) {
       case 27: // Escape.
-        event.stopPropagation();
-        event.preventDefault();
-        this.reject();
+        for (let button of this._buttons) {
+          // accept false refers to cancel button
+          if (button.accept === false) {
+            event.stopPropagation();
+            event.preventDefault();
+            this.reject();
+            return;
+          }
+        }
         break;
       case 9: {
         // Tab.
