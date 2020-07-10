@@ -17,10 +17,12 @@ import {
   ICommandPalette,
   InputDialog,
   showErrorMessage,
+  showDialog,
+  Dialog,
   DOMUtils
 } from '@jupyterlab/apputils';
 
-import { PageConfig, PathExt, URLExt } from '@jupyterlab/coreutils';
+import { PageConfig, PathExt, URLExt, Time } from '@jupyterlab/coreutils';
 
 import { IDocumentManager } from '@jupyterlab/docmanager';
 
@@ -57,7 +59,10 @@ import {
   newFolderIcon,
   pasteIcon,
   stopIcon,
-  textEditorIcon
+  textEditorIcon,
+  listingsInfoIcon,
+  classes,
+  LabIcon
 } from '@jupyterlab/ui-components';
 
 import { IIterator, map, reduce, toArray, find } from '@lumino/algorithm';
@@ -66,7 +71,7 @@ import { CommandRegistry } from '@lumino/commands';
 
 import { Message } from '@lumino/messaging';
 
-import { Menu } from '@lumino/widgets';
+import { Menu, Widget } from '@lumino/widgets';
 
 /**
  * The command IDs used by the file browser plugin.
@@ -117,6 +122,8 @@ namespace CommandIDs {
   export const showBrowser = 'filebrowser:activate';
 
   export const shutdown = 'filebrowser:shutdown';
+
+  export const fileInfo = 'filebrowser:fileInfo'
 
   // For main browser only.
   export const toggleBrowser = 'filebrowser:toggle-main';
@@ -844,6 +851,105 @@ function addCommands(
     }
   });
 
+  commands.addCommand(CommandIDs.fileInfo, {
+    execute: () => {
+      const model = tracker.currentWidget?.selectedItems().next();
+      if (!model) {
+        return;
+      }
+      //let title= model.name
+      let size;
+      if (model.size !== null && model.size !== undefined) {
+       size= formatFileSize(model.size, 1, 1024);
+      }
+      
+      
+      const homeIcon = folderIcon.element({
+        tag: 'span',
+        stylesheet: 'breadCrumb'
+      });
+
+      let body = new Widget({ node: document.createElement('div') });
+      const { icon, iconClass} = docManager.registry.getFileTypeForModel(model);
+      body.addClass('jp-file-info-dialog');
+      let bodyHtml = `
+      <div class="jp-info-title"><span class="jp-info-title-icon"></span><span>${model.name}</span></div>
+      <div class="jp-inner-header">File Info</div>
+      <div class="jp-info-dialog-content">
+      <div><label>Location:</label><span><span class="jp-info-folder-icon"></span>/${model.path}</span></div>
+      <div><label>Type:</label><span>${model.type}</span></div>
+      ${size?`<div><label>Size:</label><span>${size}</span></div>`:''}
+      <div><label>Created:</label><span>${Time.format(new Date(model.created), 'YYYY-MM-DD HH:mm:ss')}</span></div>
+      <div><label>Modified:</label><span>${Time.format(new Date(model.last_modified), 'YYYY-MM-DD HH:mm:ss')}</span></div>
+      <div><label>Writable:</label><span>${model.writable}</span></div>
+      </div>
+      ${model.type !== 'directory'?
+      `<div class="jp-inner-header">Launch Activity</div>
+      <div class="jp-info-action-buttons">
+      <span class="jp-info-notebook-editor-icon"></span>
+      <span class="jp-info-text-editor-icon"></span>
+      </div>
+      `:''}
+      `
+      body.node.innerHTML = bodyHtml;
+      const folderIconContainer = DOMUtils.findElement(body.node, 'jp-info-folder-icon');
+      folderIconContainer.innerHTML = homeIcon.innerHTML;
+
+
+      const ITEM_ICON_CLASS = 'jp-info-title-icon';
+      const iconContainer = DOMUtils.findElement(body.node, ITEM_ICON_CLASS);
+
+      // render the file item's icon
+      LabIcon.resolveElement({
+        icon,
+        iconClass: classes(iconClass, 'jp-Icon'),
+        container: iconContainer,
+        className: ITEM_ICON_CLASS,
+        stylesheet: 'launcherSection'
+      });
+
+      const ITEM_ICON_NOTEBOOK_CLASS = 'jp-info-notebook-editor-icon';
+      const iconContainerNotebook = DOMUtils.findElement(body.node, ITEM_ICON_NOTEBOOK_CLASS);
+
+      // render the notebook editor icon
+      LabIcon.resolveElement({
+        icon,
+        iconClass: classes(iconClass, 'jp-Icon'),
+        container: iconContainerNotebook,
+        className: ITEM_ICON_NOTEBOOK_CLASS,
+        stylesheet: 'launcherSection'
+      });
+
+      const ITEM_ICON_TEXT_CLASS = 'jp-info-text-editor-icon';
+      const iconContainerText = DOMUtils.findElement(body.node, ITEM_ICON_TEXT_CLASS);
+
+      // render the text editor item's icon
+      LabIcon.resolveElement({
+        icon,
+        iconClass: classes(iconClass, 'jp-Icon'),
+        container: iconContainerText,
+        className: ITEM_ICON_TEXT_CLASS,
+        stylesheet: 'launcherSection'
+      });
+
+      
+      
+      
+      return showDialog({
+        //title,
+        body,
+        buttons: [
+          Dialog.createButton({
+            label: 'Close',
+            className: 'jp-info-dialog-button jp-mod-reject jp-mod-styled'
+          })
+        ]
+      });
+    },
+    icon: listingsInfoIcon.bindprops({ stylesheet: 'menuItem' }),
+    label: 'File Info'
+  });
+
   if (mainMenu) {
     mainMenu.settingsMenu.addGroup(
       [{ command: CommandIDs.toggleNavigateToCurrentDirectory }],
@@ -1041,6 +1147,12 @@ function addCommands(
     selector: '.jp-DirListing-header',
     rank: 14
   });
+
+  app.contextMenu.addItem({
+    command: CommandIDs.fileInfo,
+    selector: selectorItem,
+    rank: 15
+  });
 }
 
 /**
@@ -1166,3 +1278,25 @@ namespace Private {
     router.routed.connect(listener);
   }
 }
+
+/**
+   * Format bytes to human readable string.
+   */
+  export function formatFileSize(
+    bytes: number,
+    decimalPoint: number,
+    k: number
+  ): string {
+    // https://www.codexworld.com/how-to/convert-file-size-bytes-kb-mb-gb-javascript/
+    if (bytes === 0) {
+      return '0 Bytes';
+    }
+    const dm = decimalPoint || 2;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    if (i >= 0 && i < sizes.length) {
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    } else {
+      return String(bytes);
+    }
+  }

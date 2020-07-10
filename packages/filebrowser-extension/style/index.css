@@ -8,3 +8,47 @@
 #filebrowser.jp-mod-restoring .jp-DirListing-content {
   display: none;
 }
+
+.jp-file-info-dialog {
+  line-height: 2em;
+}
+
+.jp-file-info-dialog .jp-inner-header {
+  font-size: var(--jp-ui-font-size2);
+  font-weight: 400;
+  color: #000;
+  margin-top: 5px;
+}
+
+.jp-file-info-dialog label,
+.jp-file-info-dialog span {
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-file-info-dialog label {
+  padding-right: 5px;
+}
+
+.jp-file-info-dialog .jp-info-dialog-content .jp-info-folder-icon {
+  float: left;
+  line-height: inherit;
+  padding-top: 3px;
+  height: 10px;
+}
+
+.jp-file-info-dialog .jp-info-dialog-content span {
+  float: right;
+}
+
+.jp-info-title span {
+  float: left;
+  font-size: var(--jp-ui-font-size3);
+}
+
+.jp-info-action-buttons {
+  display: flex;
+}
+
+.jp-info-action-buttons span {
+  margin-right: 5px;
+}
