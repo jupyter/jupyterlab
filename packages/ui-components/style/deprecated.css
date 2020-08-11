@@ -43,6 +43,7 @@
   --jp-icon-folder: url('icons/filetype/folder.svg');
   --jp-icon-html5: url('icons/filetype/html5.svg');
   --jp-icon-image: url('icons/filetype/image.svg');
+  --jp-icon-info: url('icons/toolbar/info.svg');
   --jp-icon-inspector: url('icons/filetype/inspector.svg');
   --jp-icon-json: url('icons/filetype/json.svg');
   --jp-icon-jupyter-favicon: url('icons/jupyter/jupyter-favicon.svg');
@@ -180,6 +181,9 @@
 }
 .jp-ImageIcon {
   background-image: var(--jp-icon-image);
+}
+.jp-InfoIcon {
+  background-image: var(--jp-icon-info);
 }
 .jp-InspectorIcon {
   background-image: var(--jp-icon-inspector);

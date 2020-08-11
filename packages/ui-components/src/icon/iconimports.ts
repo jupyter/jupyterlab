@@ -39,6 +39,7 @@ import filterListSvgstr from '../../style/icons/toolbar/filter-list.svg';
 import folderSvgstr from '../../style/icons/filetype/folder.svg';
 import html5Svgstr from '../../style/icons/filetype/html5.svg';
 import imageSvgstr from '../../style/icons/filetype/image.svg';
+import infoSvgstr from '../../style/icons/toolbar/info.svg';
 import inspectorSvgstr from '../../style/icons/filetype/inspector.svg';
 import jsonSvgstr from '../../style/icons/filetype/json.svg';
 import jupyterFaviconSvgstr from '../../style/icons/jupyter/jupyter-favicon.svg';
@@ -113,6 +114,7 @@ export const filterListIcon = new LabIcon({ name: 'ui-components:filter-list', s
 export const folderIcon = new LabIcon({ name: 'ui-components:folder', svgstr: folderSvgstr });
 export const html5Icon = new LabIcon({ name: 'ui-components:html5', svgstr: html5Svgstr });
 export const imageIcon = new LabIcon({ name: 'ui-components:image', svgstr: imageSvgstr });
+export const infoIcon = new LabIcon({ name: 'ui-components:info', svgstr: infoSvgstr });
 export const inspectorIcon = new LabIcon({ name: 'ui-components:inspector', svgstr: inspectorSvgstr });
 export const jsonIcon = new LabIcon({ name: 'ui-components:json', svgstr: jsonSvgstr });
 export const jupyterFaviconIcon = new LabIcon({ name: 'ui-components:jupyter-favicon', svgstr: jupyterFaviconSvgstr });

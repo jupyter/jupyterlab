@@ -8,6 +8,7 @@ import {
   circleIcon,
   classes,
   LabIcon,
+  infoIcon,
   refreshIcon,
   stopIcon
 } from '@jupyterlab/ui-components';
@@ -439,6 +440,21 @@ export namespace Toolbar {
   ): Widget {
     return new Private.KernelStatus(sessionContext);
   }
+
+  /**
+   * Create a kernel info item.
+   */
+  export function createKernelInfoItem(
+    sessionContext: ISessionContext,
+    dialogs?: ISessionContext.IDialogs
+  ): Widget {
+    return ReactWidget.create(
+      <Private.KernelInfoComponent
+        sessionContext={sessionContext}
+        dialogs={dialogs ?? sessionContextDialogs}
+      />
+    );
+  }
 }
 
 /**
@@ -703,7 +719,6 @@ namespace Private {
    * This wraps the ToolbarButtonComponent and watches the kernel
    * session for changes.
    */
-
   export function KernelNameComponent(props: KernelNameComponent.IProps) {
     const callback = () => {
       void props.dialogs.selectKernel(props.sessionContext);
@@ -783,5 +798,32 @@ namespace Private {
         status === 'initializing'
       );
     }
+  }
+
+  /**
+   * React component for a kernel info button.
+   */
+  export function KernelInfoComponent(props: {
+    sessionContext: ISessionContext;
+    dialogs: ISessionContext.IDialogs;
+  }) {
+    const onClick = () => {
+      void props.dialogs.kernelInfo(props.sessionContext);
+    };
+    return (
+      <UseSignal
+        signal={props.sessionContext.kernelChanged}
+        initialSender={props.sessionContext}
+      >
+        {sessionContext => (
+          <ToolbarButtonComponent
+            enabled={!!sessionContext?.session?.kernel}
+            icon={infoIcon}
+            onClick={onClick}
+            tooltip={'Show Kernel Info'}
+          />
+        )}
+      </UseSignal>
+    );
   }
 }
