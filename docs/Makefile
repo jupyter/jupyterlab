@@ -2,7 +2,7 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    = -W --keep-going
+SPHINXOPTS    = --keep-going
 SPHINXBUILD   = python -msphinx
 SPHINXPROJ    = JupyterLab
 SOURCEDIR     = source

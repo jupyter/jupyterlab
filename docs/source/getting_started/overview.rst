@@ -1,9 +1,18 @@
 .. _overview:
 
-Overview
---------
+Getting Started
+---------------
 
 JupyterLab is a next-generation web-based user interface for Project Jupyter.
+
+.. toctree::
+   :hidden:
+
+   installation
+   starting
+   issue
+   faq
+   changelog
 
 .. image:: ../user/images/interface_jupyterlab.png
    :align: center

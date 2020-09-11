@@ -1,12 +1,29 @@
 .. _interface:
 
-The JupyterLab Interface
-------------------------
+User Guide
+----------
 
 JupyterLab provides flexible building blocks for interactive,
 exploratory computing. While JupyterLab has many features found in
 traditional integrated development environments (IDEs), it remains
 focused on interactive, exploratory computing.
+
+.. toctree::
+   :hidden:
+
+   urls
+   files
+   file_editor
+   notebook
+   code_console
+   terminal
+   running
+   commands
+   documents_kernels
+   file_formats
+   extensions
+   jupyterhub
+   export
 
 The JupyterLab interface consists of a :ref:`main work area <main-area>`
 containing tabs of documents and activities, a collapsible :ref:`left sidebar

@@ -1,10 +1,28 @@
 .. _developer-guide:
 
-General Codebase Orientation
-----------------------------
+Developer Guide
+---------------
 
 The ``jupyterlab`` repository is a monorepo: it contains code for many
 packages that are versioned and published independently.
+
+.. toctree::
+   :hidden:
+
+   extension_dev
+   extension_points
+   contributing
+   components
+   ui_components
+   documents
+   notebook
+   patterns
+   css
+   virtualdom
+   ui_helpers
+   terminology
+   extension_tutorial
+   extension_migration
 
 In particular, there are many TypeScript packages and a single Python package.
 The Python package contains server-side code, and also distributes
@@ -122,5 +140,5 @@ A small ``npm`` package which is aids in running the tests in ``tests/``.
 TypeDoc Theming: ``typedoc-theme``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A small theme used to help render our 
-`TypeDoc <http://jupyterlab.github.io/jupyterlab/index.html>`__ documentation. 
+A small theme used to help render our
+`TypeDoc <http://jupyterlab.github.io/jupyterlab/index.html>`__ documentation.

@@ -1,6 +1,6 @@
 sphinx>=1.8
 sphinx-copybutton
-sphinx_rtd_theme
+pydata-sphinx-theme
 recommonmark
 pytest
 pytest-check-links[cache]>=0.4.3
