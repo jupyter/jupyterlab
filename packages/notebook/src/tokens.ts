@@ -100,6 +100,12 @@ export interface INotebookTracker extends IWidgetTracker<NotebookPanel> {
   readonly activeCellChanged: ISignal<this, Cell | null>;
 
   /**
+   * A signal emitted when a new cell is created.
+   *
+   */
+  readonly newCellCreated: ISignal<this, Cell | null>;
+
+  /**
    * A signal emitted when the selection state changes.
    */
   readonly selectionChanged: ISignal<this, void>;

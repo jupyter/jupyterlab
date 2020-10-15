@@ -45,6 +45,24 @@
       "title": "Ctrl-C",
       "description": "When enabled, which is the default, doing copy or cut when there is no selection will copy or cut the whole lines that have cursors on them.",
       "default": true
+    },
+    "toggleComment": {
+      "type": "string",
+      "title": "Block Comment",
+      "description": "Key command for block comment",
+      "default": "Ctrl-/"
+    },
+    "toggleCommentMac": {
+      "type": "string",
+      "title": "Block Comment on MacOS keyboard",
+      "description": "Key command for block comment with MacOS",
+      "default": "Cmd-/"
+    },
+    "vim:CtrlC-to-copy": {
+      "type": "boolean",
+      "title": "Ctrl-C Copies in Vim mode",
+      "description": "If true disable the default vim action for Ctrl-C to allow copying using the keyboard.",
+      "default": true
     }
   },
   "type": "object"

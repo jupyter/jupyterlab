@@ -39,6 +39,13 @@ export class NotebookTracker
   }
 
   /**
+   * A signal emitted when a new cell is created.
+   */
+  get newCellCreated(): ISignal<this, Cell | null> {
+    return this._newCellCreated;
+  }
+
+  /**
    * A signal emitted when the selection state changes.
    */
   get selectionChanged(): ISignal<this, void> {
@@ -53,6 +60,7 @@ export class NotebookTracker
   add(panel: NotebookPanel): Promise<void> {
     const promise = super.add(panel);
     panel.content.activeCellChanged.connect(this._onActiveCellChanged, this);
+    panel.content.newCellCreated.connect(this._onNewCellCreated, this);
     panel.content.selectionChanged.connect(this._onSelectionChanged, this);
     return promise;
   }
@@ -92,6 +100,14 @@ export class NotebookTracker
     }
   }
 
+  private _onNewCellCreated(sender: Notebook, cell: Cell): void {
+    // Check if the new cell creation change happened for the current notebook.
+    if (this.currentWidget && this.currentWidget.content === sender) {
+      this._activeCell = cell || null;
+      this._newCellCreated.emit(cell);
+    }
+  }
+
   private _onSelectionChanged(sender: Notebook): void {
     // Check if the selection change happened for the current notebook.
     if (this.currentWidget && this.currentWidget.content === sender) {
@@ -101,5 +117,6 @@ export class NotebookTracker
 
   private _activeCell: Cell | null = null;
   private _activeCellChanged = new Signal<this, Cell | null>(this);
+  private _newCellCreated = new Signal<this, Cell | null>(this);
   private _selectionChanged = new Signal<this, void>(this);
 }

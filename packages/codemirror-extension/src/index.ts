@@ -13,6 +13,8 @@ import {
 
 import { IEditMenu, IMainMenu } from '@jupyterlab/mainmenu';
 
+import { setupKeymap } from './keymaps';
+
 import { IEditorServices } from '@jupyterlab/codeeditor';
 
 import {
@@ -23,9 +25,13 @@ import {
   ICodeMirror
 } from '@jupyterlab/codemirror';
 
+import { IDisposable } from '@lumino/disposable';
+
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 
 import { IEditorTracker, FileEditor } from '@jupyterlab/fileeditor';
+
+import { INotebookTracker } from '@jupyterlab/notebook';
 
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
@@ -69,7 +75,7 @@ const services: JupyterFrontEndPlugin<IEditorServices> = {
  */
 const commands: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlab/codemirror-extension:commands',
-  requires: [IEditorTracker, ISettingRegistry, ITranslator],
+  requires: [IEditorTracker, INotebookTracker, ISettingRegistry, ITranslator],
   optional: [IMainMenu],
   activate: activateEditorCommands,
   autoStart: true
@@ -165,7 +171,8 @@ function activateCodeMirror(app: JupyterFrontEnd): ICodeMirror {
  */
 function activateEditorCommands(
   app: JupyterFrontEnd,
-  tracker: IEditorTracker,
+  fileEditorTracker: IEditorTracker,
+  notebookTracker: INotebookTracker,
   settingRegistry: ISettingRegistry,
   translator: ITranslator,
   mainMenu: IMainMenu | null
@@ -181,6 +188,12 @@ function activateEditorCommands(
     selectionPointer,
     lineWiseCopyCut
   } = CodeMirrorEditor.defaultConfig;
+  commands;
+
+  let toggleComment = 'Ctrl-/';
+  let toggleCommentMac = 'Cmd-/';
+  let vimDisableCtrlC = true;
+  let removeKeymaps: IDisposable[] = [];
 
   /**
    * Update the setting values.
@@ -189,15 +202,13 @@ function activateEditorCommands(
     settings: ISettingRegistry.ISettings
   ): Promise<void> {
     keyMap = (settings.get('keyMap').composite as string | null) || keyMap;
-
-    // Lazy loading of vim mode
-    if (keyMap === 'vim') {
-      // @ts-expect-error
-      await import('codemirror/keymap/vim.js');
-    }
-
+    removeKeymaps = await setupKeymap(
+      keyMap,
+      commands,
+      notebookTracker,
+      removeKeymaps
+    );
     theme = (settings.get('theme').composite as string | null) || theme;
-
     // Lazy loading of theme stylesheets
     if (theme !== 'jupyter' && theme !== 'default') {
       const filename =
@@ -223,23 +234,69 @@ function activateEditorCommands(
       selectionPointer;
     lineWiseCopyCut =
       (settings.get('lineWiseCopyCut').composite as boolean) ?? lineWiseCopyCut;
+    toggleComment =
+      (settings.get('toggleComment').composite as string) ?? toggleComment;
+    toggleCommentMac =
+      (settings.get('toggleCommentMac').composite as string) ??
+      toggleCommentMac;
+    vimDisableCtrlC =
+      (settings.get('vim:CtrlC-to-copy').composite as boolean) ??
+      vimDisableCtrlC;
+  }
+
+  /**
+   * Set the settings of an editor instance
+   */
+  function setEditorOptions(editor: CodeMirrorEditor) {
+    editor.setOption('keyMap', keyMap);
+    editor.setOption('theme', theme);
+    editor.setOption('lineWiseCopyCut', lineWiseCopyCut);
+    editor.setOption('selectionPointer', selectionPointer);
+    editor.setOption('styleActiveLine', styleActiveLine);
+    editor.setOption('styleSelectedText', styleSelectedText);
+    const extraKeys = editor.getOption('extraKeys') || {};
+    extraKeys[toggleComment] = 'toggleComment';
+    extraKeys[toggleCommentMac] = 'toggleComment';
+    if (vimDisableCtrlC && keyMap === 'vim') {
+      extraKeys['Ctrl-C'] = false;
+    }
+    editor.setOption('extraKeys', extraKeys);
   }
 
   /**
    * Update the settings of the current tracker instances.
    */
-  function updateTracker(): void {
-    tracker.forEach(widget => {
+  function updateFileEditorTracker(): void {
+    fileEditorTracker.forEach(widget => {
       if (widget.content.editor instanceof CodeMirrorEditor) {
-        const { editor } = widget.content;
-        editor.setOption('keyMap', keyMap);
-        editor.setOption('lineWiseCopyCut', lineWiseCopyCut);
+        const editor = widget.content.editor;
+        setEditorOptions(editor);
         editor.setOption('scrollPastEnd', scrollPastEnd);
-        editor.setOption('selectionPointer', selectionPointer);
-        editor.setOption('styleActiveLine', styleActiveLine);
-        editor.setOption('styleSelectedText', styleSelectedText);
-        editor.setOption('theme', theme);
       }
+    });
+  }
+
+  /**
+   * Handle the settings of FileEditors
+   */
+  fileEditorTracker.widgetAdded.connect((sender, widget) => {
+    if (widget.content.editor instanceof CodeMirrorEditor) {
+      const editor = widget.content.editor;
+      setEditorOptions(editor);
+      editor.setOption('scrollPastEnd', scrollPastEnd);
+    }
+  });
+
+  /**
+   * Update the settings of the current Notebook instances
+   */
+  function updateNotebookTracker(): void {
+    notebookTracker.forEach(widget => {
+      widget.content.widgets.forEach(cell => {
+        if (cell.inputArea.editor instanceof CodeMirrorEditor) {
+          setEditorOptions(cell.inputArea.editor);
+        }
+      });
     });
   }
 
@@ -247,40 +304,39 @@ function activateEditorCommands(
   Promise.all([settingRegistry.load(id), restored])
     .then(async ([settings]) => {
       await updateSettings(settings);
-      updateTracker();
+      updateFileEditorTracker();
+      updateNotebookTracker();
       settings.changed.connect(async () => {
         await updateSettings(settings);
-        updateTracker();
+        updateFileEditorTracker();
+        updateNotebookTracker();
+      });
+      // connect to signal here to ensure vim keymap has
+      // been imported in case we need it
+      /**
+       * Handle settings of Notebook cells
+       */
+      notebookTracker.newCellCreated.connect((sender, cell) => {
+        if (cell?.inputArea.editor instanceof CodeMirrorEditor) {
+          setEditorOptions(cell.inputArea.editor);
+        }
       });
     })
     .catch((reason: Error) => {
       console.error(reason.message);
-      updateTracker();
+      updateFileEditorTracker();
+      updateNotebookTracker();
     });
-
-  /**
-   * Handle the settings of new widgets.
-   */
-  tracker.widgetAdded.connect((sender, widget) => {
-    if (widget.content.editor instanceof CodeMirrorEditor) {
-      const { editor } = widget.content;
-      editor.setOption('keyMap', keyMap);
-      editor.setOption('lineWiseCopyCut', lineWiseCopyCut);
-      editor.setOption('selectionPointer', selectionPointer);
-      editor.setOption('scrollPastEnd', scrollPastEnd);
-      editor.setOption('styleActiveLine', styleActiveLine);
-      editor.setOption('styleSelectedText', styleSelectedText);
-      editor.setOption('theme', theme);
-    }
-  });
 
   /**
    * A test for whether the tracker has an active widget.
    */
   function isEnabled(): boolean {
     return (
-      tracker.currentWidget !== null &&
-      tracker.currentWidget === app.shell.currentWidget
+      (fileEditorTracker.currentWidget !== null &&
+        fileEditorTracker.currentWidget === app.shell.currentWidget) ||
+      (notebookTracker.currentWidget !== null &&
+        notebookTracker.currentWidget === app.shell.currentWidget)
     );
   }
 
@@ -334,7 +390,7 @@ function activateEditorCommands(
   commands.addCommand(CommandIDs.find, {
     label: trans.__('Find...'),
     execute: () => {
-      const widget = tracker.currentWidget;
+      const widget = fileEditorTracker.currentWidget;
       if (!widget) {
         return;
       }
@@ -347,7 +403,7 @@ function activateEditorCommands(
   commands.addCommand(CommandIDs.goToLine, {
     label: trans.__('Go to Line...'),
     execute: () => {
-      const widget = tracker.currentWidget;
+      const widget = fileEditorTracker.currentWidget;
       if (!widget) {
         return;
       }
@@ -361,7 +417,7 @@ function activateEditorCommands(
     label: args => args['name'] as string,
     execute: args => {
       const name = args['name'] as string;
-      const widget = tracker.currentWidget;
+      const widget = fileEditorTracker.currentWidget;
       if (name && widget) {
         const spec = Mode.findByName(name);
         if (spec) {
@@ -371,7 +427,7 @@ function activateEditorCommands(
     },
     isEnabled,
     isToggled: args => {
-      const widget = tracker.currentWidget;
+      const widget = fileEditorTracker.currentWidget;
       if (!widget) {
         return false;
       }
@@ -451,7 +507,7 @@ function activateEditorCommands(
 
     // Add go to line capabilities to the edit menu.
     mainMenu.editMenu.goToLiners.add({
-      tracker,
+      tracker: fileEditorTracker,
       goToLine: (widget: IDocumentWidget<FileEditor>) => {
         const editor = widget.content.editor as CodeMirrorEditor;
         editor.execCommand('jumpToLine');

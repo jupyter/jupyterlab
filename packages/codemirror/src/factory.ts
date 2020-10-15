@@ -26,9 +26,7 @@ export class CodeMirrorEditorFactory implements IEditorFactoryService {
         End: 'goLineRight',
         'Cmd-Left': 'goLineLeft',
         Tab: 'indentMoreOrinsertTab',
-        'Shift-Tab': 'indentLess',
-        'Cmd-/': 'toggleComment',
-        'Ctrl-/': 'toggleComment'
+        'Shift-Tab': 'indentLess'
       },
       ...defaults
     };
@@ -37,8 +35,6 @@ export class CodeMirrorEditorFactory implements IEditorFactoryService {
       extraKeys: {
         Tab: 'indentMoreOrinsertTab',
         'Shift-Tab': 'indentLess',
-        'Cmd-/': 'toggleComment',
-        'Ctrl-/': 'toggleComment',
         'Shift-Enter': () => {
           /* no-op */
         }
