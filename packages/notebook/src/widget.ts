@@ -875,6 +875,13 @@ export class Notebook extends StaticNotebook {
   }
 
   /**
+   * A signal emitted when a new cell is created
+   */
+  get newCellCreated(): ISignal<this, Cell> {
+    return this._newCellCreated;
+  }
+
+  /**
    * A signal emitted when the state of the notebook changes.
    */
   get stateChanged(): ISignal<this, IChangedArgs<any>> {
@@ -1482,6 +1489,7 @@ export class Notebook extends StaticNotebook {
       index <= this.activeCellIndex
         ? this.activeCellIndex + 1
         : this.activeCellIndex;
+    this._newCellCreated.emit(cell);
   }
 
   /**
@@ -2160,6 +2168,7 @@ export class Notebook extends StaticNotebook {
   } | null = null;
   private _mouseMode: 'select' | 'couldDrag' | null = null;
   private _activeCellChanged = new Signal<this, Cell>(this);
+  private _newCellCreated = new Signal<this, Cell>(this);
   private _stateChanged = new Signal<this, IChangedArgs<any>>(this);
   private _selectionChanged = new Signal<this, void>(this);
 

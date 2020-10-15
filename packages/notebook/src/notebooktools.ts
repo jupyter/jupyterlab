@@ -98,9 +98,11 @@ export class NotebookTools extends Widget implements INotebookTools {
       this
     );
     this._tracker.activeCellChanged.connect(this._onActiveCellChanged, this);
+    this._tracker.newCellCreated.connect(this._onNewCellCreated, this);
     this._tracker.selectionChanged.connect(this._onSelectionChanged, this);
     this._onActiveNotebookPanelChanged();
     this._onActiveCellChanged();
+    this._onNewCellCreated();
     this._onSelectionChanged();
   }
 
@@ -204,6 +206,15 @@ export class NotebookTools extends Widget implements INotebookTools {
     }
     each(this._toolChildren(), widget => {
       MessageLoop.sendMessage(widget, NotebookTools.ActiveCellMessage);
+    });
+  }
+
+  /**
+   * Handle the creation of a new cell
+   */
+  private _onNewCellCreated(): void {
+    each(this._toolChildren(), widget => {
+      MessageLoop.sendMessage(widget, NotebookTools.NewCellMessage);
     });
   }
 
@@ -322,6 +333,11 @@ export namespace NotebookTools {
    * A singleton conflatable `'activecell-changed'` message.
    */
   export const ActiveCellMessage = new ConflatableMessage('activecell-changed');
+
+  /**
+   * A singleton conflatable `'new-cell-created'` message.
+   */
+  export const NewCellMessage = new ConflatableMessage('new-cell-created');
 
   /**
    * A singleton conflatable `'selection-changed'` message.

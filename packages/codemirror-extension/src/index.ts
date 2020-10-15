@@ -27,6 +27,8 @@ import { IDocumentWidget } from '@jupyterlab/docregistry';
 
 import { IEditorTracker, FileEditor } from '@jupyterlab/fileeditor';
 
+import { INotebookTracker } from '@jupyterlab/notebook';
+
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { IStatusBar } from '@jupyterlab/statusbar';
@@ -69,7 +71,7 @@ const services: JupyterFrontEndPlugin<IEditorServices> = {
  */
 const commands: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlab/codemirror-extension:commands',
-  requires: [IEditorTracker, ISettingRegistry, ITranslator],
+  requires: [IEditorTracker, INotebookTracker, ISettingRegistry, ITranslator],
   optional: [IMainMenu],
   activate: activateEditorCommands,
   autoStart: true
@@ -165,7 +167,8 @@ function activateCodeMirror(app: JupyterFrontEnd): ICodeMirror {
  */
 function activateEditorCommands(
   app: JupyterFrontEnd,
-  tracker: IEditorTracker,
+  fileEditorTracker: IEditorTracker,
+  notebookTracker: INotebookTracker,
   settingRegistry: ISettingRegistry,
   translator: ITranslator,
   mainMenu: IMainMenu | null
@@ -182,6 +185,9 @@ function activateEditorCommands(
     lineWiseCopyCut
   } = CodeMirrorEditor.defaultConfig;
 
+  let toggleComment = 'Accel-/';
+  let indent = 'Tab';
+  let deindent = 'Shift-Tab';
   /**
    * Update the setting values.
    */
@@ -223,13 +229,27 @@ function activateEditorCommands(
       selectionPointer;
     lineWiseCopyCut =
       (settings.get('lineWiseCopyCut').composite as boolean) ?? lineWiseCopyCut;
+    toggleComment =
+      (settings.get('toggleComment').composite as string) ?? toggleComment;
+    indent = (settings.get('indent').composite as string) ?? indent;
+    deindent = (settings.get('deindent').composite as string) ?? deindent;
   }
 
   /**
+   * Set the codemirror extraKeys options for an editor
+   */
+  function updateExtraKeys(editor: CodeMirrorEditor) {
+    let extraKeys = editor.getOption('extraKeys') as any;
+    extraKeys[toggleComment] = 'toggleComment';
+    extraKeys[indent] = 'indentMoreOrinsertTab';
+    extraKeys[deindent] = 'indentLess';
+    editor.setOption('extraKeys', extraKeys);
+  }
+  /**
    * Update the settings of the current tracker instances.
    */
-  function updateTracker(): void {
-    tracker.forEach(widget => {
+  function updateFileEditorTracker(): void {
+    fileEditorTracker.forEach(widget => {
       if (widget.content.editor instanceof CodeMirrorEditor) {
         const { editor } = widget.content;
         editor.setOption('keyMap', keyMap);
@@ -239,7 +259,21 @@ function activateEditorCommands(
         editor.setOption('styleActiveLine', styleActiveLine);
         editor.setOption('styleSelectedText', styleSelectedText);
         editor.setOption('theme', theme);
+        updateExtraKeys(editor);
       }
+    });
+  }
+
+  /**
+   * Update the settings of the current notebook tracker instances.
+   */
+  function updateNotebookTracker(): void {
+    notebookTracker.forEach(widget => {
+      widget.content.widgets.forEach(cell => {
+        if (cell.inputArea.editor instanceof CodeMirrorEditor) {
+          updateExtraKeys(cell.inputArea.editor);
+        }
+      });
     });
   }
 
@@ -247,21 +281,24 @@ function activateEditorCommands(
   Promise.all([settingRegistry.load(id), restored])
     .then(async ([settings]) => {
       await updateSettings(settings);
-      updateTracker();
+      updateFileEditorTracker();
+      updateNotebookTracker();
       settings.changed.connect(async () => {
         await updateSettings(settings);
-        updateTracker();
+        updateFileEditorTracker();
+        updateNotebookTracker();
       });
     })
     .catch((reason: Error) => {
       console.error(reason.message);
-      updateTracker();
+      updateFileEditorTracker();
+      updateNotebookTracker();
     });
 
   /**
    * Handle the settings of new widgets.
    */
-  tracker.widgetAdded.connect((sender, widget) => {
+  fileEditorTracker.widgetAdded.connect((sender, widget) => {
     if (widget.content.editor instanceof CodeMirrorEditor) {
       const { editor } = widget.content;
       editor.setOption('keyMap', keyMap);
@@ -271,6 +308,16 @@ function activateEditorCommands(
       editor.setOption('styleActiveLine', styleActiveLine);
       editor.setOption('styleSelectedText', styleSelectedText);
       editor.setOption('theme', theme);
+      updateExtraKeys(editor);
+    }
+  });
+
+  /**
+   * Handle the settings of new Cells
+   */
+  notebookTracker.newCellCreated.connect((sender, cell) => {
+    if (cell?.inputArea.editor instanceof CodeMirrorEditor) {
+      updateExtraKeys(cell.inputArea.editor);
     }
   });
 
@@ -279,8 +326,10 @@ function activateEditorCommands(
    */
   function isEnabled(): boolean {
     return (
-      tracker.currentWidget !== null &&
-      tracker.currentWidget === app.shell.currentWidget
+      (fileEditorTracker.currentWidget !== null &&
+        fileEditorTracker.currentWidget === app.shell.currentWidget) ||
+      (notebookTracker.currentWidget !== null &&
+        notebookTracker.currentWidget === app.shell.currentWidget)
     );
   }
 
@@ -334,7 +383,7 @@ function activateEditorCommands(
   commands.addCommand(CommandIDs.find, {
     label: trans.__('Find...'),
     execute: () => {
-      const widget = tracker.currentWidget;
+      const widget = fileEditorTracker.currentWidget;
       if (!widget) {
         return;
       }
@@ -347,7 +396,7 @@ function activateEditorCommands(
   commands.addCommand(CommandIDs.goToLine, {
     label: trans.__('Go to Line...'),
     execute: () => {
-      const widget = tracker.currentWidget;
+      const widget = fileEditorTracker.currentWidget;
       if (!widget) {
         return;
       }
@@ -361,7 +410,7 @@ function activateEditorCommands(
     label: args => args['name'] as string,
     execute: args => {
       const name = args['name'] as string;
-      const widget = tracker.currentWidget;
+      const widget = fileEditorTracker.currentWidget;
       if (name && widget) {
         const spec = Mode.findByName(name);
         if (spec) {
@@ -371,7 +420,7 @@ function activateEditorCommands(
     },
     isEnabled,
     isToggled: args => {
-      const widget = tracker.currentWidget;
+      const widget = fileEditorTracker.currentWidget;
       if (!widget) {
         return false;
       }
@@ -451,7 +500,7 @@ function activateEditorCommands(
 
     // Add go to line capabilities to the edit menu.
     mainMenu.editMenu.goToLiners.add({
-      tracker,
+      tracker: fileEditorTracker,
       goToLine: (widget: IDocumentWidget<FileEditor>) => {
         const editor = widget.content.editor as CodeMirrorEditor;
         editor.execCommand('jumpToLine');

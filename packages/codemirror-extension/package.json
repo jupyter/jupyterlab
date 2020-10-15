@@ -42,6 +42,7 @@
     "@jupyterlab/docregistry": "^3.0.0-rc.4",
     "@jupyterlab/fileeditor": "^3.0.0-rc.4",
     "@jupyterlab/mainmenu": "^3.0.0-rc.4",
+    "@jupyterlab/notebook": "^3.0.0-rc.4",
     "@jupyterlab/settingregistry": "^3.0.0-rc.4",
     "@jupyterlab/statusbar": "^3.0.0-rc.4",
     "@jupyterlab/translation": "^3.0.0-rc.4",

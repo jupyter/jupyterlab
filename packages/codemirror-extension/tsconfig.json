@@ -25,6 +25,9 @@
       "path": "../mainmenu"
     },
     {
+      "path": "../notebook"
+    },
+    {
       "path": "../settingregistry"
     },
     {
