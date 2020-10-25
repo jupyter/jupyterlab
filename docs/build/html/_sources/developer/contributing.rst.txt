@@ -28,12 +28,12 @@ key <https://raw.githubusercontent.com/jupyter/notebook/master/docs/source/ipyth
     :local:
     :depth: 1
 
-General Guidelines for Contributing
+General Guidlelines for Contributing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For general documentation about contributing to Jupyter projects, see
 the `Project Jupyter Contributor
-Documentation <https://jupyter.readthedocs.io/en/latest/contributing/content-contributor.html>`__
+Documentation <https://jupyter.readthedocs.io/en/latest/contributor/content-contributor.html>`__
 and `Code of
 Conduct <https://github.com/jupyter/governance/blob/master/conduct/code_of_conduct.md>`__.
 
@@ -157,7 +157,7 @@ following steps:
 
    git clone https://github.com/<your-github-username>/jupyterlab.git
    cd jupyterlab
-   pip install -e .  # Be sure to include the "."
+   pip install -e . # Be sure to include the "."
    jlpm install
    jlpm run build  # Build the dev mode assets (optional)
    jlpm run build:core  # Build the core mode assets (optional)
@@ -237,7 +237,7 @@ Build and Run the Tests
 
 .. code:: bash
 
-   jlpm run build:testutils
+   jlpm run build:test
    jlpm test
 
 You can run tests for an individual package by changing to the
@@ -520,91 +520,6 @@ the two reports:
      reflows <https://developers.google.com/speed/articles/reflow>`__.
      `Learn
      more <https://developers.google.com/web/tools/lighthouse/audits/dom-size>`__.
-
-Contributing to the debugger front-end
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To make changes to the debugger extension, a kernel with support for debugging is required.
-
-Check out the user documentation to learn how to install such kernel: :ref:`debugger`.
-
-Then refresh the page and the debugger sidebar should appear in the right area.
-
-The Debugger Adapter Protocol
-'''''''''''''''''''''''''''''
-
-The following diagram illustrates the types of messages sent between the JupyterLab extension and the kernel.
-
-.. image:: ./debugger_protocol_diagram.png
-
-Inspecting Debug Messages in VS Code
-''''''''''''''''''''''''''''''''''''
-
-Inspecting the debug messages in VS Code can be useful to understand when debug requests are made (for example triggered by a UI action), and to compare the behavior of the JupyterLab debugger with the Python debugger in VS Code.
-
-The first step is to create a test file and a debug configuration (``launch.json``):
-
-.. image:: ./debugger_launch_configuration.png
-
-.. code:: json
-
-   {
-      "version": "0.2.0",
-      "configurations": [
-         {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "env": { "DEBUGPY_LOG_DIR": "/path/to/logs/folder" }
-         }
-      ]
-   }
-
-Then start the debugger:
-
-.. image:: ./debugger_vscode_start.png
-
-The content of the log file looks like this:
-
-.. code:: bash
-
-   ...
-
-   D00000.032: IDE --> {
-                  "command": "initialize",
-                  "arguments": {
-                     "clientID": "vscode",
-                     "clientName": "Visual Studio Code",
-                     "adapterID": "python",
-                     "pathFormat": "path",
-                     "linesStartAt1": true,
-                     "columnsStartAt1": true,
-                     "supportsVariableType": true,
-                     "supportsVariablePaging": true,
-                     "supportsRunInTerminalRequest": true,
-                     "locale": "en-us"
-                  },
-                  "type": "request",
-                  "seq": 1
-               }
-
-   ...
-
-With:
-
-- ``IDE`` = VS Code
-- ``PYD`` = pydev debugger
-- Messages follow the `DAP <https://microsoft.github.io/debug-adapter-protocol/specification>`_
-
-References
-''''''''''
-
-- Dump cell and state restoration: https://github.com/jupyterlab/debugger/issues/52
-- Protocol Overview: https://microsoft.github.io/debug-adapter-protocol/overview
-- Specification: https://microsoft.github.io/debug-adapter-protocol/specification
-
 
 Build and run the stand-alone examples
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
