@@ -579,6 +579,7 @@ export class StaticNotebook extends Widget {
     this._toRenderMap.delete(cell.model.id);
     this._incrementRenderedCount();
     this._placeholderCellRendered.emit(cell);
+    cell.inputArea.editor.refresh();
   }
 
   /**
