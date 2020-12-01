@@ -39,6 +39,7 @@ import {
   KernelStatus,
   LineCol,
   MemoryUsage,
+  ModeSwitch,
   RunningSessions,
   StatusBar
 } from '@jupyterlab/statusbar';
@@ -47,11 +48,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { ITranslator } from '@jupyterlab/translation';
 
-import { Switch } from '@jupyterlab/ui-components';
-
-import { CommandRegistry } from '@lumino/commands';
-
-import { Title, Widget } from '@lumino/widgets';
+import { DockPanel, Title, Widget } from '@lumino/widgets';
 
 export const STATUSBAR_PLUGIN_ID = '@jupyterlab/statusbar-extension:plugin';
 
@@ -393,40 +390,28 @@ const modeSwitch: JupyterFrontEndPlugin<void> = {
   requires: [ILabShell, ITranslator, IStatusBar],
   activate: (
     app: JupyterFrontEnd,
-    shell: ILabShell,
+    labShell: ILabShell,
     translator: ITranslator,
     statusBar: IStatusBar
   ) => {
     const trans = translator.load('jupyterlab');
-    const modeSwitch = new Switch();
-    modeSwitch.id = 'jp-single-document-mode';
 
-    modeSwitch.valueChanged.connect((_, args) => {
-      shell.mode = args.newValue ? 'single-document' : 'multiple-document';
-    });
-    shell.modeChanged.connect((_, mode) => {
-      modeSwitch.value = mode === 'single-document';
-    });
-    modeSwitch.value = shell.mode === 'single-document';
-
-    // Show the current file browser shortcut in its title.
-    const updateModeSwitchTitle = () => {
-      const binding = app.commands.keyBindings.find(
-        b => b.command === 'application:toggle-mode'
-      );
-      if (binding) {
-        const ks = CommandRegistry.formatKeystroke(binding.keys.join(' '));
-        modeSwitch.caption = trans.__('Single-Document Mode (%1)', ks);
-      } else {
-        modeSwitch.caption = trans.__('Single-Document Mode');
+    // proxy to access and modify the lab shell mode
+    const shell = {
+      get mode(): DockPanel.Mode {
+        return labShell.mode;
+      },
+      set mode(mode: DockPanel.Mode) {
+        labShell.mode = mode;
       }
     };
-    updateModeSwitchTitle();
-    app.commands.keyBindingChanged.connect(() => {
-      updateModeSwitchTitle();
+    const { commands } = app;
+    const modeSwitch = new ModeSwitch({
+      shell,
+      commands,
+      trans
     });
-
-    modeSwitch.label = trans.__('Mode');
+    modeSwitch.id = 'jp-single-document-mode';
 
     statusBar.registerStatusItem(
       '@jupyterlab/statusbar-extension:mode-switch',

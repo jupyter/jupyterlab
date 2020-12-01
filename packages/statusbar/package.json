@@ -43,6 +43,7 @@
     "@jupyterlab/translation": "^3.0.0-rc.10",
     "@jupyterlab/ui-components": "^3.0.0-rc.10",
     "@lumino/algorithm": "^1.3.3",
+    "@lumino/commands": "^1.11.3",
     "@lumino/coreutils": "^1.5.3",
     "@lumino/disposable": "^1.4.3",
     "@lumino/messaging": "^1.4.3",

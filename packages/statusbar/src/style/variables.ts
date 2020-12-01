@@ -4,6 +4,7 @@ import { Property } from 'csstype';
 
 export default {
   hoverColor: 'var(--jp-layout-color3)',
+  hoverCursor: 'pointer',
   clickColor: 'var(--jp-brand-color1)',
   backgroundColor: 'var(--jp-layout-color2)',
   height: '24px',

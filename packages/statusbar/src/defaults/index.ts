@@ -3,5 +3,6 @@
 
 export * from './lineCol';
 export * from './kernelStatus';
+export * from './mode';
 export * from './runningSessions';
 export * from './memoryUsage';

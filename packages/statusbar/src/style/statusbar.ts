@@ -14,7 +14,8 @@ const itemPadding = {
 const interactiveHover = {
   $nest: {
     '&:hover': {
-      backgroundColor: vars.hoverColor
+      backgroundColor: vars.hoverColor,
+      cursor: vars.hoverCursor
     }
   }
 };
@@ -60,3 +61,7 @@ export const item = style(
 
 export const clickedItem = style(clicked);
 export const interactiveItem = style(interactiveHover);
+
+export const noUserSelect = style({
+  userSelect: 'none'
+});

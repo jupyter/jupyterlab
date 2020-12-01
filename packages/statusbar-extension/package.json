@@ -47,8 +47,6 @@
     "@jupyterlab/settingregistry": "^3.0.0-rc.10",
     "@jupyterlab/statusbar": "^3.0.0-rc.10",
     "@jupyterlab/translation": "^3.0.0-rc.10",
-    "@jupyterlab/ui-components": "^3.0.0-rc.10",
-    "@lumino/commands": "^1.11.3",
     "@lumino/widgets": "^1.14.0"
   },
   "devDependencies": {
