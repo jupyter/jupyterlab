@@ -84,16 +84,19 @@ function generateConfig({
   Object.keys(coreDeps).forEach(element => {
     shared[element] = {
       requiredVersion: coreDeps[element].replace('~', '^'),
-      import: false
+      import: false,
+      strictVersion: true
     };
   });
 
   // Add package dependencies.
   Object.keys(data.dependencies).forEach(element => {
     // TODO: make sure that the core dependency semver range is a subset of our
-    // data.depencies version range for any packages in the core deps.
+    // data.dependencies version range for any packages in the core deps.
     if (!shared[element]) {
-      shared[element] = {};
+      shared[element] = {
+        strictVersion: true
+      };
     }
   });
 
@@ -104,6 +107,7 @@ function generateConfig({
     }
     shared[element].import = false;
     shared[element].singleton = true;
+    shared[element].strictVersion = true;
   });
 
   // Now we merge in the sharedPackages configuration provided by the extension.
@@ -120,14 +124,14 @@ function generateConfig({
 
   // Transform the sharedPackages information into valid webpack config
   Object.keys(sharedPackages).forEach(pkg => {
-    // Convert `bundled` to `import`
+    // Handle our special `bundled` field
     if (sharedPackages[pkg].bundled === false) {
       sharedPackages[pkg].import = false;
     } else if (
       sharedPackages[pkg].bundled === true &&
       shared[pkg]?.import === false
     ) {
-      // We can't delete a key in the merge, so we have to delete it in the source
+      // The merge below cannot delete the import: false field, so we do it manually now
       delete shared[pkg].import;
     }
     delete sharedPackages[pkg].bundled;
@@ -143,6 +147,7 @@ function generateConfig({
   }
   shared[data.name] = {
     version: data.version,
+    // TODO: setting singleton is probably not doing anything, since we are not importing the top-level package?
     singleton: true,
     import: index
   };

@@ -162,14 +162,15 @@ const shared = {};
 
 // Make sure any resolutions are shared
 for (let [pkg, requiredVersion] of Object.entries(package_data.resolutions)) {
-  shared[pkg] = { requiredVersion };
+  shared[pkg] = { requiredVersion, strictVersion: true };
 }
 
 // Add any extension packages that are not in resolutions (i.e., installed from npm)
 for (let pkg of extensionPackages) {
   if (!shared[pkg]) {
     shared[pkg] = {
-      requiredVersion: require(`${pkg}/package.json`).version
+      requiredVersion: require(`${pkg}/package.json`).version,
+      strictVersion: true
     };
   }
 }
@@ -186,7 +187,7 @@ for (let pkg of extensionPackages) {
   } = require(`${pkg}/package.json`);
   for (let [dep, requiredVersion] of Object.entries(dependencies)) {
     if (!shared[dep]) {
-      pkgShared[dep] = { requiredVersion };
+      pkgShared[dep] = { requiredVersion, strictVersion: true };
     }
   }
 
@@ -196,6 +197,9 @@ for (let pkg of extensionPackages) {
       delete pkgShared[dep];
     } else {
       if ('bundled' in config) {
+        if (config.bundled === false) {
+          config.import = false;
+        }
         config.import = config.bundled;
         delete config.bundled;
       }
