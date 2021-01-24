@@ -559,7 +559,12 @@ function addCommands(
         });
       }
       return context.listCheckpoints().then(async checkpoints => {
+        const type = fileType(shell.currentWidget, docManager);
         if (checkpoints.length < 1) {
+          await showErrorMessage(
+            trans.__('No checkpoints'),
+            trans.__('No checkpoints are available for this %1.', type)
+          );
           return;
         }
         const targetCheckpoint =
@@ -570,7 +575,6 @@ function addCommands(
         if (!targetCheckpoint) {
           return;
         }
-        const type = fileType(shell.currentWidget, docManager);
         return showDialog({
           title: trans.__('Revert %1 to checkpoint', type),
           body: new RevertConfirmWidget(targetCheckpoint, trans, type),
