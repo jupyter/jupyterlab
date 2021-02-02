@@ -47,12 +47,14 @@ export class Terminal extends Widget implements ITerminal.ITerminal {
   constructor(
     session: TerminalNS.ITerminalConnection,
     options: Partial<ITerminal.IOptions> = {},
-    translator?: ITranslator
+    translator?: ITranslator,
+    stdoutTransformer?: (output: string) => string
   ) {
     super();
     translator = translator || nullTranslator;
     this._trans = translator.load('jupyterlab');
     this.session = session;
+    this._stdoutTransformer = stdoutTransformer;
 
     // Initialize settings.
     this._options = { ...ITerminal.defaultOptions, ...options };
@@ -315,7 +317,13 @@ export class Terminal extends Widget implements ITerminal.ITerminal {
     switch (msg.type) {
       case 'stdout':
         if (msg.content) {
-          this._term.write(msg.content[0] as string);
+          let output: string = msg.content[0] as string;
+          if (this._stdoutTransformer) {
+            output = this._stdoutTransformer(output);
+          }
+          if (output) {
+            this._term.write(output);
+          }
         }
         break;
       case 'disconnect':
@@ -366,6 +374,7 @@ export class Terminal extends Widget implements ITerminal.ITerminal {
   private _offsetWidth = -1;
   private _offsetHeight = -1;
   private _options: ITerminal.IOptions;
+  private _stdoutTransformer: ((output: string) => string) | undefined;
 }
 
 /**

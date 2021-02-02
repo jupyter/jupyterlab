@@ -42,6 +42,7 @@
     "@jupyterlab/apputils": "^3.0.2",
     "@jupyterlab/launcher": "^3.0.2",
     "@jupyterlab/mainmenu": "^3.0.2",
+    "@jupyterlab/rendermime": "^3.0.3",
     "@jupyterlab/running": "^3.0.2",
     "@jupyterlab/services": "^6.0.2",
     "@jupyterlab/settingregistry": "^3.0.1",

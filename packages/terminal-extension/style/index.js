@@ -7,8 +7,11 @@
 import '@lumino/widgets/style/index.js';
 import '@jupyterlab/ui-components/style/index.js';
 import '@jupyterlab/apputils/style/index.js';
+import '@jupyterlab/rendermime/style/index.js';
 import '@jupyterlab/application/style/index.js';
 import '@jupyterlab/launcher/style/index.js';
 import '@jupyterlab/mainmenu/style/index.js';
 import '@jupyterlab/running/style/index.js';
 import '@jupyterlab/terminal/style/index.js';
+
+import './base.css';

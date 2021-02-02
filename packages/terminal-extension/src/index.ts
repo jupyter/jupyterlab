@@ -21,6 +21,7 @@ import {
 } from '@jupyterlab/apputils';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IFileMenu, IMainMenu } from '@jupyterlab/mainmenu';
+import { MimeModel, IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { IRunningSessionManagers, IRunningSessions } from '@jupyterlab/running';
 import { Terminal } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
@@ -62,7 +63,8 @@ const plugin: JupyterFrontEndPlugin<ITerminalTracker> = {
     ILayoutRestorer,
     IMainMenu,
     IThemeManager,
-    IRunningSessionManagers
+    IRunningSessionManagers,
+    IRenderMimeRegistry
   ],
   autoStart: true
 };
@@ -71,6 +73,9 @@ const plugin: JupyterFrontEndPlugin<ITerminalTracker> = {
  * Export the plugin as default.
  */
 export default plugin;
+
+const MAGIC_DISPLAY_STRING = 'jupyterlab-display-mimemodel'.toUpperCase();
+const MAGIC_OPEN_STRING = 'jupyterlab-open-path'.toUpperCase();
 
 /**
  * Activate the terminal plugin.
@@ -84,7 +89,8 @@ function activate(
   restorer: ILayoutRestorer | null,
   mainMenu: IMainMenu | null,
   themeManager: IThemeManager | null,
-  runningSessionManagers: IRunningSessionManagers | null
+  runningSessionManagers: IRunningSessionManagers | null,
+  rendermime: IRenderMimeRegistry | null
 ): ITerminalTracker {
   const trans = translator.load('jupyterlab');
   const { serviceManager, commands } = app;
@@ -171,7 +177,63 @@ function activate(
     });
   });
 
-  addCommands(app, tracker, settingRegistry, translator, options);
+  function stdoutTransformer(output: string): string {
+    let outputJSON;
+    if (output.indexOf(MAGIC_OPEN_STRING) === 0) {
+      let outputJSON = JSON.parse(output.replace(MAGIC_OPEN_STRING, ''));
+      console.log(outputJSON);
+      const isDir = outputJSON.isDir;
+      const servers = outputJSON.servers;
+      const path = servers[window.location.host];
+      if (isDir) {
+        void commands.execute('filebrowser:go-to-path', { path });
+      } else {
+        void commands.execute('docmanager:open', { path });
+      }
+      return '';
+    } else if (rendermime && output.indexOf(MAGIC_DISPLAY_STRING) === 0) {
+      outputJSON = JSON.parse(output.replace(MAGIC_DISPLAY_STRING, '')); // TODO catch errors
+      const model = new MimeModel({ ...outputJSON, trusted: true });
+      const mimeType = rendermime.preferredMimeType(model.data, 'any');
+
+      if (!mimeType) {
+        return output;
+      }
+
+      let rendererWidget = rendermime.createRenderer(mimeType); // IRenderer extends Widget
+
+      rendererWidget.renderModel(model).catch((error: any) => {
+        // Manually append error message to output
+        const pre = document.createElement('pre');
+        pre.textContent = `Javascript Error: ${error.message}`;
+        rendererWidget.node.appendChild(pre);
+
+        // Remove mime-type-specific CSS classes
+        rendererWidget.node.className = 'lm-Widget jp-RenderedText';
+        rendererWidget.node.setAttribute(
+          'data-mime-type',
+          'application/vnd.jupyter.stderr'
+        );
+      });
+      rendererWidget.title.label = 'Teminal Output';
+      rendererWidget.addClass('jp-TerminalOutputPanel-renderedOutput');
+      const main = new MainAreaWidget({ content: rendererWidget });
+      main.addClass('jp-TerminalOutputPanel');
+      app.shell.add(main);
+      return '';
+    } else {
+      return output;
+    }
+  }
+
+  addCommands(
+    app,
+    tracker,
+    settingRegistry,
+    translator,
+    options,
+    stdoutTransformer
+  );
 
   if (mainMenu) {
     // Add "Terminal Theme" menu below "JupyterLab Themes" menu.
@@ -330,7 +392,8 @@ export function addCommands(
   tracker: WidgetTracker<MainAreaWidget<ITerminal.ITerminal>>,
   settingRegistry: ISettingRegistry,
   translator: ITranslator,
-  options: Partial<ITerminal.IOptions>
+  options: Partial<ITerminal.IOptions>,
+  stdoutTransformer: (output: string) => string
 ) {
   const trans = translator.load('jupyterlab');
   const { commands, serviceManager } = app;
@@ -357,7 +420,12 @@ export function addCommands(
         ? serviceManager.terminals.connectTo({ model: { name } })
         : serviceManager.terminals.startNew());
 
-      const term = new Terminal(session, options, translator);
+      const term = new Terminal(
+        session,
+        options,
+        translator,
+        stdoutTransformer
+      );
 
       term.title.icon = terminalIcon;
       term.title.label = '...';
