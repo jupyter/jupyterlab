@@ -15,8 +15,12 @@
   "sideEffects": [
     "style/**/*"
   ],
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "main": "./lib/index.js",
+  "types": "index.d.ts",
   "directories": {
     "lib": "lib/"
   },
@@ -54,5 +58,12 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/*"
+      ]
+    }
   }
 }

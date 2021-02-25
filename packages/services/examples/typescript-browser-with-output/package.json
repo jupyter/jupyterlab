@@ -5,6 +5,14 @@
   "sideEffects": [
     "style/*"
   ],
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json",
+    "./style/index.css": "./style/index.css",
+    "./style/index.js": "./style/index.js"
+  },
+  "main": "./lib/index.js",
+  "types": "index.d.ts",
   "style": "style/index.css",
   "files": [
     "style/index.css",
@@ -30,5 +38,12 @@
     "webpack": "^5.3.1",
     "webpack-cli": "^4.1.0"
   },
-  "styleModule": "style/index.js"
+  "styleModule": "style/index.js",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/*"
+      ]
+    }
+  }
 }

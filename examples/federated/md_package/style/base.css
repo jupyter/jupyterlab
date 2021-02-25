@@ -1,0 +1,73 @@
+/*-----------------------------------------------------------------------------
+| Copyright (c) Jupyter Development Team.
+| Distributed under the terms of the Modified BSD License.
+|----------------------------------------------------------------------------*/
+
+.mimerenderer-certificate > .certificate {
+  background-color: #07618b;
+  border-radius: 20px 20px 20px 20px;
+  box-shadow: 0px 5px 10px 0px;
+  height: 250px;
+  margin-left: 35%;
+  margin-top: 10%;
+  position: relative;
+  width: 350px;
+}
+
+.mimerenderer-certificate > .certificate > .paper {
+  background: #e0e0e0;
+  border-radius: 5px 5px 5px 5px;
+  height: 200px;
+  left: 25px;
+  position: absolute;
+  top: 25px;
+  width: 300px;
+}
+
+.mimerenderer-certificate > .certificate > .paper > .title {
+  background: #e0e0e0;
+  font-weight: bold;
+  height: 30px;
+  margin-top: 20px;
+  text-align: center;
+  z-index: 999;
+}
+
+.mimerenderer-certificate > .certificate > .paper > .text {
+  margin-top: 20px;
+  padding: 0px;
+  text-align: center;
+  z-index: 200;
+}
+
+.mimerenderer-certificate > .certificate > .medal {
+  background: #c9992e;
+  border-radius: 50%;
+  font-size: 2em;
+  height: 20px;
+  left: 30px;
+  padding: 10px 10px 10px 10px;
+  position: absolute;
+  top: 30px;
+  width: 20px;
+  z-index: 30;
+}
+
+.mimerenderer-certificate > .certificate > .ribbon {
+  background-color: #9bdbf6;
+  border-right: 1px solid white;
+  height: 40px;
+  left: 43px;
+  position: absolute;
+  top: 38px;
+  width: 15px;
+  z-index: 1;
+}
+
+.mimerenderer-certificate > .certificate > .ribbon1 {
+  transform: rotate(30deg);
+}
+
+.mimerenderer-certificate > .certificate > .ribbon2 {
+  transform: rotate(150deg);
+}

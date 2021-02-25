@@ -13,7 +13,7 @@ import {
 } from '@jupyterlab/rendermime';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { PathExt } from '@jupyterlab/coreutils';
-import { IMiddleToken } from '@jupyterlab/example-federated-middle';
+import { IMiddleToken } from '@jupyterlab/example-federated-middle/tokens';
 
 /**
  * The command IDs used by the markdownviewer plugin.

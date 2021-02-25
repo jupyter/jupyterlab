@@ -7,7 +7,7 @@ const Handlebars = require('handlebars');
 const Build = require('@jupyterlab/builder').Build;
 const webpack = require('webpack');
 const merge = require('webpack-merge').default;
-const baseConfig = require('@jupyterlab/builder/lib/webpack.config.base');
+const baseConfig = require('@jupyterlab/builder/webpack.config.base');
 const { ModuleFederationPlugin } = webpack.container;
 
 const packageData = require('./package.json');

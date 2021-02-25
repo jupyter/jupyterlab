@@ -1,7 +1,7 @@
 const webpack = require('webpack');
 
 module.exports = {
-  entry: './build/index.js',
+  entry: './lib/index.js',
   mode: 'development',
   output: {
     path: require('path').join(__dirname, 'build'),

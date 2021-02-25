@@ -11,7 +11,7 @@ const webpack = require('webpack');
 const merge = require('webpack-merge').default;
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin;
-const baseConfig = require('@jupyterlab/builder/lib/webpack.config.base');
+const baseConfig = require('@jupyterlab/builder/webpack.config.base');
 const { ModuleFederationPlugin } = webpack.container;
 
 const Build = require('@jupyterlab/builder').Build;
@@ -189,16 +189,30 @@ for (let pkg of extensionPackages) {
     }
   }
 
+  // TODO: If any dependencies have additional simple package.json exports
+  // (ones that are not conditional or nested, perhaps even not ending in an
+  // extension, though perhaps we check that the mapping ends in .js), add
+  // those to the sharing config with `${pkgShared[dep]}/${export} =
+  // {requiredVersion }`. So if we have a `mypackage/tokens` export, add it to
+  // the sharing config as `pkgShared['mypackage/tokens'] = { requiredVersion
+  // }`, so people can import this export and get it deduplicated.
+
+
   // Overwrite automatic dependency sharing with custom sharing config
   for (let [dep, config] of Object.entries(sharedPackages)) {
     if (config === false) {
       delete pkgShared[dep];
+      // TODO: If we added any additional exports above, perhaps we should
+      // take them out now, i.e., take out any sharedPackages keys that start
+      // with `${pkgShared[dep]}/`.
     } else {
       if ('bundled' in config) {
         config.import = config.bundled;
         delete config.bundled;
       }
       pkgShared[dep] = config;
+      // TODO: Perhaps we should extend the `bundled` config to all exports of
+      // the package, so it is easy to get a package not bundled?
     }
   }
   extraShared.push(pkgShared);
@@ -237,12 +251,16 @@ Object.assign(shared, mergedShare);
 // importing was installed from the file.
 for (let [pkg, { requiredVersion }] of Object.entries(shared)) {
   if (requiredVersion && requiredVersion.startsWith('file:')) {
+    // TODO: if we add package exports, we'll need to split the key on '/' to
+    // make sure we are getting the package name.
     shared[pkg].requiredVersion = require(`${pkg}/package.json`).version;
   }
 }
 
 // Add singleton package information
 for (let pkg of jlab.singletonPackages) {
+  // TODO: add singleton to any exports of pkg as well, i.e., keys that start
+  // with `${pkg}/`.
   shared[pkg].singleton = true;
 }
 

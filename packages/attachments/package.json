@@ -16,8 +16,14 @@
     "style/*.css",
     "style/index.js"
   ],
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json",
+    "./style/index.css": "./style/index.css",
+    "./style/index.js": "./style/index.js"
+  },
+  "main": "./lib/index.js",
+  "types": "index.d.ts",
   "style": "style/index.css",
   "directories": {
     "lib": "lib/"
@@ -52,5 +58,12 @@
   "publishConfig": {
     "access": "public"
   },
-  "styleModule": "style/index.js"
+  "styleModule": "style/index.js",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/*"
+      ]
+    }
+  }
 }

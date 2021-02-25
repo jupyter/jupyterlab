@@ -22,6 +22,15 @@
     "extension": true,
     "schemaDir": "./schema",
     "outputDir": "../labextensions/@jupyterlab/example-federated-md",
-    "mimeExtension": "./mime.js"
-  }
+    "mimeExtension": "./mime.js",
+    "sharedPackages": {
+      "@jupyterlab/example-federated-middle": {
+        "import": false
+      },
+      "@jupyterlab/example-federated-middle/": {
+        "import": false
+      }
+    }
+  },
+  "styleModule": "./style/index.js"
 }

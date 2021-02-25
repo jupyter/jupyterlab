@@ -24,12 +24,12 @@ import { IFileMenu, IMainMenu } from '@jupyterlab/mainmenu';
 import { IRunningSessionManagers, IRunningSessions } from '@jupyterlab/running';
 import { Terminal } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { ITerminalTracker, ITerminal } from '@jupyterlab/terminal';
 import { ITranslator } from '@jupyterlab/translation';
 import { terminalIcon } from '@jupyterlab/ui-components';
 
-// Name-only import so as to not trigger inclusion in main bundle
-import * as WidgetModuleType from '@jupyterlab/terminal/lib/widget';
+// Type-only import so as to not trigger inclusion in main bundle
+import type { Terminal as TerminalWidget } from '@jupyterlab/terminal';
+import { ITerminalTracker, ITerminal } from '@jupyterlab/terminal/tokens';
 
 /**
  * The command IDs used by the terminal plugin.
@@ -343,13 +343,14 @@ export function addCommands(
     icon: args => (args['isPalette'] ? undefined : terminalIcon),
     execute: async args => {
       // wait for the widget to lazy load
-      let Terminal: typeof WidgetModuleType.Terminal;
-      try {
-        Terminal = (await Private.ensureWidget()).Terminal;
-      } catch (err) {
-        Private.showErrorMessage(err);
-        return;
-      }
+      let { Terminal } = await import('@jupyterlab/terminal');
+      // let Terminal: Terminal;
+      // try {
+      //   Terminal = (await Private.ensureWidget()).Terminal;
+      // } catch (err) {
+      //   Private.showErrorMessage(err);
+      //   return;
+      // }
 
       const name = args['name'] as string;
 
@@ -468,17 +469,17 @@ namespace Private {
   /**
    * A Promise for the initial load of the terminal widget.
    */
-  export let widgetReady: Promise<typeof WidgetModuleType>;
+  export let widgetReady: Promise<typeof TerminalWidget>;
 
   /**
    * Lazy-load the widget (and xterm library and addons)
    */
-  export function ensureWidget(): Promise<typeof WidgetModuleType> {
+  export function ensureWidget(): Promise<typeof TerminalWidget> {
     if (widgetReady) {
       return widgetReady;
     }
 
-    widgetReady = import('@jupyterlab/terminal/lib/widget');
+    widgetReady = import('@jupyterlab/terminal').then(v => v.Terminal);
 
     return widgetReady;
   }

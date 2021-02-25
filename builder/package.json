@@ -12,8 +12,13 @@
   },
   "license": "BSD-3-Clause",
   "author": "Project Jupyter",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json",
+    "./webpack.config.base": "./lib/webpack.config.base.js"
+  },
+  "main": "./lib/index.js",
+  "types": "index.d.ts",
   "bin": {
     "build-labextension": "./lib/build-labextension.js"
   },
@@ -78,5 +83,12 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/*"
+      ]
+    }
   }
 }

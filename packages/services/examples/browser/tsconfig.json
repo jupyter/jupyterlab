@@ -1,7 +1,7 @@
 {
   "extends": "../../../../tsconfigbase",
   "compilerOptions": {
-    "outDir": "build",
+    "outDir": "lib",
     "rootDir": "src",
     "module": "commonjs",
     "strictNullChecks": true,

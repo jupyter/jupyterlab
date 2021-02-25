@@ -2,8 +2,16 @@
   "name": "@jupyterlab/example-federated-middle",
   "version": "2.2.0-alpha.3",
   "private": true,
+  "exports": {
+    ".": "./index.js",
+    "./style/index.css": "./style/index.css",
+    "./style/index.js": "./style/index.js",
+    "./tokens": "./tokens.js"
+  },
+  "main": "./index.js",
+  "style": "style/index.css",
   "scripts": {
-    "build": "npm run clean && build-labextension --core-path ../core_package .",
+    "build": "npm run clean && build-labextension --development --core-path ../core_package .",
     "clean": "rimraf ../labextensions/@jupyterlab/example-federated-middle"
   },
   "dependencies": {
@@ -18,6 +26,10 @@
   },
   "jupyterlab": {
     "extension": "./extension.js",
-    "outputDir": "../labextensions/@jupyterlab/example-federated-middle"
-  }
+    "outputDir": "../labextensions/@jupyterlab/example-federated-middle",
+    "sharedPackages": {
+      "@jupyterlab/example-federated-middle/": {}
+    }
+  },
+  "styleModule": "style/index.js"
 }
