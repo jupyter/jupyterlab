@@ -152,7 +152,7 @@ async function handlePackage(
   }
 
   // Update dependencies as appropriate.
-  for (const dtype of ['dependencies', 'devDependencies']) {
+  for (const dtype of ['dependencies', 'devDependencies', 'peerDependencies']) {
     const deps = data[dtype] || {};
     if (typeof name === 'string') {
       const dep = name;

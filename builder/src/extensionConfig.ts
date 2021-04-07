@@ -89,8 +89,12 @@ function generateConfig({
     };
   });
 
-  // Add package dependencies.
-  Object.keys(data.dependencies).forEach(element => {
+  // Add package dependencies and peerDependencies
+  const dependencies = {
+    ...data.dependencies,
+    ...(data.peerDependencies ?? {})
+  };
+  Object.keys(dependencies).forEach(element => {
     // TODO: make sure that the core dependency semver range is a subset of our
     // data.depencies version range for any packages in the core deps.
     if (!shared[element]) {
