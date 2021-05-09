@@ -19,6 +19,8 @@ export class SaveHandler implements IDisposable {
    */
   constructor(options: SaveHandler.IOptions) {
     this._context = options.context;
+    this._bandwidthSaveModeCallback =
+      options.bandwidthSaveModeCallback || (() => false);
     const interval = options.saveInterval || 120;
     this._minInterval = interval * 1000;
     this._interval = this._minInterval;
@@ -91,7 +93,9 @@ export class SaveHandler implements IDisposable {
       return;
     }
     this._autosaveTimer = window.setTimeout(() => {
-      this._save();
+      if (!this._bandwidthSaveModeCallback()) {
+        this._save();
+      }
     }, this._interval);
   }
 
@@ -146,6 +150,7 @@ export class SaveHandler implements IDisposable {
   private _minInterval = -1;
   private _interval = -1;
   private _context: DocumentRegistry.Context;
+  private _bandwidthSaveModeCallback: () => boolean;
   private _isActive = false;
   private _inDialog = false;
   private _isDisposed = false;
@@ -164,6 +169,12 @@ export namespace SaveHandler {
      * The context asssociated with the file.
      */
     context: DocumentRegistry.Context;
+
+    /**
+     * Autosaving should be paused while this callback function returns `true`.
+     * By default, it always returns `false`.
+     */
+    bandwidthSaveModeCallback?: () => boolean;
 
     /**
      * The minimum save interval in seconds (default is two minutes).

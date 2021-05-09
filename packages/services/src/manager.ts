@@ -254,6 +254,6 @@ export namespace ServiceManager {
     /**
      * When the manager stops polling the API. Defaults to `when-hidden`.
      */
-    standby?: Poll.Standby;
+    standby?: Poll.Standby | (() => boolean | Poll.Standby);
   }
 }

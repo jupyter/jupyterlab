@@ -9,7 +9,8 @@ import {
   ILabShell,
   ILabStatus,
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
+  JupyterLab
 } from '@jupyterlab/application';
 
 import {
@@ -99,7 +100,8 @@ const docManagerPlugin: JupyterFrontEndPlugin<IDocumentManager> = {
     ICommandPalette,
     ILabShell,
     IMainMenu,
-    ISessionContextDialogs
+    ISessionContextDialogs,
+    JupyterLab.IInfo
   ],
   activate: (
     app: JupyterFrontEnd,
@@ -109,7 +111,8 @@ const docManagerPlugin: JupyterFrontEndPlugin<IDocumentManager> = {
     palette: ICommandPalette | null,
     labShell: ILabShell | null,
     mainMenu: IMainMenu | null,
-    sessionDialogs: ISessionContextDialogs | null
+    sessionDialogs: ISessionContextDialogs | null,
+    info: JupyterLab.IInfo | null
   ): IDocumentManager => {
     const trans = translator.load('jupyterlab');
     const manager = app.serviceManager;
@@ -147,7 +150,10 @@ const docManagerPlugin: JupyterFrontEndPlugin<IDocumentManager> = {
       when,
       setBusy: (status && (() => status.setBusy())) ?? undefined,
       sessionDialogs: sessionDialogs || undefined,
-      translator
+      translator,
+      bandwidthSaveModeCallback: () => {
+        return info?.bandwidthSaveMode || false;
+      }
     });
 
     // Register the file operations commands.

@@ -49,6 +49,8 @@ export class DocumentManager implements IDocumentManager {
    */
   constructor(options: DocumentManager.IOptions) {
     this.translator = options.translator || nullTranslator;
+    this._bandwidthSaveModeCallback =
+      options.bandwidthSaveModeCallback || (() => false);
     this.registry = options.registry;
     this.services = options.manager;
     this._dialogs = options.sessionDialogs || sessionContextDialogs;
@@ -485,6 +487,7 @@ export class DocumentManager implements IDocumentManager {
     });
     const handler = new SaveHandler({
       context,
+      bandwidthSaveModeCallback: this._bandwidthSaveModeCallback,
       saveInterval: this.autosaveInterval
     });
     Private.saveHandlerProperty.set(context, handler);
@@ -608,6 +611,7 @@ export class DocumentManager implements IDocumentManager {
   private _when: Promise<void>;
   private _setBusy: (() => IDisposable) | undefined;
   private _dialogs: ISessionContext.IDialogs;
+  private _bandwidthSaveModeCallback: () => boolean;
 }
 
 /**
@@ -652,6 +656,12 @@ export namespace DocumentManager {
      * The applicaton language translator.
      */
     translator?: ITranslator;
+
+    /**
+     * Autosaving should be paused while this callback function returns `true`.
+     * By default, it always returns `false`.
+     */
+    bandwidthSaveModeCallback?: () => boolean;
   }
 
   /**
