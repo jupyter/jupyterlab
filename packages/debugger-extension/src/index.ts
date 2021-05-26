@@ -34,6 +34,7 @@ import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import {
   standardRendererFactories as initialFactories,
+  IRenderMimeRegistry,
   RenderMimeRegistry
 } from '@jupyterlab/rendermime';
 import { Session } from '@jupyterlab/services';
@@ -271,12 +272,14 @@ const sources: JupyterFrontEndPlugin<IDebugger.ISources> = {
 const variables: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlab/debugger-extension:variables',
   autoStart: true,
-  requires: [IDebugger, ITranslator],
+  requires: [IDebugger, ITranslator, IRenderMimeRegistry, IDebuggerSidebar],
   optional: [IThemeManager],
   activate: (
     app: JupyterFrontEnd,
     service: IDebugger,
     translator: ITranslator,
+    rendermime: IRenderMimeRegistry,
+    sidebar: IDebugger.ISidebar,
     themeManager: IThemeManager | null
   ) => {
     const trans = translator.load('jupyterlab');
@@ -284,27 +287,47 @@ const variables: JupyterFrontEndPlugin<void> = {
     const tracker = new WidgetTracker<MainAreaWidget<Debugger.VariablesGrid>>({
       namespace: 'debugger/inspect-variable'
     });
+    const trackerMime = new WidgetTracker<Debugger.VariableRenderer>({
+      namespace: 'debugger/render-variable'
+    });
     const CommandIDs = Debugger.CommandIDs;
 
+    // Add commands
     commands.addCommand(CommandIDs.inspectVariable, {
       label: trans.__('Inspect Variable'),
       caption: trans.__('Inspect Variable'),
+      isEnabled: args =>
+        !!service.session?.isStarted &&
+        (args.variableReference ??
+          sidebar.variables.latestSelection?.variablesReference ??
+          0) > 0,
       execute: async args => {
-        const { variableReference } = args;
-        if (!variableReference || variableReference === 0) {
+        let { variableReference, name } = args as {
+          variableReference?: number;
+          name?: string;
+        };
+
+        if (!variableReference) {
+          variableReference =
+            sidebar.variables.latestSelection?.variablesReference;
+        }
+        if (!name) {
+          name = sidebar.variables.latestSelection?.name;
+        }
+
+        const id = `jp-debugger-variable-${name}`;
+        if (
+          !name ||
+          !variableReference ||
+          tracker.find(widget => widget.id === id)
+        ) {
           return;
         }
+
         const variables = await service.inspectVariable(
           variableReference as number
         );
-
-        const title = args.title as string;
-        const id = `jp-debugger-variable-${title}`;
-        if (
-          !variables ||
-          variables.length === 0 ||
-          tracker.find(widget => widget.id === id)
-        ) {
+        if (!variables || variables.length === 0) {
           return;
         }
 
@@ -313,18 +336,68 @@ const variables: JupyterFrontEndPlugin<void> = {
           content: new Debugger.VariablesGrid({
             model,
             commands,
-            scopes: [{ name: title, variables }],
+            scopes: [{ name, variables }],
             themeManager
           })
         });
         widget.addClass('jp-DebuggerVariables');
         widget.id = id;
         widget.title.icon = Debugger.Icons.variableIcon;
-        widget.title.label = `${service.session?.connection?.name} - ${title}`;
+        widget.title.label = `${service.session?.connection?.name} - ${name}`;
         void tracker.add(widget);
-        model.changed.connect(() => widget.dispose());
+        const disposeWidget = () => {
+          widget.dispose();
+          model.changed.disconnect(disposeWidget);
+        };
+        model.changed.connect(disposeWidget);
         shell.add(widget, 'main', {
-          mode: tracker.currentWidget ? 'split-right' : 'split-bottom'
+          mode: tracker.currentWidget ? 'split-right' : 'split-bottom',
+          activate: false
+        });
+      }
+    });
+
+    commands.addCommand(CommandIDs.renderMimeVariable, {
+      label: trans.__('Render Variable'),
+      caption: trans.__('Render Variable according to its mime type'),
+      isEnabled: () =>
+        !!service.session?.isStarted && !service.hasStoppedThreads(),
+      execute: args => {
+        let { name, variableReference } = args as {
+          variableReference?: number;
+          name?: string;
+        };
+
+        if (!variableReference) {
+          variableReference =
+            sidebar.variables.latestSelection?.variablesReference;
+        }
+        if (!name) {
+          name = sidebar.variables.latestSelection?.name;
+        }
+
+        const id = `jp-debugger-variable-mime-${name}`;
+        if (!name || trackerMime.find(widget => widget.id === id)) {
+          return;
+        }
+
+        const widget = new Debugger.VariableRenderer({
+          dataLoader: service.inspectRichVariable(name, variableReference),
+          rendermime
+        });
+        widget.addClass('jp-DebuggerVariables');
+        widget.id = id;
+        widget.title.icon = Debugger.Icons.variableIcon;
+        widget.title.label = `${service.session?.connection?.name} - ${name}`;
+        void trackerMime.add(widget);
+        const disposeWidget = () => {
+          widget.dispose();
+          service.model.variables.changed.disconnect(disposeWidget);
+        };
+        service.model.variables.changed.connect(disposeWidget);
+        shell.add(widget, 'main', {
+          mode: trackerMime.currentWidget ? 'split-right' : 'split-bottom',
+          activate: false
         });
       }
     });
@@ -416,7 +489,7 @@ const main: JupyterFrontEndPlugin<void> = {
     loggerRegistry: ILoggerRegistry | null
   ): Promise<void> => {
     const trans = translator.load('jupyterlab');
-    const { commands, shell, serviceManager } = app;
+    const { commands, contextMenu, shell, serviceManager } = app;
     const { kernelspecs } = serviceManager;
     const CommandIDs = Debugger.CommandIDs;
 
@@ -572,6 +645,16 @@ const main: JupyterFrontEndPlugin<void> = {
     sidebar.node.setAttribute('aria-label', trans.__('Debugger section'));
 
     shell.add(sidebar, 'right');
+
+    contextMenu.addItem({
+      command: CommandIDs.inspectVariable,
+      selector: '.jp-DebuggerVariables-body .jp-DebuggerVariables-grid'
+    });
+
+    contextMenu.addItem({
+      command: CommandIDs.renderMimeVariable,
+      selector: '.jp-DebuggerVariables-body'
+    });
 
     if (palette) {
       const category = trans.__('Debugger');

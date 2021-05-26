@@ -28,6 +28,8 @@ jupyterlab/style.js
 jupyterlab/tests/**/static
 jupyterlab/tests/**/labextension
 
+ui-tests/test-output
+
 # Remove after next release
 jupyterlab/imports.css
 

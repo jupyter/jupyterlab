@@ -88,6 +88,7 @@ export class MainAreaWidget<T extends Widget = Widget>
         .catch(e => {
           // Show a revealed promise error.
           const error = new Widget();
+          error.addClass('jp-MainAreaWidget-error');
           // Show the error to the user.
           const pre = document.createElement('pre');
           pre.textContent = String(e);

@@ -24,7 +24,7 @@ import { VariablesBodyTree } from './tree';
 /**
  * A Panel to show a variable explorer.
  */
-export class Variables extends Panel {
+export class Variables extends Panel implements IDebugger.IVariablesPanel {
   /**
    * Instantiate a new Variables Panel.
    *
@@ -37,7 +37,12 @@ export class Variables extends Panel {
     const translator = options.translator || nullTranslator;
     const trans = translator.load('jupyterlab');
     this._header = new VariablesHeader(translator);
-    this._tree = new VariablesBodyTree({ model, service });
+    this._tree = new VariablesBodyTree({
+      model,
+      service,
+      commands,
+      translator
+    });
     this._table = new VariablesBodyGrid({ model, commands, themeManager });
     this._table.hide();
 
@@ -92,7 +97,7 @@ export class Variables extends Panel {
       }
     };
 
-    markViewButtonSelection(this._table.isHidden ? 'tree' : 'table');
+    markViewButtonSelection(this.viewMode);
 
     this._header.toolbar.addItem('view-VariableTreeView', treeViewButton);
 
@@ -102,6 +107,22 @@ export class Variables extends Panel {
     this.addWidget(this._tree);
     this.addWidget(this._table);
     this.addClass('jp-DebuggerVariables');
+  }
+
+  /**
+   * Latest variable selected.
+   */
+  get latestSelection(): IDebugger.IVariableSelection | null {
+    return this._table.isHidden
+      ? this._tree.latestSelection
+      : this._table.latestSelection;
+  }
+
+  /**
+   * Get the variable explorer view mode
+   */
+  get viewMode(): 'tree' | 'table' {
+    return this._table.isHidden ? 'tree' : 'table';
   }
 
   /**
