@@ -197,11 +197,16 @@ export class Cell extends Widget {
       model,
       contentFactory,
       updateOnShow: options.updateEditorOnShow,
-      placeholder: options.placeholder
+      placeholder: options.inputPlaceholder
     }));
     input.addClass(CELL_INPUT_AREA_CLASS);
     inputWrapper.addWidget(inputCollapser);
     inputWrapper.addWidget(input);
+    if (options.inputPlaceholder) {
+      input.node.innerHTML = `<div class="jp-Cell-Placeholder">
+        <pre>${options.model.value.text}</pre>
+      </div>`;
+    }
     (this.layout as PanelLayout).addWidget(inputWrapper);
 
     this._inputPlaceholder = new InputPlaceholder(() => {
@@ -454,7 +459,8 @@ export class Cell extends Widget {
     return new constructor({
       model: this.model,
       contentFactory: this.contentFactory,
-      placeholder: false
+      outputPlaceholder: false,
+      inputPlaceholder: false
     });
   }
 
@@ -571,9 +577,14 @@ export namespace Cell {
     updateEditorOnShow?: boolean;
 
     /**
-     * Whether this cell is a placeholder for future rendering.
+     * Whether this input cell is a placeholder for future rendering.
      */
-    placeholder?: boolean;
+    inputPlaceholder?: boolean;
+
+    /**
+     * Whether this output cell is a placeholder for future rendering.
+     */
+    outputPlaceholder?: boolean;
 
     /**
      * The maximum number of output items to display in cell output.
@@ -707,7 +718,7 @@ export class CodeCell extends Cell {
     const contentFactory = this.contentFactory;
     const model = this.model;
 
-    if (!options.placeholder) {
+    if (!options.outputPlaceholder) {
       // Insert the output before the cell footer.
       const outputWrapper = (this._outputWrapper = new Panel());
       outputWrapper.addClass(CELL_OUTPUT_WRAPPER_CLASS);
@@ -930,7 +941,8 @@ export class CodeCell extends Cell {
       model: this.model,
       contentFactory: this.contentFactory,
       rendermime: this._rendermime,
-      placeholder: false
+      inputPlaceholder: false,
+      outputPlaceholder: false
     });
   }
 
@@ -1600,7 +1612,8 @@ export class RawCell extends Cell {
     return new constructor({
       model: this.model,
       contentFactory: this.contentFactory,
-      placeholder: false
+      inputPlaceholder: false,
+      outputPlaceholder: false
     });
   }
 

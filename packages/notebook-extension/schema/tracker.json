@@ -365,6 +365,12 @@
       "type": "boolean",
       "default": false
     },
+    "renderWithWindow": {
+      "title": "EXPERIMENTAL Render the notebook with a window display for the cells",
+      "description": "EXPERIMENTAL Define if the notebook cells should be rendered with the windowing feature to have faster tab switching. Set this to true only if you are facing issue with fast tab switching, for example using keyboard shortcuts. If this is set to true, and if you vertically scroll fast in the displayed notebook, you may face visual effects in the cell display as we replace cells which come inside and outside the viewport. If you want to mitigate the visual effect, set observedBottomMargin and observedTopMargin to higher values, e.g. 2000px. If you set this to true, it is recommended to set renderCellOnIdle to false.",
+      "type": "boolean",
+      "default": false
+    },
     "numberCellsToRenderDirectly": {
       "title": "Number of cells to render directly",
       "description": "Define the number of cells to render directly when virtual notebook intersection observer is available",

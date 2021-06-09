@@ -200,25 +200,56 @@ export class StaticNotebook extends Widget {
       options.notebookConfig || StaticNotebook.defaultNotebookConfig;
     this._mimetypeService = options.mimeTypeService;
     // Section for the virtual-notebook behavior.
-    this._toRenderMap = new Map<string, { index: number; cell: Cell }>();
+    this._toRenderMap = new Map<
+      string,
+      { index: number; isRendered: boolean; placeholder: Cell; cell: Cell }
+    >();
     this._cellsArray = new Array<Cell>();
     if ('IntersectionObserver' in window) {
       this._observer = new IntersectionObserver(
         (entries, observer) => {
           entries.forEach(o => {
-            if (o.isIntersecting) {
-              observer.unobserve(o.target);
-              const ci = this._toRenderMap.get(o.target.id);
-              if (ci) {
-                const { cell, index } = ci;
-                this._renderPlaceholderCell(cell, index);
+            const ci = this._toRenderMap.get(o.target.id);
+            if (ci) {
+              const { index, isRendered, placeholder, cell } = ci;
+              if (o.isIntersecting && !isRendered) {
+                observer.unobserve(o.target);
+                const pl = this.layout as PanelLayout;
+                pl.removeWidgetAt(index);
+                pl.insertWidget(index, cell);
+                this.onCellInserted(index, cell);
+                this._toRenderMap.set(cell.model.id, {
+                  index: index,
+                  isRendered: true,
+                  placeholder: placeholder,
+                  cell: cell
+                });
+                observer.observe(cell.node);
+              }
+              if (
+                this.notebookConfig.renderWithWindow &&
+                !o.isIntersecting &&
+                isRendered
+              ) {
+                observer.unobserve(o.target);
+                const pl = this.layout as PanelLayout;
+                pl.removeWidgetAt(index);
+                pl.insertWidget(index, placeholder);
+                this.onCellInserted(index, placeholder);
+                this._toRenderMap.set(cell.model.id, {
+                  index: index,
+                  isRendered: false,
+                  placeholder: placeholder,
+                  cell: cell
+                });
+                observer.observe(placeholder.node);
               }
             }
           });
         },
         {
           root: this.node,
-          threshold: 1,
+          threshold: 1, // 0 ??
           rootMargin: `${this.notebookConfig.observedTopMargin} 0px ${this.notebookConfig.observedBottomMargin} 0px`
         }
       );
@@ -542,6 +573,7 @@ export class StaticNotebook extends Widget {
         widget = this._createRawCell(cell as IRawCellModel);
     }
     widget.addClass(NB_CELL_CLASS);
+    widget.node.id = widget.model.id;
 
     const layout = this.layout as PanelLayout;
     this._cellsArray.push(widget);
@@ -550,16 +582,18 @@ export class StaticNotebook extends Widget {
       insertType === 'push' &&
       this._renderedCellsCount > this.notebookConfig.numberCellsToRenderDirectly
     ) {
-      // We have an observer and we are have been asked to push (not to insert).
-      // and we are above the number of cells to render directly, then
+      // We have an observer and we have been asked to push (not to insert).
+      // If we are above the number of cells to render directly,
       // we will add a placeholder and let the instersection observer or the
       // idle browser render those placeholder cells.
-      this._toRenderMap.set(widget.model.id, { index: index, cell: widget });
-      const placeholder = this._createPlaceholderCell(
-        cell as IRawCellModel,
-        index
-      );
+      const placeholder = this._createPlaceholderCell(cell, index);
       placeholder.node.id = widget.model.id;
+      this._toRenderMap.set(widget.model.id, {
+        index: index,
+        isRendered: false,
+        placeholder: placeholder,
+        cell: widget
+      });
       layout.insertWidget(index, placeholder);
       this.onCellInserted(index, placeholder);
       this._fullyRendered.emit(false);
@@ -571,8 +605,11 @@ export class StaticNotebook extends Widget {
       this._incrementRenderedCount();
       this.onCellInserted(index, widget);
     }
-
-    if (this._observer && this.notebookConfig.renderCellOnIdle) {
+    if (
+      this._observer &&
+      !this.notebookConfig.renderWithWindow &&
+      this.notebookConfig.renderCellOnIdle
+    ) {
       const renderPlaceholderCells = this._renderPlaceholderCells.bind(this);
       (window as any).requestIdleCallback(renderPlaceholderCells, {
         timeout: 1000
@@ -593,6 +630,7 @@ export class StaticNotebook extends Widget {
   }
 
   private _renderPlaceholderCell(cell: Cell, index: number) {
+    console.log('---', index, cell);
     const pl = this.layout as PanelLayout;
     pl.removeWidgetAt(index);
     pl.insertWidget(index, cell);
@@ -614,7 +652,8 @@ export class StaticNotebook extends Widget {
       rendermime,
       contentFactory,
       updateEditorOnShow: false,
-      placeholder: false,
+      inputPlaceholder: false,
+      outputlaceholder: false,
       maxNumberOutputs: this.notebookConfig.maxNumberOutputs
     };
     const cell = this.contentFactory.createCodeCell(options, this);
@@ -637,7 +676,8 @@ export class StaticNotebook extends Widget {
       rendermime,
       contentFactory,
       updateEditorOnShow: false,
-      placeholder: false
+      inputPlaceholder: false,
+      outputPlaceholder: false
     };
     const cell = this.contentFactory.createMarkdownCell(options, this);
     cell.syncCollapse = true;
@@ -648,26 +688,58 @@ export class StaticNotebook extends Widget {
   /**
    * Create a placeholder cell widget from a raw cell model.
    */
-  private _createPlaceholderCell(model: IRawCellModel, index: number): RawCell {
+  private _createPlaceholderCell(
+    model: ICellModel,
+    index: number
+  ): CodeCell | RawCell | MarkdownCell {
     const contentFactory = this.contentFactory;
     const editorConfig = this.editorConfig.raw;
-    const options = {
-      editorConfig,
-      model,
-      contentFactory,
-      updateEditorOnShow: false,
-      placeholder: true
-    };
-    const cell = this.contentFactory.createRawCell(options, this);
-    cell.node.innerHTML = `
-      <div class="jp-Cell-Placeholder">
-        <div class="jp-Cell-Placeholder-wrapper">
-        </div>
-      </div>`;
-    cell.inputHidden = true;
-    cell.syncCollapse = true;
-    cell.syncEditable = true;
-    return cell;
+    const rendermime = this.rendermime;
+    let widget: CodeCell | RawCell | MarkdownCell;
+    switch (model.type) {
+      case 'code':
+        const codeOptions = {
+          editorConfig,
+          model: model as ICodeCellModel,
+          rendermime,
+          contentFactory,
+          updateEditorOnShow: false,
+          inputPlaceholder: true,
+          outputPlaceholder: !this.notebookConfig.renderWithWindow
+        };
+        widget = this.contentFactory.createCodeCell(codeOptions, this);
+        widget.model.mimeType = this._mimetype;
+        break;
+      case 'markdown':
+        const markdownOptions = {
+          editorConfig,
+          model: model as IMarkdownCellModel,
+          rendermime,
+          contentFactory,
+          updateEditorOnShow: false,
+          inputPlaceholder: true,
+          outputPlaceholder: !this.notebookConfig.renderWithWindow
+        };
+        widget = this.contentFactory.createMarkdownCell(markdownOptions, this);
+        if (model.value.text === '') {
+          (widget as MarkdownCell).rendered = false;
+        }
+        break;
+      default:
+        const rawOptions = {
+          editorConfig,
+          model: model as IRawCellModel,
+          rendermime,
+          contentFactory,
+          updateEditorOnShow: false,
+          inputPlaceholder: true,
+          outputPlaceholder: !this.notebookConfig.renderWithWindow
+        };
+        widget = this.contentFactory.createRawCell(rawOptions, this);
+    }
+    widget.syncCollapse = true;
+    widget.syncEditable = true;
+    return widget;
   }
 
   /**
@@ -681,7 +753,8 @@ export class StaticNotebook extends Widget {
       model,
       contentFactory,
       updateEditorOnShow: false,
-      placeholder: false
+      inputPlaceholder: false,
+      outputPlaceholder: false
     };
     const cell = this.contentFactory.createRawCell(options, this);
     cell.syncCollapse = true;
@@ -799,7 +872,10 @@ export class StaticNotebook extends Widget {
   private _placeholderCellRendered = new Signal<this, Cell>(this);
   private _observer: IntersectionObserver;
   private _renderedCellsCount = 0;
-  private _toRenderMap: Map<string, { index: number; cell: Cell }>;
+  private _toRenderMap: Map<
+    string,
+    { index: number; isRendered: boolean; placeholder: Cell; cell: Cell }
+  >;
   private _cellsArray: Array<Cell>;
 }
 
@@ -935,6 +1011,12 @@ export namespace StaticNotebook {
     recordTiming: boolean;
 
     /**
+     * Define if the notebook should be rendered
+     * with the windowing feature to ease tab switching.
+     */
+    renderWithWindow: boolean;
+
+    /**
      * Number of cells to render directly when virtual
      * notebook intersection observer is available.
      */
@@ -973,6 +1055,7 @@ export namespace StaticNotebook {
     scrollPastEnd: true,
     defaultCell: 'code',
     recordTiming: false,
+    renderWithWindow: false,
     numberCellsToRenderDirectly: 20,
     renderCellOnIdle: true,
     observedTopMargin: '1000px',
