@@ -17,6 +17,7 @@ import {
   showErrorMessage,
   Dialog,
   ICommandPalette,
+  InputDialog,
   ISessionContextDialogs
 } from '@jupyterlab/apputils';
 
@@ -639,7 +640,7 @@ function addCommands(
   commands.addCommand(CommandIDs.restoreCheckpoint, {
     label: () =>
       trans.__(
-        'Revert %1 to Checkpoint',
+        'Revert %1 to Checkpoint...',
         fileType(shell.currentWidget, docManager)
       ),
     caption: trans.__('Revert contents to previous checkpoint'),
@@ -657,18 +658,26 @@ function addCommands(
           buttons: [Dialog.okButton({ label: trans.__('Ok') })]
         });
       }
-      return context.listCheckpoints().then(checkpoints => {
-        if (checkpoints.length < 1) {
-          return;
-        }
-        const lastCheckpoint = checkpoints[checkpoints.length - 1];
-        if (!lastCheckpoint) {
-          return;
-        }
+      return context.listCheckpoints().then(async checkpoints => {
         const type = fileType(shell.currentWidget, docManager);
+        if (checkpoints.length < 1) {
+          await showErrorMessage(
+            trans.__('No checkpoints'),
+            trans.__('No checkpoints are available for this %1.', type)
+          );
+          return;
+        }
+        const targetCheckpoint =
+          checkpoints.length === 1
+            ? checkpoints[0]
+            : await Private.getTargetCheckpoint(checkpoints.reverse(), trans);
+
+        if (!targetCheckpoint) {
+          return;
+        }
         return showDialog({
           title: trans.__('Revert %1 to checkpoint', type),
-          body: new RevertConfirmWidget(lastCheckpoint, trans, type),
+          body: new RevertConfirmWidget(targetCheckpoint, trans, type),
           buttons: [
             Dialog.cancelButton({ label: trans.__('Cancel') }),
             Dialog.warnButton({ label: trans.__('Revert') })
@@ -681,7 +690,9 @@ function addCommands(
             if (context.model.readOnly) {
               return context.revert();
             }
-            return context.restoreCheckpoint().then(() => context.revert());
+            return context
+              .restoreCheckpoint(targetCheckpoint.id)
+              .then(() => context.revert());
           }
         });
       });
@@ -1036,7 +1047,7 @@ namespace Private {
     const confirmMessage = document.createElement('p');
     const confirmText = document.createTextNode(
       trans.__(
-        'Are you sure you want to revert the %1 to the latest checkpoint? ',
+        'Are you sure you want to revert the %1 to checkpoint? ',
         fileType
       )
     );
@@ -1065,5 +1076,34 @@ namespace Private {
     body.appendChild(confirmMessage);
     body.appendChild(lastCheckpointMessage);
     return body;
+  }
+
+  /**
+   * Ask user for a checkpoint to revert to.
+   */
+  export async function getTargetCheckpoint(
+    checkpoints: Contents.ICheckpointModel[],
+    trans: TranslationBundle
+  ): Promise<Contents.ICheckpointModel | undefined> {
+    // the id could be too long to show so use the index instead
+    const indexSeparator = '.';
+    const items = checkpoints.map((checkpoint, index) => {
+      const isoDate = Time.format(checkpoint.last_modified);
+      const humanDate = Time.formatHuman(checkpoint.last_modified);
+      return `${index}${indexSeparator} ${isoDate} (${humanDate})`;
+    });
+
+    const selectedItem = (
+      await InputDialog.getItem({
+        items: items,
+        title: trans.__('Choose a checkpoint')
+      })
+    ).value;
+
+    if (!selectedItem) {
+      return;
+    }
+    const selectedIndex = parseInt(selectedItem.split(indexSeparator, 1)[0]);
+    return checkpoints[selectedIndex];
   }
 }
