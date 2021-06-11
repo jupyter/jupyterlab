@@ -362,6 +362,7 @@ const variables: JupyterFrontEndPlugin<void> = {
       caption: trans.__('Render Variable according to its mime type'),
       isEnabled: () =>
         !!service.session?.isStarted && !service.hasStoppedThreads(),
+      isVisible: () => service.model.hasRichVariableRendering,
       execute: args => {
         let { name, variableReference } = args as {
           variableReference?: number;

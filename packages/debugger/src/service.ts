@@ -357,9 +357,10 @@ export class DebuggerService implements IDebugger, IDisposable {
 
     const reply = await this.session.restoreState();
     const { body } = reply;
-    const breakpoints = this._mapBreakpoints(reply.body.breakpoints);
-    const stoppedThreads = new Set(reply.body.stoppedThreads);
+    const breakpoints = this._mapBreakpoints(body.breakpoints);
+    const stoppedThreads = new Set(body.stoppedThreads);
 
+    this._model.hasRichVariableRendering = body.richRendering === true;
     this._config.setHashParams({
       kernel: this.session?.connection?.kernel?.name ?? '',
       method: body.hashMethod,

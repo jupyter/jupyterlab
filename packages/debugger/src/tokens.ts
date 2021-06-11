@@ -394,7 +394,7 @@ export namespace IDebugger {
       completions: DebugProtocol.CompletionsArguments;
       configurationDone: DebugProtocol.ConfigurationDoneArguments;
       continue: DebugProtocol.ContinueArguments;
-      debugInfo: {};
+      debugInfo: IDebugInfoArguments;
       disconnect: DebugProtocol.DisconnectArguments;
       dumpCell: IDumpCellArguments;
       evaluate: DebugProtocol.EvaluateArguments;
@@ -402,7 +402,7 @@ export namespace IDebugger {
       goto: DebugProtocol.GotoArguments;
       gotoTargets: DebugProtocol.GotoTargetsArguments;
       initialize: DebugProtocol.InitializeRequestArguments;
-      inspectVariables: {};
+      inspectVariables: IInspectVariablesArguments;
       launch: DebugProtocol.LaunchRequestArguments;
       loadedSources: DebugProtocol.LoadedSourcesArguments;
       modules: DebugProtocol.ModulesArguments;
@@ -426,7 +426,7 @@ export namespace IDebugger {
       stepOut: DebugProtocol.StepOutArguments;
       terminate: DebugProtocol.TerminateArguments;
       terminateThreads: DebugProtocol.TerminateThreadsArguments;
-      threads: {};
+      threads: IThreadsArguments;
       variables: DebugProtocol.VariablesArguments;
     };
 
@@ -483,19 +483,28 @@ export namespace IDebugger {
     }
 
     /**
+     * Arguments for 'debugInfo' requests.
+     */
+    export interface IDebugInfoArguments {}
+
+    /**
      * Response to 'debugInfo' request.
      * This is an addition to the Debug Adapter Protocol to be able
      * to retrieve the debugger state when restoring a session.
      */
     export interface IDebugInfoResponse extends DebugProtocol.Response {
       body: {
-        isStarted: boolean;
+        breakpoints: IDebugInfoBreakpoints[];
         hashMethod: string;
         hashSeed: number;
-        breakpoints: IDebugInfoBreakpoints[];
+        isStarted: boolean;
+        /**
+         * Whether the kernel supports variable rich rendering or not.
+         */
+        richRendering?: boolean;
+        stoppedThreads: number[];
         tmpFilePrefix: string;
         tmpFileSuffix: string;
-        stoppedThreads: number[];
       };
     }
 
@@ -519,6 +528,11 @@ export namespace IDebugger {
       };
     }
 
+    /**
+     * Arguments for 'inspectVariables' requests.
+     */
+    export interface IInspectVariablesArguments {}
+
     export interface IInspectVariablesResponse extends DebugProtocol.Response {
       body: {
         variables: DebugProtocol.Variable[];
@@ -537,9 +551,9 @@ export namespace IDebugger {
        */
       variableName: string;
       /**
-       * Variable reference
+       * Frame Id
        */
-      variablesReference?: number;
+      frameId?: number;
     }
 
     /**
@@ -561,6 +575,11 @@ export namespace IDebugger {
     export interface IInfoReply extends KernelMessage.IInfoReply {
       debugger: boolean;
     }
+
+    /**
+     * Arguments for 'threads' requests.
+     */
+    export interface IThreadsArguments {}
   }
 
   /**
@@ -750,6 +769,11 @@ export namespace IDebugger {
        * The callstack UI model.
        */
       readonly callstack: ICallstack;
+
+      /**
+       * Whether the kernel support rich variable rendering based on mime type.
+       */
+      hasRichVariableRendering: boolean;
 
       /**
        * The variables UI model.
