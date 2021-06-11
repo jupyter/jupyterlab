@@ -48,6 +48,7 @@
   background: none;
   cursor: pointer;
   display: none;
+  padding: 0px 8px;
 }
 
 .jp-DebuggerVariables-body .jp-DebuggerVariables-renderVariable:active {
