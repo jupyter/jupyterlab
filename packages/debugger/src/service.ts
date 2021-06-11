@@ -263,19 +263,19 @@ export class DebuggerService implements IDebugger, IDisposable {
    * Request rich representation of a variable.
    *
    * @param variableName The variable name to request
-   * @param variablesReference The variable reference to request
+   * @param frameId The current frame id in which to request the variable
    * @returns The mime renderer data model
    */
   async inspectRichVariable(
     variableName: string,
-    variablesReference?: number
+    frameId?: number
   ): Promise<IDebugger.IRichVariable> {
     if (!this.session) {
       throw new Error('No active debugger session');
     }
     const reply = await this.session.sendRequest('richInspectVariables', {
       variableName,
-      variablesReference
+      frameId
     });
     if (reply.success) {
       return reply.body;

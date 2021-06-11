@@ -563,6 +563,9 @@ export namespace IDebugger {
      * render rich variable representation.
      */
     export interface IRichVariablesResponse extends DebugProtocol.Response {
+      /**
+       * Variable mime type data
+       */
       body: IRichVariable;
     }
 
@@ -738,12 +741,12 @@ export namespace IDebugger {
       /**
        * Signal emitted when the current frame has changed.
        */
-      readonly currentFrameChanged: ISignal<this, IDebugger.IStackFrame>;
+      readonly currentFrameChanged: ISignal<this, IDebugger.IStackFrame | null>;
 
       /**
        * The current frame.
        */
-      frame: IDebugger.IStackFrame;
+      frame: IDebugger.IStackFrame | null;
 
       /**
        * The frames for the callstack.
@@ -815,7 +818,7 @@ export namespace IDebugger {
        */
       readonly currentFrameChanged: ISignal<
         IDebugger.Model.ICallstack,
-        IDebugger.IStackFrame
+        IDebugger.IStackFrame | null
       >;
 
       /**

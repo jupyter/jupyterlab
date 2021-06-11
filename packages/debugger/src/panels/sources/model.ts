@@ -23,7 +23,7 @@ export class SourcesModel implements IDebugger.Model.ISources {
    */
   readonly currentFrameChanged: ISignal<
     IDebugger.Model.ICallstack,
-    IDebugger.IStackFrame
+    IDebugger.IStackFrame | null
   >;
 
   /**
@@ -88,7 +88,7 @@ export namespace SourcesModel {
      */
     currentFrameChanged: ISignal<
       IDebugger.Model.ICallstack,
-      IDebugger.IStackFrame
+      IDebugger.IStackFrame | null
     >;
   }
 }

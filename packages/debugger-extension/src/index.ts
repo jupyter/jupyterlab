@@ -360,30 +360,32 @@ const variables: JupyterFrontEndPlugin<void> = {
     commands.addCommand(CommandIDs.renderMimeVariable, {
       label: trans.__('Render Variable'),
       caption: trans.__('Render Variable according to its mime type'),
-      isEnabled: () =>
-        !!service.session?.isStarted && !service.hasStoppedThreads(),
+      isEnabled: () => !!service.session?.isStarted,
       isVisible: () => service.model.hasRichVariableRendering,
       execute: args => {
-        let { name, variableReference } = args as {
-          variableReference?: number;
+        let { name, frameId } = args as {
+          frameId?: number;
           name?: string;
         };
 
-        if (!variableReference) {
-          variableReference =
-            sidebar.variables.latestSelection?.variablesReference;
-        }
         if (!name) {
           name = sidebar.variables.latestSelection?.name;
         }
+        if (!frameId) {
+          frameId = service.model.callstack.frame?.id;
+        }
 
         const id = `jp-debugger-variable-mime-${name}`;
-        if (!name || trackerMime.find(widget => widget.id === id)) {
+        if (
+          !name || // Name is mandatory
+          trackerMime.find(widget => widget.id === id) || // Widget already exists
+          (!frameId && service.hasStoppedThreads()) // frame id missing on breakpoint
+        ) {
           return;
         }
 
         const widget = new Debugger.VariableRenderer({
-          dataLoader: service.inspectRichVariable(name, variableReference),
+          dataLoader: service.inspectRichVariable(name, frameId),
           rendermime
         });
         widget.addClass('jp-DebuggerVariables');
