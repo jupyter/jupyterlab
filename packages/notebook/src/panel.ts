@@ -84,7 +84,13 @@ export class NotebookPanel extends DocumentWidget<Notebook, INotebookModel> {
     });
   }
 
-  _onSave(
+  /**
+   * Handle a change to the document registry save state.
+   *
+   * @param sender The document registry context
+   * @param state The document registry save state
+   */
+  private _onSave(
     sender: DocumentRegistry.Context,
     state: DocumentRegistry.SaveState
   ): void {
