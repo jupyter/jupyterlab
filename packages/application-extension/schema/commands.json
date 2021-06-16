@@ -40,12 +40,40 @@
             "rank": 2
           },
           {
-            "command": "application:toggle-left-area",
-            "rank": 2
-          },
-          {
-            "command": "application:toggle-right-area",
-            "rank": 2
+            "type": "submenu",
+            "rank": 2,
+            "submenu": {
+              "id": "jp-mainmenu-view-appearance",
+              "label": "Appearance",
+              "items": [
+                {
+                  "type": "separator",
+                  "rank": 10
+                },
+                {
+                  "command": "application:toggle-left-area",
+                  "rank": 11
+                },
+                {
+                  "command": "application:toggle-side-tabbar",
+                  "rank": 12,
+                  "args": {
+                    "side": "left"
+                  }
+                },
+                {
+                  "command": "application:toggle-right-area",
+                  "rank": 13
+                },
+                {
+                  "command": "application:toggle-side-tabbar",
+                  "rank": 14,
+                  "args": {
+                    "side": "right"
+                  }
+                }
+              ]
+            }
           }
         ]
       }

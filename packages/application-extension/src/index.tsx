@@ -79,6 +79,8 @@ namespace CommandIDs {
 
   export const toggleRightArea: string = 'application:toggle-right-area';
 
+  export const toggleSideTabBar: string = 'application:toggle-side-tabbar';
+
   export const togglePresentationMode: string =
     'application:toggle-presentation-mode';
 
@@ -288,7 +290,7 @@ const mainCommands: JupyterFrontEndPlugin<void> = {
           }
         },
         isToggled: () => !labShell.leftCollapsed,
-        isVisible: () => !labShell.isEmpty('left')
+        isEnabled: () => !labShell.isEmpty('left')
       });
 
       commands.addCommand(CommandIDs.toggleRightArea, {
@@ -304,7 +306,29 @@ const mainCommands: JupyterFrontEndPlugin<void> = {
           }
         },
         isToggled: () => !labShell.rightCollapsed,
-        isVisible: () => !labShell.isEmpty('right')
+        isEnabled: () => !labShell.isEmpty('right')
+      });
+
+      commands.addCommand(CommandIDs.toggleSideTabBar, {
+        label: args =>
+          args.side === 'right'
+            ? trans.__('Show Right Activity Bar')
+            : trans.__('Show Left Activity Bar'),
+        execute: args => {
+          if (args.side === 'right') {
+            labShell.toggleSideTabBarVisibility('right');
+          } else {
+            labShell.toggleSideTabBarVisibility('left');
+          }
+        },
+        isToggled: args =>
+          args.side === 'right'
+            ? labShell.isSideTabBarVisible('right')
+            : labShell.isSideTabBarVisible('left'),
+        isEnabled: args =>
+          args.side === 'right'
+            ? !labShell.isEmpty('right')
+            : !labShell.isEmpty('left')
       });
 
       commands.addCommand(CommandIDs.togglePresentationMode, {
@@ -359,6 +383,14 @@ const mainCommands: JupyterFrontEndPlugin<void> = {
         CommandIDs.togglePresentationMode,
         CommandIDs.toggleMode
       ].forEach(command => palette.addItem({ command, category }));
+
+      ['right', 'left'].forEach(side => {
+        palette.addItem({
+          command: CommandIDs.toggleSideTabBar,
+          category,
+          args: { side }
+        });
+      });
     }
   }
 };

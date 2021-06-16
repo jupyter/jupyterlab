@@ -212,6 +212,11 @@ export namespace ILabShell {
     readonly currentWidget: Widget | null;
 
     /**
+     * A flag denoting whether the side tab bar is visible.
+     */
+    readonly visible: boolean;
+
+    /**
      * The collection of widgets held by the sidebar.
      */
     readonly widgets: Array<Widget> | null;
@@ -370,14 +375,8 @@ export class LabShell extends Widget implements JupyterFrontEnd.IShell {
     );
 
     // Catch current changed events on the side handlers.
-    this._leftHandler.sideBar.currentChanged.connect(
-      this._onLayoutModified,
-      this
-    );
-    this._rightHandler.sideBar.currentChanged.connect(
-      this._onLayoutModified,
-      this
-    );
+    this._leftHandler.updated.connect(this._onLayoutModified, this);
+    this._rightHandler.updated.connect(this._onLayoutModified, this);
 
     // Catch update events on the horizontal split panel
     this._hsplitPanel.updated.connect(this._onLayoutModified, this);
@@ -806,6 +805,21 @@ export class LabShell extends Widget implements JupyterFrontEnd.IShell {
   }
 
   /**
+   * Whether an side tab bar is visible or not.
+   *
+   * @param side Sidebar of interest
+   * @returns Side tab bar visibility
+   */
+  isSideTabBarVisible(side: 'left' | 'right'): boolean {
+    switch (side) {
+      case 'left':
+        return this._leftHandler.isVisible;
+      case 'right':
+        return this._rightHandler.isVisible;
+    }
+  }
+
+  /**
    * True if the given area is empty.
    */
   isEmpty(area: ILabShell.Area): boolean {
@@ -963,6 +977,27 @@ export class LabShell extends Widget implements JupyterFrontEnd.IShell {
     };
 
     return layout;
+  }
+
+  /**
+   * Toggle side tab bar visibility
+   *
+   * @param side Sidebar of interest
+   */
+  toggleSideTabBarVisibility(side: 'right' | 'left'): void {
+    if (side === 'right') {
+      if (this._rightHandler.isVisible) {
+        this._rightHandler.hide();
+      } else {
+        this._rightHandler.show();
+      }
+    } else {
+      if (this._leftHandler.isVisible) {
+        this._leftHandler.hide();
+      } else {
+        this._leftHandler.show();
+      }
+    }
   }
 
   /**
@@ -1456,7 +1491,7 @@ namespace Private {
     /**
      * Get the panel managed by the handler.
      */
-    get panel() {
+    get panel(): Panel {
       return this._panel;
     }
 
@@ -1537,6 +1572,13 @@ namespace Private {
     }
 
     /**
+     * Whether the side bar is visible
+     */
+    get isVisible(): boolean {
+      return this._sideBar.isVisible;
+    }
+
+    /**
      * Get the tab bar managed by the handler.
      */
     get sideBar(): TabBar<Widget> {
@@ -1548,6 +1590,13 @@ namespace Private {
      */
     get stackedPanel(): StackedPanel {
       return this._stackedPanel;
+    }
+
+    /**
+     * Signal fires when the stack panel or the sidebar changes
+     */
+    get updated(): ISignal<SideBarHandler, void> {
+      return this._updated;
     }
 
     /**
@@ -1629,7 +1678,12 @@ namespace Private {
       const collapsed = this._sideBar.currentTitle === null;
       const widgets = toArray(this._stackedPanel.widgets);
       const currentWidget = widgets[this._sideBar.currentIndex];
-      return { collapsed, currentWidget, widgets };
+      return {
+        collapsed,
+        currentWidget,
+        visible: !this._isHiddenByUser,
+        widgets
+      };
     }
 
     /**
@@ -1642,6 +1696,25 @@ namespace Private {
       if (data.collapsed) {
         this.collapse();
       }
+      if (!data.visible) {
+        this.hide();
+      }
+    }
+
+    /**
+     * Hide the side bar even if it contains widgets
+     */
+    hide(): void {
+      this._isHiddenByUser = true;
+      this._refreshVisibility();
+    }
+
+    /**
+     * Show the side bar if it contains widgets
+     */
+    show(): void {
+      this._isHiddenByUser = false;
+      this._refreshVisibility();
     }
 
     /**
@@ -1678,8 +1751,11 @@ namespace Private {
      * Refresh the visibility of the side bar and stacked panel.
      */
     private _refreshVisibility(): void {
-      this._sideBar.setHidden(this._sideBar.titles.length === 0);
       this._stackedPanel.setHidden(this._sideBar.currentTitle === null);
+      this._sideBar.setHidden(
+        this._isHiddenByUser || this._sideBar.titles.length === 0
+      );
+      this._updated.emit();
     }
 
     /**
@@ -1727,10 +1803,12 @@ namespace Private {
       this._refreshVisibility();
     }
 
+    private _isHiddenByUser = false;
     private _items = new Array<Private.IRankItem>();
     private _sideBar: TabBar<Widget>;
     private _stackedPanel: StackedPanel;
     private _lastCurrent: Widget | null;
+    private _updated: Signal<SideBarHandler, void> = new Signal(this);
   }
 
   export class SkipLinkWidgetHandler {
