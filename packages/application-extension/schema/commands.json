@@ -24,28 +24,20 @@
         "id": "jp-mainmenu-view",
         "items": [
           {
-            "type": "separator",
-            "rank": 1
-          },
-          {
-            "command": "application:toggle-mode",
-            "rank": 1
-          },
-          {
-            "command": "application:toggle-presentation-mode",
-            "rank": 1
-          },
-          {
-            "type": "separator",
-            "rank": 2
-          },
-          {
             "type": "submenu",
-            "rank": 2,
+            "rank": 1,
             "submenu": {
               "id": "jp-mainmenu-view-appearance",
               "label": "Appearance",
               "items": [
+                {
+                  "command": "application:toggle-mode",
+                  "rank": 0
+                },
+                {
+                  "command": "application:toggle-presentation-mode",
+                  "rank": 0
+                },
                 {
                   "type": "separator",
                   "rank": 10
@@ -74,6 +66,10 @@
                 }
               ]
             }
+          },
+          {
+            "type": "separator",
+            "rank": 1
           }
         ]
       }

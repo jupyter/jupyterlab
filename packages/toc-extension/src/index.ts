@@ -39,6 +39,13 @@ namespace CommandIDs {
 }
 
 /**
+ * A namespace for command IDs of table of contents plugin.
+ */
+namespace CommandIDs {
+  export const showPanel = 'toc:show-panel';
+}
+
+/**
  * Activates the ToC extension.
  *
  * @private
@@ -93,9 +100,11 @@ async function activateTOC(
     label: trans.__('Run Cell(s)')
   });
 
-  app.contextMenu.addItem({
-    selector: '.jp-tocItem',
-    command: CommandIDs.runCells
+  app.commands.addCommand(CommandIDs.showPanel, {
+    label: trans.__('Table of Contents'),
+    execute: () => {
+      labShell.activateById(toc.id);
+    }
   });
 
   // Add the ToC widget to the application restorer:

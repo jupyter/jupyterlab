@@ -22,6 +22,13 @@ import { addKernelRunningSessionManager } from './kernels';
 import { addOpenTabsSessionManager } from './opentabs';
 
 /**
+ * The command IDs used by the running plugin.
+ */
+namespace CommandIDs {
+  export const showPanel = 'running:show-panel';
+}
+
+/**
  * The default running sessions extension.
  */
 const plugin: JupyterFrontEndPlugin<IRunningSessionManagers> = {
@@ -69,6 +76,13 @@ function activate(
   // Rank has been chosen somewhat arbitrarily to give priority to the running
   // sessions widget in the sidebar.
   app.shell.add(running, 'left', { rank: 200 });
+
+  app.commands.addCommand(CommandIDs.showPanel, {
+    label: trans.__('Sessions and Tabs'),
+    execute: () => {
+      app.shell.activateById(running.id);
+    }
+  });
 
   return runningSessionManagers;
 }

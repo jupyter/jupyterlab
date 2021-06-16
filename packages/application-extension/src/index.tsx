@@ -73,6 +73,8 @@ namespace CommandIDs {
 
   export const setMode: string = 'application:set-mode';
 
+  export const showPropertyPanel: string = 'property-inspector:show-panel';
+
   export const toggleMode: string = 'application:toggle-mode';
 
   export const toggleLeftArea: string = 'application:toggle-left-area';
@@ -972,6 +974,14 @@ const propertyInspector: JupyterFrontEndPlugin<IPropertyInspectorProvider> = {
     widget.title.caption = trans.__('Property Inspector');
     widget.id = 'jp-property-inspector';
     labshell.add(widget, 'right', { rank: 100 });
+
+    app.commands.addCommand(CommandIDs.showPropertyPanel, {
+      label: trans.__('Property Inspector'),
+      execute: () => {
+        labshell.activateById(widget.id);
+      }
+    });
+
     if (restorer) {
       restorer.add(widget, 'jp-property-inspector');
     }

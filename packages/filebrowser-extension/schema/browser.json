@@ -21,6 +21,15 @@
         ]
       },
       {
+        "id": "jp-mainmenu-view",
+        "items": [
+          {
+            "command": "filebrowser:toggle-main",
+            "rank": 1
+          }
+        ]
+      },
+      {
         "id": "jp-mainmenu-settings",
         "items": [
           {

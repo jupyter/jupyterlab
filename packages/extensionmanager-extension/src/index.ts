@@ -23,6 +23,7 @@ const PLUGIN_ID = '@jupyterlab/extensionmanager-extension:plugin';
  * IDs of the commands added by this extension.
  */
 namespace CommandIDs {
+  export const showPanel = 'extensionmanager:show-panel';
   export const toggle = 'extensionmanager:toggle';
 }
 
@@ -102,6 +103,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
           `Something went wrong when reading the settings.\n${reason}`
         );
       });
+
+    commands.addCommand(CommandIDs.showPanel, {
+      label: trans.__('Extension Manager'),
+      execute: () => {
+        if (view) {
+          labShell?.activateById(view.id);
+        }
+      },
+      isVisible: () => enabled && labShell !== null
+    });
 
     commands.addCommand(CommandIDs.toggle, {
       label: trans.__('Enable Extension Manager'),

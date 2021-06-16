@@ -573,6 +573,13 @@ const main: JupyterFrontEndPlugin<void> = {
 
     shell.add(sidebar, 'right');
 
+    commands.addCommand(CommandIDs.showPanel, {
+      label: translator.load('jupyterlab').__('Debugger Panel'),
+      execute: () => {
+        shell.activateById(sidebar.id);
+      }
+    });
+
     if (palette) {
       const category = trans.__('Debugger');
       [

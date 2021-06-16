@@ -975,6 +975,7 @@ function addCommands(
   });
 
   commands.addCommand(CommandIDs.toggleBrowser, {
+    label: trans.__('File Browser'),
     execute: () => {
       if (browser.isHidden) {
         return commands.execute(CommandIDs.showBrowser, void 0);

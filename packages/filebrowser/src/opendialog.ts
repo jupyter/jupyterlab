@@ -200,7 +200,7 @@ namespace Private {
     filter?: (value: Contents.IModel) => boolean,
     options: IFileBrowserFactory.IOptions = {},
     translator?: ITranslator
-  ) => {
+  ): FileBrowser => {
     translator = translator || nullTranslator;
     const model = new FilterFileBrowserModel({
       manager,
