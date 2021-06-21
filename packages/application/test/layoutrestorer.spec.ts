@@ -56,8 +56,18 @@ describe('apputils', () => {
         const dehydrated: ILabShell.ILayout = {
           mainArea: { currentWidget, dock: null },
           downArea: { currentWidget: null, widgets: null, size: null },
-          leftArea: { collapsed: true, currentWidget: null, widgets: null },
-          rightArea: { collapsed: true, currentWidget: null, widgets: null },
+          leftArea: {
+            collapsed: true,
+            currentWidget: null,
+            widgets: null,
+            visible: false
+          },
+          rightArea: {
+            collapsed: true,
+            currentWidget: null,
+            widgets: null,
+            visible: false
+          },
           relativeSizes: null
         };
         restorer.add(currentWidget, 'test-one');
@@ -79,8 +89,18 @@ describe('apputils', () => {
         const dehydrated: ILabShell.ILayout = {
           mainArea: { currentWidget: null, dock: null },
           downArea: { currentWidget, widgets: null, size: null },
-          leftArea: { collapsed: true, currentWidget: null, widgets: null },
-          rightArea: { collapsed: true, currentWidget: null, widgets: null },
+          leftArea: {
+            collapsed: true,
+            currentWidget: null,
+            widgets: null,
+            visible: false
+          },
+          rightArea: {
+            collapsed: true,
+            currentWidget: null,
+            widgets: null,
+            visible: false
+          },
           relativeSizes: null
         };
         restorer.add(currentWidget, 'test-one');
@@ -119,9 +139,15 @@ describe('apputils', () => {
           leftArea: {
             currentWidget,
             collapsed: true,
-            widgets: [currentWidget]
+            widgets: [currentWidget],
+            visible: true
           },
-          rightArea: { collapsed: true, currentWidget: null, widgets: null },
+          rightArea: {
+            collapsed: true,
+            currentWidget: null,
+            widgets: null,
+            visible: false
+          },
           relativeSizes: null
         };
         restorer.add(currentWidget, 'test-one');
@@ -175,8 +201,18 @@ describe('apputils', () => {
         const dehydrated: ILabShell.ILayout = {
           mainArea: { currentWidget: null, dock: null },
           downArea: { currentWidget: null, widgets: null, size: null },
-          leftArea: { currentWidget: null, collapsed: true, widgets: null },
-          rightArea: { collapsed: true, currentWidget: null, widgets: null },
+          leftArea: {
+            currentWidget: null,
+            collapsed: true,
+            widgets: null,
+            visible: false
+          },
+          rightArea: {
+            collapsed: true,
+            currentWidget: null,
+            widgets: null,
+            visible: false
+          },
           relativeSizes: null
         };
 
@@ -201,9 +237,15 @@ describe('apputils', () => {
           leftArea: {
             currentWidget,
             collapsed: true,
-            widgets: [currentWidget]
+            widgets: [currentWidget],
+            visible: true
           },
-          rightArea: { collapsed: true, currentWidget: null, widgets: null },
+          rightArea: {
+            collapsed: true,
+            currentWidget: null,
+            widgets: null,
+            visible: false
+          },
           relativeSizes: null
         };
         restorer.add(currentWidget, 'test-one');
