@@ -76,7 +76,7 @@ const statusBar: JupyterFrontEndPlugin<IStatusBar> = {
 
     app.commands.addCommand(command, {
       label: trans.__('Show Status Bar'),
-      execute: (args: any) => {
+      execute: () => {
         statusBar.setHidden(statusBar.isVisible);
         if (settingRegistry) {
           void settingRegistry.set(
@@ -87,6 +87,14 @@ const statusBar: JupyterFrontEndPlugin<IStatusBar> = {
         }
       },
       isToggled: () => statusBar.isVisible
+    });
+
+    app.commands.commandExecuted.connect((registry, executed) => {
+      if (executed.id === 'application:reset-layout' && !statusBar.isVisible) {
+        app.commands.execute(command).catch(reason => {
+          console.error('Failed to show the status bar.', reason);
+        });
+      }
     });
 
     if (palette) {

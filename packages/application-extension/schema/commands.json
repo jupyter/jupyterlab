@@ -63,6 +63,14 @@
                   "args": {
                     "side": "right"
                   }
+                },
+                {
+                  "type": "separator",
+                  "rank": 50
+                },
+                {
+                  "command": "application:reset-layout",
+                  "rank": 51
                 }
               ]
             }
