@@ -15,6 +15,7 @@ import {
   ICommandPalette,
   IThemeManager,
   MainAreaWidget,
+  sessionContextDialogs,
   WidgetTracker
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
@@ -31,7 +32,14 @@ import {
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
-import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
+import {
+  IMainMenu,
+} from '@jupyterlab/mainmenu';
+import {
+  INotebookTracker,
+  NotebookActions,
+  NotebookPanel
+} from '@jupyterlab/notebook';
 import {
   standardRendererFactories as initialFactories,
   RenderMimeRegistry
@@ -166,14 +174,45 @@ const files: JupyterFrontEndPlugin<void> = {
 const notebooks: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlab/debugger-extension:notebooks',
   autoStart: true,
-  requires: [IDebugger, INotebookTracker],
+  requires: [IDebugger, INotebookTracker, IMainMenu],
   optional: [ILabShell],
   activate: (
     app: JupyterFrontEnd,
     service: IDebugger,
     notebookTracker: INotebookTracker,
+    mainMenu: IMainMenu,
     labShell: ILabShell | null
   ) => {
+
+    app.commands.addCommand('debugger:restart-debug', {
+      label: 'Restart and Debug',
+      isEnabled: () => { return true },
+      execute: () => {
+        const state = service.getDebuggerState();
+        console.log(state.cells);
+        const { context, content } = notebookTracker.currentWidget!;
+
+        sessionContextDialogs!
+          .restart(context.sessionContext)//, translator)
+          .then(restarted => {
+            console.log('entering 1st promise: ', restarted);
+            if (restarted) {
+              return service.restoreDebuggerState(state);
+            }
+            return restarted;
+          })
+          .then(configDone => {
+            console.log('entering second promise: ', configDone);
+            if (configDone) {
+              void NotebookActions.runAll(content, context.sessionContext);
+            }
+            return configDone;
+          });
+      }
+    });
+
+    mainMenu.runMenu.addGroup([{ command: 'debugger:restart-debug' }], 40);
+
     const handler = new Debugger.Handler({
       type: 'notebook',
       shell: app.shell,

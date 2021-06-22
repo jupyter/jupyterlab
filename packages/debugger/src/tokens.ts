@@ -153,6 +153,12 @@ export interface IDebugger {
     breakpoints: IDebugger.IBreakpoint[],
     path?: string
   ): Promise<void>;
+
+  getDebuggerState(): IDebugger.State;
+
+  restoreDebuggerState(
+    state: IDebugger.State,
+  ): Promise<boolean>;
 }
 
 /**
@@ -183,6 +189,21 @@ export namespace IDebugger {
    * Single breakpoint in an editor.
    */
   export interface IBreakpoint extends DebugProtocol.Breakpoint {}
+
+  /*
+   * The state of the debugger, used for restoring a debugging session
+   * after restarting the kernel.
+   */
+  export type State = {
+    /**
+     * List of cells to dump after the kernel has restarted
+     */
+    cells : string[];
+    /**
+     * Map of breakpoints to send back to the kernel after it has restarted
+     */
+    breakpoints: Map<string, IDebugger.IBreakpoint[]>;
+  };
 
   /**
    * Debugger file and hashing configuration.
