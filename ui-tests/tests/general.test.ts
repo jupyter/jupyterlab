@@ -61,12 +61,14 @@ describe('General Tests', () => {
   });
 
   test('Close Sidebar on right', async () => {
-    await galata.sidebar.close('right');
+    // await galata.sidebar.close('right'); // TODO To fix upstream
+    await galata.menu.clickMenuItem('View>Appearance>Show Right Sidebar');
     expect(await galata.sidebar.isOpen('right')).toBeFalsy();
   });
 
   test('Open Sidebar on right', async () => {
-    await galata.sidebar.open('right');
+    // await galata.sidebar.open('right'); // TODO To fix upstream
+    await galata.menu.clickMenuItem('View>Appearance>Show Right Sidebar');
     expect(await galata.sidebar.isOpen('right')).toBeTruthy();
   });
 
