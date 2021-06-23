@@ -481,16 +481,23 @@ export class DebuggerService implements IDebugger, IDisposable {
   async restoreDebuggerState(state: IDebugger.State): Promise<boolean> {
     await this.start();
 
-    console.log('Debugger restarted');
-
     for (const cell of state.cells) {
       await this._dumpCell(cell);
-      console.log('dumped cell: ', cell);
     }
 
-    await this._restoreBreakpoints(state.breakpoints);
+    const breakpoints = new Map<string, IDebugger.IBreakpoint[]>();
+    const kernel =  this.session?.connection?.kernel?.name ?? '';
+    const { prefix, suffix } = this._config.getTmpFileParams(kernel);
+    for (const item of state.breakpoints) {
+      const [id, list] = item;
+      const unsuffixedId = id.substr(0, id.length - suffix.length);
+      const codeHash = unsuffixedId.substr(unsuffixedId.lastIndexOf('/') + 1);
+      const newId = prefix.concat(codeHash).concat(suffix);
+      breakpoints.set(newId, list);
+    }
+
+    await this._restoreBreakpoints(breakpoints);
     const config = await this.session!.sendRequest('configurationDone', {});
-    console.log('configuration done: ', config.success);
     return config.success;
   }
 
@@ -782,6 +789,7 @@ export class DebuggerService implements IDebugger, IDisposable {
     breakpoints: Map<string, IDebugger.IBreakpoint[]>
   ): Promise<void> {
     for (const [source, points] of breakpoints) {
+      console.log(source);
       await this._setBreakpoints(
         points
           .filter(({ line }) => typeof line === 'number')

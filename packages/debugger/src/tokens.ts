@@ -230,6 +230,13 @@ export namespace IDebugger {
      * @param params - Temporary file prefix and suffix for a kernel.
      */
     setTmpFileParams(params: IConfig.FileParams): void;
+
+    /**
+     * Gets the parameters used for the temp files (e.e. cells) for a kernel.
+     *
+     * @param kernel - The kernel name from current session.
+     */
+    getTmpFileParams(kernel: string): IConfig.FileParams;
   }
 
   /**

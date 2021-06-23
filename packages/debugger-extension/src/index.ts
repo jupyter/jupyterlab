@@ -187,13 +187,13 @@ const notebooks: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand('debugger:restart-debug', {
       label: 'Restart and Debug',
       isEnabled: () => { return true },
-      execute: () => {
+      /*execute: () => {
         const state = service.getDebuggerState();
         console.log(state.cells);
         const { context, content } = notebookTracker.currentWidget!;
 
         sessionContextDialogs!
-          .restart(context.sessionContext)//, translator)
+          .restart(context.sessionContext)
           .then(restarted => {
             console.log('entering 1st promise: ', restarted);
             if (restarted) {
@@ -208,6 +208,18 @@ const notebooks: JupyterFrontEndPlugin<void> = {
             }
             return configDone;
           });
+      }*/
+      execute: async () => {
+        const state = service.getDebuggerState();
+        console.log(state.cells);
+        const { context, content } = notebookTracker.currentWidget!;
+
+        await service.stop();
+        const restarted = await sessionContextDialogs!.restart(context.sessionContext);
+        if (restarted) {
+          await service.restoreDebuggerState(state);
+          await NotebookActions.runAll(content, context.sessionContext);
+        }
       }
     });
 
