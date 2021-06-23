@@ -24,8 +24,8 @@ import { Message, MessageLoop } from '@lumino/messaging';
 import { AttachedProperty } from '@lumino/properties';
 import { PanelLayout, Widget } from '@lumino/widgets';
 import * as React from 'react';
-import { ISessionContext, sessionContextDialogs } from './sessioncontext';
-import { ReactWidget, UseSignal } from './vdom';
+import { ISessionContext, sessionContextDialogs } from '../sessioncontext';
+import { ReactWidget, UseSignal } from '../vdom';
 
 /**
  * The class name added to toolbars.
@@ -327,7 +327,7 @@ export class Toolbar<T extends Widget = Widget> extends Widget {
   /**
    * Handle a DOM click event.
    */
-  protected handleClick(event: Event) {
+  protected handleClick(event: Event): void {
     // Clicking a label focuses the corresponding control
     // that is linked with `for` attribute, so let it be.
     if (event.target instanceof HTMLLabelElement) {
@@ -494,7 +494,9 @@ export namespace ToolbarButtonComponent {
  *
  * @param props - The props for ToolbarButtonComponent.
  */
-export function ToolbarButtonComponent(props: ToolbarButtonComponent.IProps) {
+export function ToolbarButtonComponent(
+  props: ToolbarButtonComponent.IProps
+): JSX.Element {
   // In some browsers, a button click event moves the focus from the main
   // content to the button (see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#Clicking_and_focus).
   // We avoid a click event by calling preventDefault in mousedown, and
@@ -576,7 +578,7 @@ export class ToolbarButton extends ReactWidget {
     super();
     addToolbarButtonClass(this);
   }
-  render() {
+  render(): JSX.Element {
     return <ToolbarButtonComponent {...this.props} />;
   }
 }
@@ -603,7 +605,7 @@ export namespace CommandToolbarButtonComponent {
  */
 export function CommandToolbarButtonComponent(
   props: CommandToolbarButtonComponent.IProps
-) {
+): JSX.Element {
   return (
     <UseSignal
       signal={props.commands.commandChanged}
@@ -638,7 +640,7 @@ export class CommandToolbarButton extends ReactWidget {
     super();
     addCommandToolbarButtonClass(this);
   }
-  render() {
+  render(): JSX.Element {
     return <CommandToolbarButtonComponent {...this.props} />;
   }
 }
@@ -694,7 +696,7 @@ namespace Private {
   /**
    * A no-op function.
    */
-  export function noOp() {
+  export function noOp(): void {
     /* no-op */
   }
 
@@ -732,7 +734,9 @@ namespace Private {
    * session for changes.
    */
 
-  export function KernelNameComponent(props: KernelNameComponent.IProps) {
+  export function KernelNameComponent(
+    props: KernelNameComponent.IProps
+  ): JSX.Element {
     const translator = props.translator || nullTranslator;
     const trans = translator.load('jupyterlab');
     const callback = () => {
