@@ -498,6 +498,7 @@ export class DebuggerService implements IDebugger, IDisposable {
 
     await this._restoreBreakpoints(breakpoints);
     const config = await this.session!.sendRequest('configurationDone', {});
+    await this.restoreState(false);
     return config.success;
   }
 

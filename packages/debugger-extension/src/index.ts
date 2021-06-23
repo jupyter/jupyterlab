@@ -184,31 +184,15 @@ const notebooks: JupyterFrontEndPlugin<void> = {
     labShell: ILabShell | null
   ) => {
 
+    const handler = new Debugger.Handler({
+      type: 'notebook',
+      shell: app.shell,
+      service
+    });
+    
     app.commands.addCommand('debugger:restart-debug', {
       label: 'Restart and Debug',
       isEnabled: () => { return true },
-      /*execute: () => {
-        const state = service.getDebuggerState();
-        console.log(state.cells);
-        const { context, content } = notebookTracker.currentWidget!;
-
-        sessionContextDialogs!
-          .restart(context.sessionContext)
-          .then(restarted => {
-            console.log('entering 1st promise: ', restarted);
-            if (restarted) {
-              return service.restoreDebuggerState(state);
-            }
-            return restarted;
-          })
-          .then(configDone => {
-            console.log('entering second promise: ', configDone);
-            if (configDone) {
-              void NotebookActions.runAll(content, context.sessionContext);
-            }
-            return configDone;
-          });
-      }*/
       execute: async () => {
         const state = service.getDebuggerState();
         console.log(state.cells);
@@ -218,6 +202,8 @@ const notebooks: JupyterFrontEndPlugin<void> = {
         const restarted = await sessionContextDialogs!.restart(context.sessionContext);
         if (restarted) {
           await service.restoreDebuggerState(state);
+          await handler._update(notebookTracker.currentWidget!,
+                                notebookTracker.currentWidget!.sessionContext.session);
           await NotebookActions.runAll(content, context.sessionContext);
         }
       }
@@ -225,11 +211,6 @@ const notebooks: JupyterFrontEndPlugin<void> = {
 
     mainMenu.runMenu.addGroup([{ command: 'debugger:restart-debug' }], 40);
 
-    const handler = new Debugger.Handler({
-      type: 'notebook',
-      shell: app.shell,
-      service
-    });
     const updateHandlerAndCommands = async (
       widget: NotebookPanel
     ): Promise<void> => {
