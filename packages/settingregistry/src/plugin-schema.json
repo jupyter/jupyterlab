@@ -63,6 +63,19 @@
       "type": "array",
       "default": []
     },
+    "jupyter.lab.toolbars": {
+      "properties": {
+        "^\\w[\\w-\\.]*$": {
+          "items": {
+            "$ref": "#/definitions/toolbarItem"
+          },
+          "type": "array",
+          "default": []
+        }
+      },
+      "type": "object",
+      "default": {}
+    },
     "jupyter.lab.transform": {
       "type": "boolean",
       "default": false
@@ -179,6 +192,40 @@
         }
       },
       "required": ["command", "keys", "selector"],
+      "type": "object"
+    },
+    "toolbarItem": {
+      "properties": {
+        "name": {
+          "description": "Unique name",
+          "type": "string"
+        },
+        "args": {
+          "description": "Command arguments",
+          "type": "object"
+        },
+        "command": {
+          "description": "Command id",
+          "type": "string",
+          "default": ""
+        },
+        "disabled": {
+          "description": "Whether the item is disabled or not",
+          "type": "boolean",
+          "default": false
+        },
+        "type": {
+          "description": "Item type",
+          "type": "string",
+          "enum": ["command", "spacer"]
+        },
+        "rank": {
+          "description": "Item rank",
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": ["name"],
       "type": "object"
     }
   }

@@ -406,19 +406,34 @@ export abstract class ABCWidgetFactory<
     const widget = this.createNewWidget(context, source);
 
     // Add toolbar items
-    let items: DocumentRegistry.IToolbarItem[];
+    let items:
+      | DocumentRegistry.IToolbarItem[]
+      | Promise<DocumentRegistry.IToolbarItem[]>;
     if (this._toolbarFactory) {
       items = this._toolbarFactory(widget);
     } else {
       items = this.defaultToolbarFactory(widget);
     }
-    items.forEach(({ name, widget: item }) => {
-      widget.toolbar.addItem(name, item);
-    });
+    const asyncItems =
+      items instanceof Promise ? items : Promise.resolve(items);
 
-    // Emit widget created signal
-    this._widgetCreated.emit(widget);
+    asyncItems
+      .then(items => {
+        items.forEach(({ name, widget: item }) => {
+          widget.toolbar.addItem(name, item);
+        });
 
+        // Emit widget created signal
+        this._widgetCreated.emit(widget);
+      })
+      .catch(reason => {
+        console.error('Failed to get toolbar items.', reason);
+
+        // Emit widget created signal
+        this._widgetCreated.emit(widget);
+      });
+
+    // this._widgetCreated.emit(widget);
     return widget;
   }
 
@@ -433,12 +448,20 @@ export abstract class ABCWidgetFactory<
   /**
    * Default factory for toolbar items to be added after the widget is created.
    */
-  protected defaultToolbarFactory(widget: T): DocumentRegistry.IToolbarItem[] {
+  protected defaultToolbarFactory(
+    widget: T
+  ):
+    | DocumentRegistry.IToolbarItem[]
+    | Promise<DocumentRegistry.IToolbarItem[]> {
     return [];
   }
 
   private _toolbarFactory:
-    | ((widget: T) => DocumentRegistry.IToolbarItem[])
+    | ((
+        widget: T
+      ) =>
+        | DocumentRegistry.IToolbarItem[]
+        | Promise<DocumentRegistry.IToolbarItem[]>)
     | undefined;
   private _isDisposed = false;
   private _translator: ITranslator;

@@ -1,0 +1,69 @@
+{
+  "title": "Notebook Panel",
+  "description": "Notebook Panel settings.",
+  "jupyter.lab.toolbars": {
+    "Notebook": [
+      { "name": "save" },
+      { "name": "insert" },
+      { "name": "cut" },
+      { "name": "copy" },
+      { "name": "paste" },
+      { "name": "run" },
+      { "name": "interrupt" },
+      { "name": "restart" },
+      { "name": "restart-and-run" },
+      { "name": "cellType" },
+      { "name": "spacer", "type": "spacer" },
+      { "name": "kernelName" },
+      { "name": "kernelStatus" }
+    ]
+  },
+  "jupyter.lab.transform": true,
+  "properties": {
+    "toolbar": {
+      "items": {
+        "$ref": "#/definitions/toolbarItem"
+      },
+      "type": "array",
+      "default": []
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "definitions": {
+    "toolbarItem": {
+      "properties": {
+        "name": {
+          "description": "Unique name",
+          "type": "string"
+        },
+        "args": {
+          "description": "Command arguments",
+          "type": "object"
+        },
+        "command": {
+          "description": "Command id",
+          "type": "string",
+          "default": ""
+        },
+        "disabled": {
+          "description": "Whether the item is disabled or not",
+          "type": "boolean",
+          "default": false
+        },
+        "type": {
+          "description": "Item type",
+          "type": "string",
+          "enum": ["command", "spacer"]
+        },
+        "rank": {
+          "description": "Item rank",
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": ["name"],
+      "type": "object"
+    }
+  }
+}

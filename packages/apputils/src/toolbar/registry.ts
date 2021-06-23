@@ -14,10 +14,20 @@ export class ToolbarWidgetRegistry implements IToolbarWidgetRegistry {
   /**
    * Default toolbar item factory
    */
-  get defaultFactory(): ToolbarRegistry.WidgetFactory {
+  get defaultFactory(): (
+    widgetFactory: string,
+    widget: Widget,
+    toolbarItem: ToolbarRegistry.IWidget
+  ) => Widget {
     return this._defaultFactory;
   }
-  set defaultFactory(factory: ToolbarRegistry.WidgetFactory) {
+  set defaultFactory(
+    factory: (
+      widgetFactory: string,
+      widget: Widget,
+      toolbarItem: ToolbarRegistry.IWidget
+    ) => Widget
+  ) {
     this._defaultFactory = factory;
   }
 
@@ -34,9 +44,10 @@ export class ToolbarWidgetRegistry implements IToolbarWidgetRegistry {
     widget: Widget,
     toolbarItem: ToolbarRegistry.IWidget
   ): Widget {
-    const namespace = this._widgets.get(widgetFactory);
-    const factory = namespace?.get(toolbarItem.name) ?? this._defaultFactory;
-    return factory(widgetFactory, widget, toolbarItem);
+    const factory = this._widgets.get(widgetFactory)?.get(toolbarItem.name);
+    return factory
+      ? factory(widget)
+      : this._defaultFactory(widgetFactory, widget, toolbarItem);
   }
 
   /**
@@ -44,29 +55,33 @@ export class ToolbarWidgetRegistry implements IToolbarWidgetRegistry {
    *
    * @param widgetFactory The widget factory name that creates the toolbar
    * @param toolbarItemName The unique toolbar item
-   * @param factory The factory function
+   * @param factory The factory function that receives the widget containing the toolbar and returns the toolbar widget.
    * @returns The previously defined factory
    */
-  registerFactory(
+  registerFactory<T extends Widget = Widget>(
     widgetFactory: string,
     toolbarItemName: string,
-    factory: ToolbarRegistry.WidgetFactory
-  ): ToolbarRegistry.WidgetFactory | undefined {
+    factory: (main: T) => Widget
+  ): ((main: T) => Widget) | undefined {
     let namespace = this._widgets.get(widgetFactory);
     const oldFactory = namespace?.get(toolbarItemName);
     if (!namespace) {
-      namespace = new Map<string, ToolbarRegistry.WidgetFactory>();
+      namespace = new Map<string, (main: Widget) => Widget>();
       this._widgets.set(widgetFactory, namespace);
     }
     namespace.set(toolbarItemName, factory);
     return oldFactory;
   }
 
-  protected _defaultFactory: ToolbarRegistry.WidgetFactory;
+  protected _defaultFactory: (
+    widgetFactory: string,
+    widget: Widget,
+    toolbarItem: ToolbarRegistry.IWidget
+  ) => Widget;
   protected _widgets: Map<
     string,
-    Map<string, ToolbarRegistry.WidgetFactory>
-  > = new Map<string, Map<string, ToolbarRegistry.WidgetFactory>>();
+    Map<string, (main: Widget) => Widget>
+  > = new Map<string, Map<string, (main: Widget) => Widget>>();
 }
 
 /**
@@ -77,13 +92,17 @@ export class ToolbarWidgetRegistry implements IToolbarWidgetRegistry {
  */
 export function createDefaultFactory(
   commands: CommandRegistry
-): ToolbarRegistry.WidgetFactory {
+): (
+  widgetFactory: string,
+  widget: Widget,
+  toolbarItem: ToolbarRegistry.IWidget
+) => Widget {
   return (
     widgetFactory: string,
     widget: Widget,
     toolbarItem: ToolbarRegistry.IWidget
   ) => {
-    switch (toolbarItem.type) {
+    switch (toolbarItem.type ?? 'command') {
       case 'command':
         return new CommandToolbarButton({
           commands,

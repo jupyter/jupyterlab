@@ -13,11 +13,14 @@ import {
 
 import {
   Dialog,
+  getToolbarItems,
   ICommandPalette,
   ISessionContextDialogs,
+  IToolbarWidgetRegistry,
   MainAreaWidget,
   sessionContextDialogs,
   showDialog,
+  Toolbar,
   WidgetTracker
 } from '@jupyterlab/apputils';
 
@@ -28,6 +31,7 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 
 import { IDocumentManager } from '@jupyterlab/docmanager';
+import { DocumentRegistry } from '@jupyterlab/docregistry';
 
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
@@ -58,7 +62,8 @@ import {
   NotebookTracker,
   NotebookTrustStatus,
   NotebookWidgetFactory,
-  StaticNotebook
+  StaticNotebook,
+  ToolbarItems
 } from '@jupyterlab/notebook';
 import {
   IObservableList,
@@ -267,6 +272,11 @@ const FACTORY = 'Notebook';
  * (returned from nbconvert's export list)
  */
 const FORMAT_EXCLUDE = ['notebook', 'python', 'custom'];
+
+/**
+ * Setting Id storing the customized toolbar definition.
+ */
+const TOOLBAR_SETTINGS = '@jupyterlab/notebook-extension:toolbar';
 
 /**
  * The notebook widget tracker provider.
@@ -519,8 +529,10 @@ const widgetFactoryPlugin: JupyterFrontEndPlugin<NotebookWidgetFactory.IFactory>
     IEditorServices,
     IRenderMimeRegistry,
     ISessionContextDialogs,
+    IToolbarWidgetRegistry,
     ITranslator
   ],
+  optional: [ISettingRegistry],
   activate: activateWidgetFactory,
   autoStart: true
 };
@@ -698,8 +710,95 @@ function activateWidgetFactory(
   editorServices: IEditorServices,
   rendermime: IRenderMimeRegistry,
   sessionContextDialogs: ISessionContextDialogs,
-  translator: ITranslator
+  toolbarRegistry: IToolbarWidgetRegistry,
+  translator: ITranslator,
+  settingRegistry: ISettingRegistry | null
 ): NotebookWidgetFactory.IFactory {
+  let toolbarFactory:
+    | ((widget: NotebookPanel) => Promise<DocumentRegistry.IToolbarItem[]>)
+    | undefined;
+
+  // Register notebook toolbar widgets
+  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'save', panel =>
+    ToolbarItems.createSaveButton(panel, translator)
+  );
+  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'insert', panel =>
+    ToolbarItems.createInsertButton(panel, translator)
+  );
+  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'cut', panel =>
+    ToolbarItems.createCutButton(panel, translator)
+  );
+  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'copy', panel =>
+    ToolbarItems.createCopyButton(panel, translator)
+  );
+  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'paste', panel =>
+    ToolbarItems.createPasteButton(panel, translator)
+  );
+  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'run', panel =>
+    ToolbarItems.createRunButton(panel, translator)
+  );
+  toolbarRegistry.registerFactory<NotebookPanel>(
+    FACTORY,
+    'interrupt',
+    (panel: NotebookPanel) =>
+      Toolbar.createInterruptButton(panel.sessionContext, translator)
+  );
+  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'restart', panel =>
+    Toolbar.createRestartButton(
+      panel.sessionContext,
+      sessionContextDialogs,
+      translator
+    )
+  );
+  toolbarRegistry.registerFactory<NotebookPanel>(
+    FACTORY,
+    'restart-and-run',
+    panel =>
+      ToolbarItems.createRestartRunAllButton(
+        panel,
+        sessionContextDialogs,
+        translator
+      )
+  );
+  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'cellType', panel =>
+    ToolbarItems.createCellTypeItem(panel, translator)
+  );
+  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'kernelName', panel =>
+    Toolbar.createKernelNameItem(
+      panel.sessionContext,
+      sessionContextDialogs,
+      translator
+    )
+  );
+  toolbarRegistry.registerFactory<NotebookPanel>(
+    FACTORY,
+    'kernelStatus',
+    panel => Toolbar.createKernelStatusItem(panel.sessionContext, translator)
+  );
+
+  if (settingRegistry) {
+    // Create the factory
+    toolbarFactory = async widget => {
+      // Get toolbar definition from the settings
+      const items = await getToolbarItems(
+        settingRegistry,
+        FACTORY,
+        TOOLBAR_SETTINGS,
+        translator
+      );
+
+      return items
+        .filter(item => !item.disabled)
+        .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity))
+        .map(item => {
+          return {
+            name: item.name,
+            widget: toolbarRegistry.createWidget(FACTORY, widget, item)
+          };
+        });
+    };
+  }
+
   const factory = new NotebookWidgetFactory({
     name: FACTORY,
     fileTypes: ['notebook'],
@@ -713,6 +812,7 @@ function activateWidgetFactory(
     notebookConfig: StaticNotebook.defaultNotebookConfig,
     mimeTypeService: editorServices.mimeTypeService,
     sessionDialogs: sessionContextDialogs,
+    toolbarFactory,
     translator: translator
   });
   app.docRegistry.addWidgetFactory(factory);

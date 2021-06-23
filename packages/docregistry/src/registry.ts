@@ -1048,7 +1048,11 @@ export namespace DocumentRegistry {
     /**
      * A function producing toolbar widgets, overriding the default toolbar widgets.
      */
-    readonly toolbarFactory?: (widget: T) => DocumentRegistry.IToolbarItem[];
+    readonly toolbarFactory?: (
+      widget: T
+    ) =>
+      | DocumentRegistry.IToolbarItem[]
+      | Promise<DocumentRegistry.IToolbarItem[]>;
   }
 
   /**
