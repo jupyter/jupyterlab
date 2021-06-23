@@ -31,8 +31,7 @@
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "schema/*.json",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
-    "style/index.js",
-    "schema/*.json"
+    "style/index.js"
   ],
   "scripts": {
     "build": "tsc -b",
