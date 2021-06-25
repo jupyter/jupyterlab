@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@jupyterlab/shared-models": "^3.1.0-beta.1",
+    "@jupyterlab/statedb": "^3.1.0-beta.1",
     "@lumino/coreutils": "^1.5.3",
     "lib0": "^0.2.42",
     "y-websocket": "^1.3.15",

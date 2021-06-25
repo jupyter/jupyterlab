@@ -10,7 +10,10 @@ import * as Y from 'yjs';
 import { IDocumentProvider, IDocumentProviderFactory } from './tokens';
 import { getAnonymousUserName, getRandomColor } from './awareness';
 import * as env from 'lib0/environment';
+import { IStateDB } from '@jupyterlab/statedb';
 
+const PREFIX = '@jupyterlab/docprovider:yprovider';
+const USER = `${PREFIX}:user`;
 /**
  * A class to provide Yjs synchronization over WebSocket.
  *
@@ -41,17 +44,28 @@ export class WebSocketProviderWithLocks
     this._path = options.path;
     this._contentType = options.contentType;
     this._serverUrl = options.url;
-    const color = '#' + env.getParam('--usercolor', getRandomColor().slice(1));
-    const name = env.getParam('--username', getAnonymousUserName());
+
     const awareness = options.ymodel.awareness;
     const currState = awareness.getLocalState();
-    // only set if this was not already set by another plugin
-    if (currState && currState.name == null) {
-      options.ymodel.awareness.setLocalStateField('user', {
-        name,
-        color
-      });
-    }
+    let color = '#' + env.getParam('--usercolor', getRandomColor().slice(1));
+    let name = env.getParam('--username', getAnonymousUserName());
+    const state = options.state;
+    const user = state.fetch(USER);
+    user.then(param => {
+      if (param === undefined) {
+        state.save(USER, `${name},${color}`);
+      } else {
+        name = (param as string).split(',')[0];
+        color = (param as string).split(',')[1];
+      }
+      // only set if this was not already set by another plugin
+      if (currState && currState.name == null) {
+        options.ymodel.awareness.setLocalStateField('user', {
+          name,
+          color
+        });
+      }
+    });
 
     // Message handler that confirms when a lock has been acquired
     this.messageHandlers[127] = (
@@ -262,5 +276,10 @@ export namespace WebSocketProviderWithLocks {
      * The server URL
      */
     url: string;
+
+    /**
+     * The state database
+     */
+    state: IStateDB;
   }
 }

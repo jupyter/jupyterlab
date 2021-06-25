@@ -8,6 +8,9 @@
   "references": [
     {
       "path": "../shared-models"
+    },
+    {
+      "path": "../statedb"
     }
   ]
 }
