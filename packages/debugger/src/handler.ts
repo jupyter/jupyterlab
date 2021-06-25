@@ -123,11 +123,11 @@ export class DebuggerHandler {
       delete this._kernelChangedHandlers[widget.id];
       delete this._statusChangedHandlers[widget.id];
       delete this._iopubMessageHandlers[widget.id];
-      return this._update(widget, connection);
+      return this.updateWidget(widget, connection);
     }
 
     const kernelChanged = (): void => {
-      void this._update(widget, connection);
+      void this.updateWidget(widget, connection);
     };
     const kernelChangedHandler = this._kernelChangedHandlers[widget.id];
 
@@ -143,7 +143,7 @@ export class DebuggerHandler {
     ): void => {
       // FIXME-TRANS: Localizable?
       if (status.endsWith('restarting')) {
-        void this._update(widget, connection);
+        void this.updateWidget(widget, connection);
       }
     };
     const statusChangedHandler = this._statusChangedHandlers[widget.id];
@@ -174,7 +174,7 @@ export class DebuggerHandler {
     connection.iopubMessage.connect(iopubMessage);
     this._iopubMessageHandlers[widget.id] = iopubMessage;
 
-    return this._update(widget, connection);
+    return this.updateWidget(widget, connection);
   }
 
   /**
@@ -212,7 +212,7 @@ export class DebuggerHandler {
    * @param widget The widget to update.
    * @param connection The session connection.
    */
-  public async _update(
+  async updateWidget(
     widget: DebuggerHandler.SessionWidget[DebuggerHandler.SessionType],
     connection: Session.ISessionConnection | null
   ): Promise<void> {

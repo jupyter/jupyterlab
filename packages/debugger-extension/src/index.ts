@@ -174,13 +174,14 @@ const files: JupyterFrontEndPlugin<void> = {
 const notebooks: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlab/debugger-extension:notebooks',
   autoStart: true,
-  requires: [IDebugger, INotebookTracker, IMainMenu],
+  requires: [IDebugger, INotebookTracker, IMainMenu, ITranslator],
   optional: [ILabShell],
   activate: (
     app: JupyterFrontEnd,
     service: IDebugger,
     notebookTracker: INotebookTracker,
     mainMenu: IMainMenu,
+    translator: ITranslator,
     labShell: ILabShell | null
   ) => {
 
@@ -190,8 +191,10 @@ const notebooks: JupyterFrontEndPlugin<void> = {
       service
     });
     
-    app.commands.addCommand('debugger:restart-debug', {
-      label: 'Restart and Debug',
+    const trans = translator.load('jupyterlab');
+    app.commands.addCommand(Debugger.CommandIDs.restartDebug, {
+      label: trans.__('Restart and Debug'),
+      caption: trans.__('Restart and Debug'),
       isEnabled: () => { return true },
       execute: async () => {
         const state = service.getDebuggerState();
@@ -202,8 +205,8 @@ const notebooks: JupyterFrontEndPlugin<void> = {
         const restarted = await sessionContextDialogs!.restart(context.sessionContext);
         if (restarted) {
           await service.restoreDebuggerState(state);
-          await handler._update(notebookTracker.currentWidget!,
-                                notebookTracker.currentWidget!.sessionContext.session);
+          await handler.updateWidget(notebookTracker.currentWidget!,
+                                     notebookTracker.currentWidget!.sessionContext.session);
           await NotebookActions.runAll(content, context.sessionContext);
         }
       }
