@@ -195,7 +195,7 @@ const notebooks: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand(Debugger.CommandIDs.restartDebug, {
       label: trans.__('Restart and Debug'),
       caption: trans.__('Restart and Debug'),
-      isEnabled: () => { return true },
+      isEnabled: () => { return service.isStarted },
       execute: async () => {
         const state = service.getDebuggerState();
         console.log(state.cells);
