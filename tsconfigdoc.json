@@ -234,9 +234,6 @@
       "path": "./packages/statusbar-extension"
     },
     {
-      "path": "./packages/tabmanager-extension"
-    },
-    {
       "path": "./packages/terminal"
     },
     {
@@ -277,9 +274,6 @@
     },
     {
       "path": "./packages/vdom-extension"
-    },
-    {
-      "path": "./packages/vega4-extension"
     },
     {
       "path": "./packages/vega5-extension"
