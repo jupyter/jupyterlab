@@ -3,6 +3,17 @@
   "description": "Debugger settings",
   "jupyter.lab.setting-icon": "ui-components:bug",
   "jupyter.lab.setting-icon-label": "Debugger",
+  "jupyter.lab.menus": {
+    "main": [
+      {
+        "id": "jp-mainmenu-run",
+        "items": [
+          { "command": "debugger:restart-debug", "rank": 40 },
+          { "type": "separator", "rank": 40 }
+        ]
+      }
+    ]
+  },
   "jupyter.lab.shortcuts": [
     {
       "command": "debugger:debug-console",

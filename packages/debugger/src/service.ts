@@ -461,8 +461,7 @@ export class DebuggerService implements IDebugger, IDisposable {
     await this.session.sendRequest('configurationDone', {});
   }
 
-  getDebuggerState() : IDebugger.State
-  {
+  getDebuggerState(): IDebugger.State {
     const breakpoints = this._model.breakpoints.breakpoints;
     let cells: string[] = [];
     for (const id of breakpoints.keys()) {
@@ -486,7 +485,7 @@ export class DebuggerService implements IDebugger, IDisposable {
     }
 
     const breakpoints = new Map<string, IDebugger.IBreakpoint[]>();
-    const kernel =  this.session?.connection?.kernel?.name ?? '';
+    const kernel = this.session?.connection?.kernel?.name ?? '';
     const { prefix, suffix } = this._config.getTmpFileParams(kernel);
     for (const item of state.breakpoints) {
       const [id, list] = item;

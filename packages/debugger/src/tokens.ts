@@ -156,9 +156,7 @@ export interface IDebugger {
 
   getDebuggerState(): IDebugger.State;
 
-  restoreDebuggerState(
-    state: IDebugger.State,
-  ): Promise<boolean>;
+  restoreDebuggerState(state: IDebugger.State): Promise<boolean>;
 }
 
 /**
@@ -198,7 +196,7 @@ export namespace IDebugger {
     /**
      * List of cells to dump after the kernel has restarted
      */
-    cells : string[];
+    cells: string[];
     /**
      * Map of breakpoints to send back to the kernel after it has restarted
      */

@@ -33,9 +33,6 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import {
-  IMainMenu,
-} from '@jupyterlab/mainmenu';
-import {
   INotebookTracker,
   NotebookActions,
   NotebookPanel
@@ -174,45 +171,47 @@ const files: JupyterFrontEndPlugin<void> = {
 const notebooks: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlab/debugger-extension:notebooks',
   autoStart: true,
-  requires: [IDebugger, INotebookTracker, IMainMenu, ITranslator],
+  requires: [IDebugger, INotebookTracker, ITranslator],
   optional: [ILabShell],
   activate: (
     app: JupyterFrontEnd,
     service: IDebugger,
     notebookTracker: INotebookTracker,
-    mainMenu: IMainMenu,
     translator: ITranslator,
     labShell: ILabShell | null
   ) => {
-
     const handler = new Debugger.Handler({
       type: 'notebook',
       shell: app.shell,
       service
     });
-    
+
     const trans = translator.load('jupyterlab');
     app.commands.addCommand(Debugger.CommandIDs.restartDebug, {
       label: trans.__('Restart and Debug'),
       caption: trans.__('Restart and Debug'),
-      isEnabled: () => { return service.isStarted },
+      isEnabled: () => {
+        return service.isStarted;
+      },
       execute: async () => {
         const state = service.getDebuggerState();
         console.log(state.cells);
         const { context, content } = notebookTracker.currentWidget!;
 
         await service.stop();
-        const restarted = await sessionContextDialogs!.restart(context.sessionContext);
+        const restarted = await sessionContextDialogs!.restart(
+          context.sessionContext
+        );
         if (restarted) {
           await service.restoreDebuggerState(state);
-          await handler.updateWidget(notebookTracker.currentWidget!,
-                                     notebookTracker.currentWidget!.sessionContext.session);
+          await handler.updateWidget(
+            notebookTracker.currentWidget!,
+            notebookTracker.currentWidget!.sessionContext.session
+          );
           await NotebookActions.runAll(content, context.sessionContext);
         }
       }
     });
-
-    mainMenu.runMenu.addGroup([{ command: 'debugger:restart-debug' }], 40);
 
     const updateHandlerAndCommands = async (
       widget: NotebookPanel

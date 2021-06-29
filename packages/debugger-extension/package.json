@@ -59,7 +59,6 @@
     "@jupyterlab/docregistry": "^3.1.0-alpha.13",
     "@jupyterlab/fileeditor": "^3.1.0-alpha.13",
     "@jupyterlab/logconsole": "^3.1.0-alpha.13",
-    "@jupyterlab/mainmenu": "^3.1.0-alpha.13",
     "@jupyterlab/notebook": "^3.1.0-alpha.13",
     "@jupyterlab/rendermime": "^3.1.0-alpha.13",
     "@jupyterlab/services": "^6.1.0-alpha.13",
