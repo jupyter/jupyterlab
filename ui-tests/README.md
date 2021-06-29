@@ -43,6 +43,8 @@ cp test-output/test/screenshots/*.* reference-output/screenshots
 ./repeated_test_run.sh
 ```
 
+touch
+
 6. Once you are done testing locally:
 
 - Revert changes in your `reference-output/screenshots/` directory
