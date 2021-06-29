@@ -77,15 +77,22 @@ namespace Private {
 
     // Only choose the ones that have a non-empty type
     // field, which are likely to be of interest.
-    const completionList = tokenList.filter(t => t.type).map(t => t.value);
-    // Remove duplicate completsions from the list
-    const matches = Array.from(new Set<string>(completionList));
+    let completionList = tokenList.filter(t => t.type);
+
+    // Extract value and remove duplicate completions
+    let completionValuesSet = new Set<string>(completionList.map(t => t.value));
+    const matches = Array.from(completionValuesSet);
+
+    // Create value-type mappings
+    const types = completionList.map(t => ({ text: t.value, type: t.type }));
 
     return {
       start: token.offset,
       end: token.offset + token.value.length,
       matches,
-      metadata: {}
+      metadata: {
+        _jupyter_types_experimental: types
+      }
     };
   }
 
