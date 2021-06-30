@@ -3,19 +3,19 @@
   "description": "Notebook Panel settings.",
   "jupyter.lab.toolbars": {
     "Notebook": [
-      { "name": "save" },
-      { "name": "insert" },
-      { "name": "cut" },
-      { "name": "copy" },
-      { "name": "paste" },
-      { "name": "run" },
-      { "name": "interrupt" },
-      { "name": "restart" },
-      { "name": "restart-and-run" },
-      { "name": "cellType" },
-      { "name": "spacer", "type": "spacer" },
-      { "name": "kernelName" },
-      { "name": "kernelStatus" }
+      { "name": "save", "rank": 10 },
+      { "name": "insert", "rank": 20 },
+      { "name": "cut", "rank": 21 },
+      { "name": "copy", "rank": 22 },
+      { "name": "paste", "rank": 23 },
+      { "name": "run", "rank": 30 },
+      { "name": "interrupt", "rank": 31 },
+      { "name": "restart", "rank": 32 },
+      { "name": "restart-and-run", "rank": 33 },
+      { "name": "cellType", "rank": 40 },
+      { "name": "spacer", "type": "spacer", "rank": 100 },
+      { "name": "kernelName", "rank": 1000 },
+      { "name": "kernelStatus", "rank": 1001 }
     ]
   },
   "jupyter.lab.transform": true,
