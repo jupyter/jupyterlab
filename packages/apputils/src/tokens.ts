@@ -186,6 +186,20 @@ export namespace ISanitizer {
  */
 export namespace ToolbarRegistry {
   /**
+   * Interface of item to be inserted in a toolbar
+   */
+  export interface IToolbarItem {
+    /**
+     * Unique item name
+     */
+    name: string;
+    /**
+     * Toolbar widget
+     */
+    widget: Widget;
+  }
+
+  /**
    * Interface describing a toolbar item widget
    */
   export interface IWidget extends ISettingRegistry.IToolbarItem {}

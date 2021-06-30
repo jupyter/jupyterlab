@@ -1,7 +1,9 @@
 import { ISettingRegistry, SettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
 import { JSONExt } from '@lumino/coreutils';
+import { Widget } from '@lumino/widgets';
 import { Dialog, showDialog } from '../dialog';
+import { IToolbarWidgetRegistry, ToolbarRegistry } from '../tokens';
 
 async function displayInformation(trans: TranslationBundle): Promise<void> {
   const result = await showDialog({
@@ -20,7 +22,7 @@ async function displayInformation(trans: TranslationBundle): Promise<void> {
   }
 }
 
-export async function getToolbarItems(
+async function getToolbarItems(
   registry: ISettingRegistry,
   factoryName: string,
   pluginId: string,
@@ -157,4 +159,57 @@ export async function getToolbarItems(
   });
 
   return toolbarItems;
+}
+
+/**
+ * Create the toolbar factory for a given container widget based
+ * on a data description stored in settings
+ *
+ * @param toolbarRegistry Toolbar widgets registry
+ * @param settingsRegistry Settings registry
+ * @param factoryName Toolbar container factory name
+ * @param pluginId Settings plugin id
+ * @param translator Translator
+ * @param propertyId Toolbar definition key in the settings plugin
+ * @returns List of toolbar widgets
+ */
+export function createToolbarFactory(
+  toolbarRegistry: IToolbarWidgetRegistry,
+  settingsRegistry: ISettingRegistry,
+  factoryName: string,
+  pluginId: string,
+  translator: ITranslator,
+  propertyId: string = 'toolbar'
+): (widget: Widget) => ToolbarRegistry.IToolbarItem[] {
+  const items: ToolbarRegistry.IWidget[] = [];
+  // Get toolbar definition from the settings
+  getToolbarItems(
+    settingsRegistry,
+    factoryName,
+    pluginId,
+    translator,
+    propertyId
+  )
+    .then(candidates => {
+      items.length = 0;
+      items.push(
+        ...candidates
+          .filter(item => !item.disabled)
+          .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity))
+      );
+    })
+    .catch(reason => {
+      console.error(
+        `Failed to load toolbar items for factory ${factoryName} from ${pluginId}`,
+        reason
+      );
+    });
+
+  return (widget: Widget) =>
+    items.map(item => {
+      return {
+        name: item.name,
+        widget: toolbarRegistry.createWidget(factoryName, widget, item)
+      };
+    });
 }

@@ -10,10 +10,9 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-
 import {
+  createToolbarFactory,
   Dialog,
-  getToolbarItems,
   ICommandPalette,
   ISessionContextDialogs,
   IToolbarWidgetRegistry,
@@ -23,20 +22,13 @@ import {
   Toolbar,
   WidgetTracker
 } from '@jupyterlab/apputils';
-
 import { Cell, CodeCell, ICellModel, MarkdownCell } from '@jupyterlab/cells';
-
 import { IEditorServices } from '@jupyterlab/codeeditor';
-
 import { PageConfig, URLExt } from '@jupyterlab/coreutils';
-
 import { IDocumentManager } from '@jupyterlab/docmanager';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
-
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
-
 import { ILauncher } from '@jupyterlab/launcher';
-
 import {
   IEditMenu,
   IFileMenu,
@@ -46,9 +38,7 @@ import {
   IRunMenu,
   IViewMenu
 } from '@jupyterlab/mainmenu';
-
 import * as nbformat from '@jupyterlab/nbformat';
-
 import {
   CommandEditStatus,
   INotebookTools,
@@ -69,25 +59,15 @@ import {
   IObservableList,
   IObservableUndoableList
 } from '@jupyterlab/observables';
-
 import { IPropertyInspectorProvider } from '@jupyterlab/property-inspector';
-
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-
 import { IStateDB } from '@jupyterlab/statedb';
-
 import { IStatusBar } from '@jupyterlab/statusbar';
-
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
-
 import { buildIcon, notebookIcon } from '@jupyterlab/ui-components';
-
 import { ArrayExt } from '@lumino/algorithm';
-
 import { CommandRegistry } from '@lumino/commands';
-
 import {
   JSONExt,
   JSONObject,
@@ -96,13 +76,9 @@ import {
   ReadonlyPartialJSONObject,
   UUID
 } from '@lumino/coreutils';
-
 import { DisposableSet } from '@lumino/disposable';
-
 import { Message, MessageLoop } from '@lumino/messaging';
-
 import { Menu, Panel } from '@lumino/widgets';
-
 import { logNotebookOutput } from './nboutput';
 
 /**
@@ -715,7 +691,7 @@ function activateWidgetFactory(
   settingRegistry: ISettingRegistry | null
 ): NotebookWidgetFactory.IFactory {
   let toolbarFactory:
-    | ((widget: NotebookPanel) => Promise<DocumentRegistry.IToolbarItem[]>)
+    | ((widget: NotebookPanel) => DocumentRegistry.IToolbarItem[])
     | undefined;
 
   // Register notebook toolbar widgets
@@ -778,25 +754,13 @@ function activateWidgetFactory(
 
   if (settingRegistry) {
     // Create the factory
-    toolbarFactory = async widget => {
-      // Get toolbar definition from the settings
-      const items = await getToolbarItems(
-        settingRegistry,
-        FACTORY,
-        TOOLBAR_SETTINGS,
-        translator
-      );
-
-      return items
-        .filter(item => !item.disabled)
-        .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity))
-        .map(item => {
-          return {
-            name: item.name,
-            widget: toolbarRegistry.createWidget(FACTORY, widget, item)
-          };
-        });
-    };
+    toolbarFactory = createToolbarFactory(
+      toolbarRegistry,
+      settingRegistry,
+      FACTORY,
+      TOOLBAR_SETTINGS,
+      translator
+    );
   }
 
   const factory = new NotebookWidgetFactory({
@@ -806,7 +770,7 @@ function activateWidgetFactory(
     defaultFor: ['notebook'],
     preferKernel: true,
     canStartKernel: true,
-    rendermime: rendermime,
+    rendermime,
     contentFactory,
     editorConfig: StaticNotebook.defaultEditorConfig,
     notebookConfig: StaticNotebook.defaultNotebookConfig,
