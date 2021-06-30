@@ -21,6 +21,7 @@
   "jupyter.lab.transform": true,
   "properties": {
     "toolbar": {
+      "title": "Notebook panel toolbar items",
       "items": {
         "$ref": "#/definitions/toolbarItem"
       },
@@ -34,35 +35,46 @@
     "toolbarItem": {
       "properties": {
         "name": {
-          "description": "Unique name",
+          "title": "Unique name",
           "type": "string"
         },
         "args": {
-          "description": "Command arguments",
+          "title": "Command arguments",
           "type": "object"
         },
         "command": {
-          "description": "Command id",
+          "title": "Command id",
           "type": "string",
           "default": ""
         },
         "disabled": {
-          "description": "Whether the item is disabled or not",
+          "title": "Whether the item is disabled or not",
           "type": "boolean",
           "default": false
         },
+        "icon": {
+          "title": "Item icon id",
+          "description": "If defined, it will override the command icon",
+          "type": "string"
+        },
+        "label": {
+          "title": "Item icon label",
+          "description": "If defined, it will override the command label",
+          "type": "string"
+        },
         "type": {
-          "description": "Item type",
+          "title": "Item type",
           "type": "string",
           "enum": ["command", "spacer"]
         },
         "rank": {
-          "description": "Item rank",
+          "title": "Item rank",
           "type": "number",
           "minimum": 0
         }
       },
       "required": ["name"],
+      "additionalProperties": false,
       "type": "object"
     }
   }

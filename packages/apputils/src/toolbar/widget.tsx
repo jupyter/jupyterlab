@@ -591,9 +591,26 @@ export namespace CommandToolbarButtonComponent {
    * Interface for CommandToolbarButtonComponent props.
    */
   export interface IProps {
+    /**
+     * Application commands registry
+     */
     commands: CommandRegistry;
+    /**
+     * Command unique id
+     */
     id: string;
+    /**
+     * Command arguments
+     */
     args?: ReadonlyJSONObject;
+    /**
+     * Overrides command icon
+     */
+    icon?: LabIcon;
+    /**
+     * Overrides command label
+     */
+    label?: string;
   }
 }
 
@@ -658,10 +675,10 @@ namespace Private {
     const iconLabel = commands.iconLabel(id, args);
     // DEPRECATED: remove _icon when lumino 2.0 is adopted
     // if icon is aliasing iconClass, don't use it
-    const _icon = commands.icon(id, args);
+    const _icon = options.icon ?? commands.icon(id, args);
     const icon = _icon === iconClass ? undefined : _icon;
 
-    const label = commands.label(id, args);
+    const label = options.label ?? commands.label(id, args);
     let className = commands.className(id, args);
     // Add the boolean state classes.
     if (commands.isToggled(id, args)) {

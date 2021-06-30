@@ -1,3 +1,4 @@
+import { LabIcon } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { Widget } from '@lumino/widgets';
 import { IToolbarWidgetRegistry, ToolbarRegistry } from '../tokens';
@@ -107,7 +108,11 @@ export function createDefaultFactory(
         return new CommandToolbarButton({
           commands,
           id: toolbarItem.command ?? '',
-          args: { ...toolbarItem.args, toolbar: true }
+          args: { ...toolbarItem.args, toolbar: true },
+          icon: toolbarItem.icon
+            ? LabIcon.resolve({ icon: toolbarItem.icon })
+            : undefined,
+          label: toolbarItem.label
         });
       case 'spacer':
         return Toolbar.createSpacerItem();

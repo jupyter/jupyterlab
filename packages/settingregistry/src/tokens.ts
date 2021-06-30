@@ -593,14 +593,6 @@ export namespace ISettingRegistry {
    */
   export interface IToolbarItem extends PartialJSONObject {
     /**
-     * Whether the toolbar item is disabled. `false` by default.
-     *
-     * #### Notes
-     * This allows an user to suppress toolbar items.
-     */
-    disabled?: boolean;
-
-    /**
      * Unique toolbar item name
      */
     name: string;
@@ -618,6 +610,31 @@ export namespace ISettingRegistry {
      * The default value is an empty object.
      */
     args?: PartialJSONObject;
+
+    /**
+     * Whether the toolbar item is disabled. `false` by default.
+     *
+     * #### Notes
+     * This allows an user to suppress toolbar items.
+     */
+    disabled?: boolean;
+
+    /**
+     * Item icon id
+     *
+     * #### Note
+     * The id will be looked for in the LabIcon registry.
+     * The command icon will be overridden by this label if defined.
+     */
+    icon?: string;
+
+    /**
+     * Item label
+     *
+     * #### Note
+     * The command label will be overridden by this label if defined.
+     */
+    label?: string;
 
     /**
      * The rank order of the toolbar item among its siblings.
