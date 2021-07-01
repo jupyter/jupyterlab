@@ -53,6 +53,8 @@ const TOOLBAR_CELLTYPE_DROPDOWN_CLASS = 'jp-Notebook-toolbarCellTypeDropdown';
 export namespace ToolbarItems {
   /**
    * Create save button toolbar item.
+   *
+   * @deprecated since version 3.1
    */
   export function createSaveButton(
     panel: NotebookPanel,
@@ -100,6 +102,8 @@ export namespace ToolbarItems {
 
   /**
    * Create an insert toolbar item.
+   *
+   * @deprecated since version 3.1
    */
   export function createInsertButton(
     panel: NotebookPanel,
@@ -117,6 +121,8 @@ export namespace ToolbarItems {
 
   /**
    * Create a cut toolbar item.
+   *
+   * @deprecated since version 3.1
    */
   export function createCutButton(
     panel: NotebookPanel,
@@ -134,6 +140,8 @@ export namespace ToolbarItems {
 
   /**
    * Create a copy toolbar item.
+   *
+   * @deprecated since version 3.1
    */
   export function createCopyButton(
     panel: NotebookPanel,
@@ -151,6 +159,8 @@ export namespace ToolbarItems {
 
   /**
    * Create a paste toolbar item.
+   *
+   * @deprecated since version 3.1
    */
   export function createPasteButton(
     panel: NotebookPanel,
@@ -168,6 +178,8 @@ export namespace ToolbarItems {
 
   /**
    * Create a run toolbar item.
+   *
+   * @deprecated since version 3.1
    */
   export function createRunButton(
     panel: NotebookPanel,
@@ -184,6 +196,8 @@ export namespace ToolbarItems {
   }
   /**
    * Create a restart run all toolbar item
+   *
+   * @deprecated since version 3.1
    */
   export function createRestartRunAllButton(
     panel: NotebookPanel,

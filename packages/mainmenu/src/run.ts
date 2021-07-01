@@ -57,6 +57,14 @@ export namespace IRunMenu {
    */
   export interface ICodeRunner<T extends Widget> extends IMenuExtender<T> {
     /**
+     * Return the caption associated to the `run` function.
+     *
+     * This function receives the number of items `n` to be able to provided
+     * correct pluralized forms of translations.
+     */
+    runCaption?: (n: number) => string;
+
+    /**
      * Return the label associated to the `run` function.
      *
      * This function receives the number of items `n` to be able to provided
@@ -73,7 +81,15 @@ export namespace IRunMenu {
     runAllLabel?: (n: number) => string;
 
     /**
-     * Return the label associated to the `restartAndRunAllLabel` function.
+     * Return the caption associated to the `restartAndRunAll` function.
+     *
+     * This function receives the number of items `n` to be able to provided
+     * correct pluralized forms of translations.
+     */
+    restartAndRunAllCaption?: (n: number) => string;
+
+    /**
+     * Return the label associated to the `restartAndRunAll` function.
      *
      * This function receives the number of items `n` to be able to provided
      * correct pluralized forms of translations.

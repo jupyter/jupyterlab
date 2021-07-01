@@ -27,6 +27,9 @@
       "path": "../docmanager"
     },
     {
+      "path": "../docmanager-extension"
+    },
+    {
       "path": "../docregistry"
     },
     {

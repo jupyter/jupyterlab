@@ -369,6 +369,8 @@ export class Toolbar<T extends Widget = Widget> extends Widget {
 export namespace Toolbar {
   /**
    * Create an interrupt toolbar item.
+   *
+   * @deprecated since version 3.1
    */
   export function createInterruptButton(
     sessionContext: ISessionContext,
@@ -387,6 +389,8 @@ export namespace Toolbar {
 
   /**
    * Create a restart toolbar item.
+   *
+   * @deprecated since version 3.1
    */
   export function createRestartButton(
     sessionContext: ISessionContext,
@@ -678,7 +682,7 @@ namespace Private {
     const _icon = options.icon ?? commands.icon(id, args);
     const icon = _icon === iconClass ? undefined : _icon;
 
-    const label = options.label ?? commands.label(id, args);
+    const label = commands.label(id, args);
     let className = commands.className(id, args);
     // Add the boolean state classes.
     if (commands.isToggled(id, args)) {
@@ -687,7 +691,9 @@ namespace Private {
     if (!commands.isVisible(id, args)) {
       className += ' lm-mod-hidden';
     }
-    let tooltip = commands.caption(id, args) || label || iconLabel;
+
+    let tooltip =
+      commands.caption(id, args) || options.label || label || iconLabel;
     // Shows hot keys in tooltips
     const binding = commands.keyBindings.find(b => b.command === id);
     if (binding) {
@@ -699,7 +705,15 @@ namespace Private {
     };
     const enabled = commands.isEnabled(id, args);
 
-    return { className, icon, iconClass, tooltip, onClick, enabled, label };
+    return {
+      className,
+      icon,
+      iconClass,
+      tooltip,
+      onClick,
+      enabled,
+      label: options.label ?? label
+    };
   }
 
   /**

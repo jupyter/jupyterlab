@@ -26,6 +26,7 @@ import { Cell, CodeCell, ICellModel, MarkdownCell } from '@jupyterlab/cells';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
+import { ToolbarItems as DocToolbarItems } from '@jupyterlab/docmanager-extension';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -65,7 +66,14 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
 import { IStatusBar } from '@jupyterlab/statusbar';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
-import { buildIcon, notebookIcon } from '@jupyterlab/ui-components';
+import {
+  addIcon,
+  buildIcon,
+  copyIcon,
+  cutIcon,
+  notebookIcon,
+  pasteIcon
+} from '@jupyterlab/ui-components';
 import { ArrayExt } from '@lumino/algorithm';
 import { CommandRegistry } from '@lumino/commands';
 import {
@@ -252,7 +260,7 @@ const FORMAT_EXCLUDE = ['notebook', 'python', 'custom'];
 /**
  * Setting Id storing the customized toolbar definition.
  */
-const TOOLBAR_SETTINGS = '@jupyterlab/notebook-extension:toolbar';
+const PANEL_SETTINGS = '@jupyterlab/notebook-extension:panel';
 
 /**
  * The notebook widget tracker provider.
@@ -690,51 +698,14 @@ function activateWidgetFactory(
   translator: ITranslator,
   settingRegistry: ISettingRegistry | null
 ): NotebookWidgetFactory.IFactory {
+  const { commands } = app;
   let toolbarFactory:
     | ((widget: NotebookPanel) => DocumentRegistry.IToolbarItem[])
     | undefined;
 
   // Register notebook toolbar widgets
   toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'save', panel =>
-    ToolbarItems.createSaveButton(panel, translator)
-  );
-  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'insert', panel =>
-    ToolbarItems.createInsertButton(panel, translator)
-  );
-  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'cut', panel =>
-    ToolbarItems.createCutButton(panel, translator)
-  );
-  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'copy', panel =>
-    ToolbarItems.createCopyButton(panel, translator)
-  );
-  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'paste', panel =>
-    ToolbarItems.createPasteButton(panel, translator)
-  );
-  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'run', panel =>
-    ToolbarItems.createRunButton(panel, translator)
-  );
-  toolbarRegistry.registerFactory<NotebookPanel>(
-    FACTORY,
-    'interrupt',
-    (panel: NotebookPanel) =>
-      Toolbar.createInterruptButton(panel.sessionContext, translator)
-  );
-  toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'restart', panel =>
-    Toolbar.createRestartButton(
-      panel.sessionContext,
-      sessionContextDialogs,
-      translator
-    )
-  );
-  toolbarRegistry.registerFactory<NotebookPanel>(
-    FACTORY,
-    'restart-and-run',
-    panel =>
-      ToolbarItems.createRestartRunAllButton(
-        panel,
-        sessionContextDialogs,
-        translator
-      )
+    DocToolbarItems.createSaveButton(commands, panel.context.fileChanged)
   );
   toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'cellType', panel =>
     ToolbarItems.createCellTypeItem(panel, translator)
@@ -758,7 +729,7 @@ function activateWidgetFactory(
       toolbarRegistry,
       settingRegistry,
       FACTORY,
-      TOOLBAR_SETTINGS,
+      PANEL_SETTINGS,
       translator
     );
   }
@@ -1730,6 +1701,7 @@ function addCommands(
   });
   commands.addCommand(CommandIDs.cut, {
     label: trans.__('Cut Cells'),
+    caption: trans.__('Cut the selected cells'),
     execute: args => {
       const current = getCurrent(tracker, shell, args);
 
@@ -1737,10 +1709,12 @@ function addCommands(
         return NotebookActions.cut(current.content);
       }
     },
+    icon: args => (args.toolbar ? cutIcon : undefined),
     isEnabled
   });
   commands.addCommand(CommandIDs.copy, {
     label: trans.__('Copy Cells'),
+    caption: trans.__('Copy the selected cells'),
     execute: args => {
       const current = getCurrent(tracker, shell, args);
 
@@ -1748,10 +1722,12 @@ function addCommands(
         return NotebookActions.copy(current.content);
       }
     },
+    icon: args => (args.toolbar ? copyIcon : ''),
     isEnabled
   });
   commands.addCommand(CommandIDs.pasteBelow, {
     label: trans.__('Paste Cells Below'),
+    caption: trans.__('Paste cells from the clipboard'),
     execute: args => {
       const current = getCurrent(tracker, shell, args);
 
@@ -1759,6 +1735,7 @@ function addCommands(
         return NotebookActions.paste(current.content, 'below');
       }
     },
+    icon: args => (args.toolbar ? pasteIcon : undefined),
     isEnabled
   });
   commands.addCommand(CommandIDs.pasteAbove, {
@@ -1851,6 +1828,7 @@ function addCommands(
   });
   commands.addCommand(CommandIDs.insertBelow, {
     label: trans.__('Insert Cell Below'),
+    caption: trans.__('Insert a cell below'),
     execute: args => {
       const current = getCurrent(tracker, shell, args);
 
@@ -1858,6 +1836,7 @@ function addCommands(
         return NotebookActions.insertBelow(current.content);
       }
     },
+    icon: args => (args.toolbar ? addIcon : undefined),
     isEnabled
   });
   commands.addCommand(CommandIDs.selectAbove, {
@@ -2505,9 +2484,13 @@ function populateMenus(
   mainMenu.runMenu.codeRunners.add({
     tracker,
     runLabel: (n: number) => trans.__('Run Selected Cells'),
+    runCaption: (n: number) => trans.__('Run the selected cells and advance'),
     runAllLabel: (n: number) => trans.__('Run All Cells'),
+    runAllCaption: (n: number) => trans.__('Run the all notebook cells'),
     restartAndRunAllLabel: (n: number) =>
       trans.__('Restart Kernel and Run All Cells…'),
+    restartAndRunAllCaption: (n: number) =>
+      trans.__('Restart the kernel, then re-run the whole notebook'),
     run: current => {
       const { context, content } = current;
       return NotebookActions.runAndAdvance(

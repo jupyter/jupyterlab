@@ -108,11 +108,11 @@ export function createDefaultFactory(
         return new CommandToolbarButton({
           commands,
           id: toolbarItem.command ?? '',
-          args: { ...toolbarItem.args, toolbar: true },
+          args: { toolbar: true, ...toolbarItem.args },
           icon: toolbarItem.icon
             ? LabIcon.resolve({ icon: toolbarItem.icon })
             : undefined,
-          label: toolbarItem.label
+          label: toolbarItem.label ?? ''
         });
       case 'spacer':
         return Toolbar.createSpacerItem();
