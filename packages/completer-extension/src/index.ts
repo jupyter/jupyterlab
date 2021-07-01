@@ -12,9 +12,8 @@ import {
 import {
   Completer,
   CompleterModel,
-  CompletionConnector,
   CompletionHandler,
-  ContextConnector,
+  DefaultProvider,
   ICompletionManager
 } from '@jupyterlab/completer';
 import { IConsoleTracker } from '@jupyterlab/console';
@@ -87,14 +86,11 @@ const manager: JupyterFrontEndPlugin<ICompletionManager> = {
       register: (
         completable: ICompletionManager.ICompletable,
         renderer: Completer.IRenderer = Completer.defaultRenderer
-      ): ICompletionManager.ICompletableAttributes => {
-        const { connector, editor, parent } = completable;
+      ): CompletionHandler => {
+        const { editor, parent } = completable;
         const model = new CompleterModel();
         const completer = new Completer({ editor, model, renderer });
-        const handler = new CompletionHandler({
-          completer,
-          connector
-        });
+        const handler = new CompletionHandler({ completer });
         const id = parent.id;
 
         // Hide the widget when it first loads.
@@ -140,17 +136,21 @@ const consoles: JupyterFrontEndPlugin<void> = {
       const anchor = widget.console;
       const editor = anchor.promptCell?.editor ?? null;
       const session = anchor.sessionContext.session;
+
       // TODO: CompletionConnector assumes editor and session are not null
-      const connector = new CompletionConnector({ session, editor });
-      const handler = manager.register({ connector, editor, parent: widget });
+      const handler = manager.register({ editor, parent: widget });
+
+      const completer = handler.completer;
+      handler.registerProvider(
+        new DefaultProvider({ editor, session, completer })
+      );
 
       const updateConnector = () => {
         const editor = anchor.promptCell?.editor ?? null;
         const session = anchor.sessionContext.session;
 
         handler.editor = editor;
-        // TODO: CompletionConnector assumes editor and session are not null
-        handler.connector = new CompletionConnector({ session, editor });
+        handler.session = session;
       };
 
       // Update the handler whenever the prompt or session changes
@@ -205,17 +205,21 @@ const notebooks: JupyterFrontEndPlugin<void> = {
     notebooks.widgetAdded.connect((sender, panel) => {
       const editor = panel.content.activeCell?.editor ?? null;
       const session = panel.sessionContext.session;
+
       // TODO: CompletionConnector assumes editor and session are not null
-      const connector = new CompletionConnector({ session, editor });
-      const handler = manager.register({ connector, editor, parent: panel });
+      const handler = manager.register({ editor, parent: panel });
+
+      const completer = handler.completer;
+      handler.registerProvider(
+        new DefaultProvider({ editor, session, completer })
+      );
 
       const updateConnector = () => {
         const editor = panel.content.activeCell?.editor ?? null;
         const session = panel.sessionContext.session;
 
         handler.editor = editor;
-        // TODO: CompletionConnector assumes editor and session are not null
-        handler.connector = new CompletionConnector({ session, editor });
+        handler.session = session;
       };
 
       // Update the handler whenever the prompt or session changes
@@ -275,16 +279,17 @@ const files: JupyterFrontEndPlugin<void> = {
     editorTracker.widgetAdded.connect((sender, widget) => {
       const sessions = app.serviceManager.sessions;
       const editor = widget.content.editor;
-      const contextConnector = new ContextConnector({ editor });
 
       // Initially create the handler with the contextConnector.
       // If a kernel session is found matching this file editor,
       // it will be replaced in onRunningChanged().
-      const handler = manager.register({
-        connector: contextConnector,
-        editor,
-        parent: widget
-      });
+      // TODO: CompletionConnector assumes editor and session are not null
+      const handler = manager.register({ editor, parent: widget });
+
+      const completer = handler.completer;
+      handler.registerProvider(
+        new DefaultProvider({ editor, session: null, completer })
+      );
 
       // When the list of running sessions changes,
       // check to see if there are any kernels with a
@@ -309,13 +314,12 @@ const files: JupyterFrontEndPlugin<void> = {
             oldSession.dispose();
           }
           const session = sessions.connectTo({ model });
-          handler.connector = new CompletionConnector({ session, editor });
+          handler.session = session;
           activeSessions[widget.id] = session;
         } else {
           // If we didn't find a match, make sure
           // the connector is the contextConnector and
           // dispose of any previous connection.
-          handler.connector = contextConnector;
           if (oldSession) {
             delete activeSessions[widget.id];
             oldSession.dispose();

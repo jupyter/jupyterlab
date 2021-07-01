@@ -2,14 +2,16 @@
 // Distributed under the terms of the Modified BSD License.
 
 import { CodeEditor } from '@jupyterlab/codeeditor';
+
 import { DataConnector } from '@jupyterlab/statedb';
+
 import { CompletionHandler } from './handler';
 
 /**
  * A context connector for completion handlers.
  */
 export class ContextConnector extends DataConnector<
-  CompletionHandler.IReply,
+  CompletionHandler.ICompletionItemsReply,
   void,
   CompletionHandler.IRequest
 > {
@@ -30,11 +32,11 @@ export class ContextConnector extends DataConnector<
    */
   fetch(
     request: CompletionHandler.IRequest
-  ): Promise<CompletionHandler.IReply> {
+  ): Promise<CompletionHandler.ICompletionItemsReply> {
     if (!this._editor) {
       return Promise.reject('No editor');
     }
-    return new Promise<CompletionHandler.IReply>(resolve => {
+    return new Promise<CompletionHandler.ICompletionItemsReply>(resolve => {
       resolve(Private.contextHint(this._editor!));
     });
   }
@@ -67,7 +69,7 @@ namespace Private {
    */
   export function contextHint(
     editor: CodeEditor.IEditor
-  ): CompletionHandler.IReply {
+  ): CompletionHandler.ICompletionItemsReply {
     // Find the token at the cursor
     const cursor = editor.getCursorPosition();
     const token = editor.getTokenForPosition(cursor);
@@ -79,13 +81,14 @@ namespace Private {
     // field, which are likely to be of interest.
     const completionList = tokenList.filter(t => t.type).map(t => t.value);
     // Remove duplicate completsions from the list
-    const matches = Array.from(new Set<string>(completionList));
+    const matches = new Set<string>(completionList);
+    const items = new Array<CompletionHandler.ICompletionItem>();
+    matches.forEach(label => items.push({ label }));
 
     return {
       start: token.offset,
       end: token.offset + token.value.length,
-      matches,
-      metadata: {}
+      items
     };
   }
 

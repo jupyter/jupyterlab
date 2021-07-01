@@ -2,15 +2,27 @@
 // Distributed under the terms of the Modified BSD License.
 
 import { defaultSanitizer, HoverBox } from '@jupyterlab/apputils';
+
 import { CodeEditor } from '@jupyterlab/codeeditor';
+
 import { LabIcon } from '@jupyterlab/ui-components';
+
+import { Text } from '@jupyterlab/coreutils';
+
 import { IIterator, IterableOrArrayLike, toArray } from '@lumino/algorithm';
+
 import { JSONExt, JSONObject } from '@lumino/coreutils';
+
 import { IDisposable } from '@lumino/disposable';
+
 import { ElementExt } from '@lumino/domutils';
+
 import { Message } from '@lumino/messaging';
+
 import { ISignal, Signal } from '@lumino/signaling';
+
 import { Widget } from '@lumino/widgets';
+
 import { CompletionHandler } from './handler';
 
 /**
@@ -130,6 +142,7 @@ export class Completer extends Widget {
    * Dispose of the resources held by the completer widget.
    */
   dispose() {
+    this._model?.dispose();
     this._model = null;
     super.dispose();
   }
@@ -184,6 +197,38 @@ export class Completer extends Widget {
     }
     this._selected.emit(active.getAttribute('data-value') as string);
     this.reset();
+  }
+
+  /**
+   * Receive completion items from provider.
+   *
+   * @param state - The state of the editor when completion request was made.
+   *
+   * @param reply - The API response returned for a completion request.
+   */
+  updateItem(item: CompletionHandler.ICompletionItem) {
+    if (!this.model) {
+      return;
+    }
+    this.model.setCompletionItems([item]);
+  }
+
+  /**
+   * Receive completion items from provider.
+   *
+   * @param state - The state of the editor when completion request was made.
+   *
+   * @param reply - The API response returned for a completion request.
+   */
+  addItems(
+    state: Completer.ITextState,
+    reply: CompletionHandler.ICompletionItemsReply
+  ) {
+    this._updateModel(state, reply.start, reply.end);
+    if (!this.model) {
+      return;
+    }
+    this.model.setCompletionItems(reply.items);
   }
 
   /**
@@ -270,6 +315,29 @@ export class Completer extends Widget {
     } else {
       this._setGeometry();
     }
+  }
+
+  /**
+   * Updates model with text state and current cursor position.
+   */
+  private _updateModel(
+    state: Completer.ITextState,
+    start: number,
+    end: number
+  ): void {
+    const text = state.text;
+
+    if (!this.model) {
+      return;
+    }
+
+    // Update the original request.
+    this.model.original = state;
+    // Update the cursor.
+    this.model.cursor = {
+      start: Text.charIndexToJsIndex(start, text),
+      end: Text.charIndexToJsIndex(end, text)
+    };
   }
 
   private _createCompletionItemNode(
@@ -435,11 +503,11 @@ export class Completer extends Widget {
         const populated = this._populateSubset();
         // If there is a common subset in the options,
         // then emit a completion signal with that subset.
-        if (model.query) {
+        /* if (model.query) {
           model.subsetMatch = true;
           this._selected.emit(model.query);
           model.subsetMatch = false;
-        }
+        } */
         // If the query changed, update rendering of the options.
         if (populated) {
           this.update();
@@ -731,12 +799,12 @@ export namespace Completer {
     /**
      * Get the list of visible CompletionItems in the completer menu.
      */
-    completionItems?(): CompletionHandler.ICompletionItems;
+    completionItems(): CompletionHandler.ICompletionItems;
 
     /**
      * Set the list of visible CompletionItems in the completer menu.
      */
-    setCompletionItems?(items: CompletionHandler.ICompletionItems): void;
+    setCompletionItems(items: CompletionHandler.ICompletionItems): void;
 
     /**
      * Get the of visible items in the completer menu.

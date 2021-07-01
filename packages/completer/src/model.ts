@@ -6,12 +6,17 @@ import {
   iter,
   IterableOrArrayLike,
   map,
-  StringExt,
   toArray
 } from '@lumino/algorithm';
+
 import { JSONExt, ReadonlyPartialJSONArray } from '@lumino/coreutils';
+
+import { StringExt } from '@lumino/algorithm';
+
 import { ISignal, Signal } from '@lumino/signaling';
+
 import { CompletionHandler } from './handler';
+
 import { Completer } from './widget';
 
 /**
@@ -168,7 +173,7 @@ export class CompleterModel implements Completer.IModel {
    * #### Notes
    * This is a read-only property.
    */
-  completionItems?(): CompletionHandler.ICompletionItems {
+  completionItems(): CompletionHandler.ICompletionItems {
     let query = this._query;
     if (query) {
       return this._markup(query);
@@ -180,7 +185,7 @@ export class CompleterModel implements Completer.IModel {
    * Set the list of visible items in the completer menu, and append any
    * new types to KNOWN_TYPES.
    */
-  setCompletionItems?(newValue: CompletionHandler.ICompletionItems): void {
+  setCompletionItems(newValue: CompletionHandler.ICompletionItems): void {
     if (
       JSONExt.deepEqual(
         (newValue as unknown) as ReadonlyPartialJSONArray,
@@ -573,6 +578,55 @@ namespace Private {
       return delta;
     }
     return a.insertText?.localeCompare(b.insertText ?? '') ?? 0;
+  }
+
+  /**
+   * Merge results from kernel and context completions.
+   *
+   * @param kernel - The kernel reply being merged.
+   *
+   * @param context - The context reply being merged.
+   *
+   * @returns A reply with a superset of kernel and context matches.
+   *
+   * #### Notes
+   * The kernel and context matches are merged with a preference for kernel
+   * results. Both lists are known to contain unique, non-repeating items;
+   * so this function returns a non-repeating superset by filtering out
+   * duplicates from the context list that appear in the kernel list.
+   */
+  export function mergeReplies(
+    oldItems: CompletionHandler.ICompletionItems,
+    newItems: CompletionHandler.ICompletionItems
+  ): CompletionHandler.ICompletionItems {
+    // If one is empty, return the other.
+    if (newItems.length === 0) {
+      return oldItems;
+    }
+
+    const items = oldItems.slice();
+
+    // Cache all the old items matches in a memo.
+    const memo = oldItems.reduce((acc, val) => {
+      acc.set(val.label, val);
+      return acc;
+    }, new Map<string, CompletionHandler.ICompletionItem>());
+
+    // Update old items or add new ones
+    newItems.forEach(item => {
+      if (item.label in memo) {
+        if (!memo.get(item.label)?.type && item.type) {
+          memo.set(item.label, item);
+        }
+
+        if (!memo.get(item.label)?.documentation && item.documentation) {
+          memo.set(item.label, item);
+        }
+      } else {
+        items.push(item);
+      }
+    });
+    return Array.from(memo.values());
   }
 
   /**

@@ -8,7 +8,7 @@
 export * from './handler';
 export * from './kernelconnector';
 export * from './contextconnector';
-export * from './connector';
+export * from './provider';
 export * from './model';
 export * from './widget';
 
