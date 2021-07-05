@@ -5,13 +5,16 @@ import {
   CommandToolbarButton,
   SessionContext,
   Toolbar,
-  ToolbarButton
+  ToolbarButton,
+  ToolbarRegistry,
+  ToolbarWidgetRegistry
 } from '@jupyterlab/apputils';
 import {
   createSessionContext,
   framePromise,
   JupyterServer
 } from '@jupyterlab/testutils';
+import { blankIcon, jupyterIcon } from '@jupyterlab/ui-components';
 import { toArray } from '@lumino/algorithm';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
@@ -29,18 +32,110 @@ afterAll(async () => {
 });
 
 describe('@jupyterlab/apputils', () => {
-  let widget: Toolbar<Widget>;
+  describe('CommandToolbarButton', () => {
+    let commands: CommandRegistry;
+    const id = 'test-command';
+    const options: CommandRegistry.ICommandOptions = {
+      execute: jest.fn()
+    };
 
-  beforeEach(async () => {
-    jest.setTimeout(20000);
-    widget = new Toolbar();
-  });
+    beforeEach(() => {
+      commands = new CommandRegistry();
+    });
 
-  afterEach(async () => {
-    widget.dispose();
+    it('should render a command', async () => {
+      commands.addCommand(id, options);
+      const button = new CommandToolbarButton({
+        commands,
+        id
+      });
+
+      Widget.attach(button, document.body);
+      await framePromise();
+
+      expect(button.hasClass('jp-CommandToolbarButton')).toBe(true);
+      simulate(button.node.firstElementChild!, 'mousedown');
+      expect(options.execute).toBeCalledTimes(1);
+    });
+
+    it('should render the label command', async () => {
+      const label = 'This is a test label';
+      commands.addCommand(id, { ...options, label });
+      const button = new CommandToolbarButton({
+        commands,
+        id
+      });
+
+      Widget.attach(button, document.body);
+      await framePromise();
+
+      expect(button.node.textContent).toMatch(label);
+    });
+
+    it('should render the customized label command', async () => {
+      const label = 'This is a test label';
+      const buttonLabel = 'This is the button label';
+      commands.addCommand(id, { ...options, label });
+      const button = new CommandToolbarButton({
+        commands,
+        id,
+        label: buttonLabel
+      });
+
+      Widget.attach(button, document.body);
+      await framePromise();
+
+      expect(button.node.textContent).toMatch(buttonLabel);
+      expect(button.node.textContent).not.toMatch(label);
+    });
+
+    it('should render the icon command', async () => {
+      const icon = jupyterIcon;
+      commands.addCommand(id, { ...options, icon });
+      const button = new CommandToolbarButton({
+        commands,
+        id
+      });
+
+      Widget.attach(button, document.body);
+      await framePromise();
+
+      expect(button.node.getElementsByTagName('svg')[0].dataset.icon).toMatch(
+        icon.name
+      );
+    });
+
+    it('should render the customized icon command', async () => {
+      const icon = jupyterIcon;
+      const buttonIcon = blankIcon;
+      commands.addCommand(id, { ...options, icon });
+      const button = new CommandToolbarButton({
+        commands,
+        id,
+        icon: buttonIcon
+      });
+
+      Widget.attach(button, document.body);
+      await framePromise();
+
+      const iconSVG = button.node.getElementsByTagName('svg')[0];
+      expect(iconSVG.dataset.icon).toMatch(buttonIcon.name);
+      expect(iconSVG.dataset.icon).not.toMatch(icon.name);
+    });
   });
 
   describe('Toolbar', () => {
+    let widget: Toolbar<Widget>;
+
+    beforeEach(async () => {
+      jest.setTimeout(20000);
+      widget = new Toolbar();
+    });
+
+    afterEach(async () => {
+      widget.dispose();
+    });
+
     describe('#constructor()', () => {
       it('should construct a new toolbar widget', () => {
         const widget = new Toolbar();
@@ -498,5 +593,96 @@ describe('@jupyterlab/apputils', () => {
     //       button.dispose();
     //     });
     //   });
+  });
+
+  describe('ToolbarWidgetRegistry', () => {
+    describe('#constructor', () => {
+      it('should set a default factory', () => {
+        const dummy = jest.fn();
+        const registry = new ToolbarWidgetRegistry({
+          defaultFactory: dummy
+        });
+
+        expect(registry.defaultFactory).toBe(dummy);
+      });
+    });
+
+    describe('#defaultFactory', () => {
+      it('should set a default factory', () => {
+        const dummy = jest.fn();
+        const dummy2 = jest.fn();
+        const registry = new ToolbarWidgetRegistry({
+          defaultFactory: dummy
+        });
+
+        registry.defaultFactory = dummy2;
+
+        expect(registry.defaultFactory).toBe(dummy2);
+      });
+    });
+
+    describe('#createWidget', () => {
+      it('should call the default factory as fallback', () => {
+        const documentWidget = new Widget();
+        const dummyWidget = new Widget();
+        const dummy = jest.fn().mockReturnValue(dummyWidget);
+        const registry = new ToolbarWidgetRegistry({
+          defaultFactory: dummy
+        });
+
+        const item: ToolbarRegistry.IWidget = {
+          name: 'test'
+        };
+
+        const widget = registry.createWidget('factory', documentWidget, item);
+
+        expect(widget).toBe(dummyWidget);
+        expect(dummy).toBeCalledWith('factory', documentWidget, item);
+      });
+
+      it('should call the registered factory', () => {
+        const documentWidget = new Widget();
+        const dummyWidget = new Widget();
+        const defaultFactory = jest.fn().mockReturnValue(dummyWidget);
+        const dummy = jest.fn().mockReturnValue(dummyWidget);
+        const registry = new ToolbarWidgetRegistry({
+          defaultFactory
+        });
+
+        const item: ToolbarRegistry.IWidget = {
+          name: 'test'
+        };
+
+        registry.registerFactory('factory', item.name, dummy);
+
+        const widget = registry.createWidget('factory', documentWidget, item);
+
+        expect(widget).toBe(dummyWidget);
+        expect(dummy).toBeCalledWith(documentWidget);
+        expect(defaultFactory).toBeCalledTimes(0);
+      });
+    });
+
+    describe('#registerFactory', () => {
+      it('should return the previous registered factory', () => {
+        const defaultFactory = jest.fn();
+        const dummy = jest.fn();
+        const dummy2 = jest.fn();
+        const registry = new ToolbarWidgetRegistry({
+          defaultFactory
+        });
+
+        const item: ToolbarRegistry.IWidget = {
+          name: 'test'
+        };
+
+        expect(
+          registry.registerFactory('factory', item.name, dummy)
+        ).toBeUndefined();
+        expect(registry.registerFactory('factory', item.name, dummy2)).toBe(
+          dummy
+        );
+      });
+    });
   });
 });
