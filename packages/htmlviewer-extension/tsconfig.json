@@ -4,7 +4,9 @@
     "outDir": "lib",
     "rootDir": "src"
   },
-  "include": ["src/*"],
+  "include": [
+    "src/*"
+  ],
   "references": [
     {
       "path": "../application"
@@ -17,6 +19,9 @@
     },
     {
       "path": "../htmlviewer"
+    },
+    {
+      "path": "../settingregistry"
     },
     {
       "path": "../translation"

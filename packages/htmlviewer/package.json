@@ -40,6 +40,7 @@
     "@jupyterlab/ui-components": "^3.1.0-beta.1",
     "@lumino/coreutils": "^1.5.3",
     "@lumino/signaling": "^1.4.3",
+    "@lumino/widgets": "^1.19.0",
     "react": "^17.0.1"
   },
   "devDependencies": {

@@ -24,6 +24,7 @@
   "style": "style/index.css",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "schema/*.json",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
     "style/index.js"
   ],
@@ -38,6 +39,7 @@
     "@jupyterlab/apputils": "^3.1.0-beta.1",
     "@jupyterlab/docregistry": "^3.1.0-beta.1",
     "@jupyterlab/htmlviewer": "^3.1.0-beta.1",
+    "@jupyterlab/settingregistry": "^3.1.0-beta.1",
     "@jupyterlab/translation": "^3.1.0-beta.1",
     "@jupyterlab/ui-components": "^3.1.0-beta.1"
   },
@@ -49,7 +51,8 @@
     "access": "public"
   },
   "jupyterlab": {
-    "extension": true
+    "extension": true,
+    "schemaDir": "schema"
   },
   "styleModule": "style/index.js"
 }
