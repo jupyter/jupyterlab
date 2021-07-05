@@ -26,6 +26,7 @@
     "lib/*.d.ts",
     "lib/*.js.map",
     "lib/*.js",
+    "schema/*.json",
     "style/**/*.css",
     "style/index.js"
   ],
@@ -43,6 +44,7 @@
     "@jupyterlab/docregistry": "^3.1.0-beta.1",
     "@jupyterlab/documentsearch": "^3.1.0-beta.1",
     "@jupyterlab/mainmenu": "^3.1.0-beta.1",
+    "@jupyterlab/settingregistry": "^3.1.0-beta.1",
     "@jupyterlab/translation": "^3.1.0-beta.1",
     "@lumino/datagrid": "^0.20.0",
     "@lumino/signaling": "^1.4.3",
@@ -57,7 +59,8 @@
     "access": "public"
   },
   "jupyterlab": {
-    "extension": true
+    "extension": true,
+    "schemaDir": "schema"
   },
   "styleModule": "style/index.js"
 }

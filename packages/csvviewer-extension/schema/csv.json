@@ -1,32 +1,14 @@
 {
-  "title": "Notebook Panel",
-  "description": "Notebook Panel settings.",
+  "title": "CSV Viewer",
+  "description": "CSV Viewer settings.",
   "jupyter.lab.toolbars": {
-    "Notebook": [
-      { "name": "save", "rank": 10 },
-      { "name": "insert", "command": "notebook:insert-cell-below", "rank": 20 },
-      { "name": "cut", "command": "notebook:cut-cell", "rank": 21 },
-      { "name": "copy", "command": "notebook:copy-cell", "rank": 22 },
-      { "name": "paste", "command": "notebook:paste-cell-below", "rank": 23 },
-      { "name": "run", "command": "runmenu:run", "rank": 30 },
-      { "name": "interrupt", "command": "kernelmenu:interrupt", "rank": 31 },
-      { "name": "restart", "command": "kernelmenu:restart", "rank": 32 },
-      {
-        "name": "restart-and-run",
-        "command": "runmenu:restart-and-run-all",
-        "rank": 33
-      },
-      { "name": "cellType", "rank": 40 },
-      { "name": "spacer", "type": "spacer", "rank": 100 },
-      { "name": "kernelName", "rank": 1000 },
-      { "name": "kernelStatus", "rank": 1001 }
-    ]
+    "CSVTable": [{ "name": "delimiter", "rank": 10 }]
   },
   "jupyter.lab.transform": true,
   "properties": {
     "toolbar": {
-      "title": "Notebook panel toolbar items",
-      "description": "Note: To disable a toolbar item,\ncopy it to User Preferences and add the\n\"disabled\" key. The following example will disable the Interrupt button item:\n{\n  \"toolbar\": [\n    {\n      \"name\": \"interrupt\",\n      \"disabled\": true\n    }\n  ]\n}\n\nToolbar description:",
+      "title": "CSV viewer toolbar items",
+      "description": "Note: To disable a toolbar item,\ncopy it to User Preferences and add the\n\"disabled\" key. The following example will disable the delimiter selector item:\n{\n  \"toolbar\": [\n    {\n      \"name\": \"delimiter\",\n      \"disabled\": true\n    }\n  ]\n}\n\nToolbar description:",
       "items": {
         "$ref": "#/definitions/toolbarItem"
       },
