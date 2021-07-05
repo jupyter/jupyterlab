@@ -1,4 +1,6 @@
 {
+  "title": "Text Editor",
+  "description": "Text editor settings.",
   "jupyter.lab.setting-icon": "ui-components:text-editor",
   "jupyter.lab.setting-icon-label": "Editor",
   "jupyter.lab.menus": {
@@ -140,8 +142,44 @@
       }
     ]
   },
-  "title": "Text Editor",
-  "description": "Text editor settings.",
+  "jupyter.lab.toolbars": {
+    "HTML Viewer": []
+  },
+  "jupyter.lab.transform": true,
+  "properties": {
+    "editorConfig": {
+      "title": "Editor Configuration",
+      "description": "The configuration for all text editors.\nIf `fontFamily`, `fontSize` or `lineHeight` are `null`,\nvalues from current theme are used.",
+      "$ref": "#/definitions/editorConfig",
+      "default": {
+        "autoClosingBrackets": false,
+        "codeFolding": false,
+        "cursorBlinkRate": 530,
+        "fontFamily": null,
+        "fontSize": null,
+        "insertSpaces": true,
+        "lineHeight": null,
+        "lineNumbers": true,
+        "lineWrap": "on",
+        "matchBrackets": true,
+        "readOnly": false,
+        "rulers": [],
+        "tabSize": 4,
+        "wordWrapColumn": 80
+      }
+    },
+    "toolbar": {
+      "title": "Text editor toolbar items",
+      "description": "Note: To disable a toolbar item,\ncopy it to User Preferences and add the\n\"disabled\" key. Toolbar description:",
+      "items": {
+        "$ref": "#/definitions/toolbarItem"
+      },
+      "type": "array",
+      "default": []
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
   "definitions": {
     "editorConfig": {
       "properties": {
@@ -198,31 +236,51 @@
       },
       "additionalProperties": false,
       "type": "object"
+    },
+    "toolbarItem": {
+      "properties": {
+        "name": {
+          "title": "Unique name",
+          "type": "string"
+        },
+        "args": {
+          "title": "Command arguments",
+          "type": "object"
+        },
+        "command": {
+          "title": "Command id",
+          "type": "string",
+          "default": ""
+        },
+        "disabled": {
+          "title": "Whether the item is disabled or not",
+          "type": "boolean",
+          "default": false
+        },
+        "icon": {
+          "title": "Item icon id",
+          "description": "If defined, it will override the command icon",
+          "type": "string"
+        },
+        "label": {
+          "title": "Item icon label",
+          "description": "If defined, it will override the command label",
+          "type": "string"
+        },
+        "type": {
+          "title": "Item type",
+          "type": "string",
+          "enum": ["command", "spacer"]
+        },
+        "rank": {
+          "title": "Item rank",
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": false,
+      "type": "object"
     }
-  },
-  "properties": {
-    "editorConfig": {
-      "title": "Editor Configuration",
-      "description": "The configuration for all text editors.\nIf `fontFamily`, `fontSize` or `lineHeight` are `null`,\nvalues from current theme are used.",
-      "$ref": "#/definitions/editorConfig",
-      "default": {
-        "autoClosingBrackets": false,
-        "codeFolding": false,
-        "cursorBlinkRate": 530,
-        "fontFamily": null,
-        "fontSize": null,
-        "insertSpaces": true,
-        "lineHeight": null,
-        "lineNumbers": true,
-        "lineWrap": "on",
-        "matchBrackets": true,
-        "readOnly": false,
-        "rulers": [],
-        "tabSize": 4,
-        "wordWrapColumn": 80
-      }
-    }
-  },
-  "additionalProperties": false,
-  "type": "object"
+  }
 }
