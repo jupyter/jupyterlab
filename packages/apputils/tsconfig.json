@@ -10,6 +10,9 @@
       "path": "../coreutils"
     },
     {
+      "path": "../observables"
+    },
+    {
       "path": "../services"
     },
     {

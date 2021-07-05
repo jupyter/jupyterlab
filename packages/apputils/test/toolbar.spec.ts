@@ -3,23 +3,29 @@
 
 import {
   CommandToolbarButton,
+  createToolbarFactory,
   SessionContext,
   Toolbar,
   ToolbarButton,
   ToolbarRegistry,
   ToolbarWidgetRegistry
 } from '@jupyterlab/apputils';
+import { ISettingRegistry, SettingRegistry } from '@jupyterlab/settingregistry';
+import { IDataConnector } from '@jupyterlab/statedb';
 import {
   createSessionContext,
   framePromise,
   JupyterServer
 } from '@jupyterlab/testutils';
+import { ITranslator } from '@jupyterlab/translation';
 import { blankIcon, jupyterIcon } from '@jupyterlab/ui-components';
 import { toArray } from '@lumino/algorithm';
 import { CommandRegistry } from '@lumino/commands';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { Widget } from '@lumino/widgets';
 import { simulate } from 'simulate-event';
+
+// jest.mock('@jupyterlab/settingregistry');
 
 const server = new JupyterServer();
 
@@ -683,6 +689,190 @@ describe('@jupyterlab/apputils', () => {
           dummy
         );
       });
+    });
+  });
+
+  describe('createToolbarFactory', () => {
+    it('should return the toolbar items', async () => {
+      const factoryName = 'dummyFactory';
+      const pluginId = 'test-plugin:settings';
+      const toolbarRegistry = new ToolbarWidgetRegistry({
+        defaultFactory: jest.fn()
+      });
+
+      const bar: ISettingRegistry.IPlugin = {
+        data: {
+          composite: {},
+          user: {}
+        },
+        id: pluginId,
+        raw: '{}',
+        schema: {
+          'jupyter.lab.toolbars': {
+            dummyFactory: [
+              {
+                name: 'insert',
+                command: 'notebook:insert-cell-below',
+                rank: 20
+              },
+              { name: 'spacer', type: 'spacer', rank: 100 },
+              { name: 'cut', command: 'notebook:cut-cell', rank: 21 }
+            ]
+          },
+          'jupyter.lab.transform': true,
+          properties: {
+            toolbar: {
+              type: 'array'
+            }
+          },
+          type: 'object'
+        },
+        version: 'test'
+      };
+
+      const connector: IDataConnector<
+        ISettingRegistry.IPlugin,
+        string,
+        string,
+        string
+      > = {
+        fetch: jest.fn().mockImplementation((id: string) => {
+          switch (id) {
+            case bar.id:
+              return bar;
+            default:
+              return {};
+          }
+        }),
+        list: jest.fn(),
+        save: jest.fn(),
+        remove: jest.fn()
+      };
+
+      const settingRegistry = new SettingRegistry({
+        connector
+      });
+
+      const translator: ITranslator = {
+        load: jest.fn()
+      };
+
+      const factory = createToolbarFactory(
+        toolbarRegistry,
+        settingRegistry,
+        factoryName,
+        pluginId,
+        translator
+      );
+
+      await settingRegistry.load(bar.id);
+      // Trick push this test after all other promise in the hope they get resolve
+      // before going further - in particular we are looking at the update of the items
+      // factory in `createToolbarFactory`
+      await Promise.resolve();
+
+      const items = factory(null as any);
+      expect(items).toHaveLength(3);
+    });
+
+    it('should update the toolbar items with late settings load', async () => {
+      const factoryName = 'dummyFactory';
+      const pluginId = 'test-plugin:settings';
+      const toolbarRegistry = new ToolbarWidgetRegistry({
+        defaultFactory: jest.fn()
+      });
+
+      const foo: ISettingRegistry.IPlugin = {
+        data: {
+          composite: {},
+          user: {}
+        },
+        id: 'foo',
+        raw: '{}',
+        schema: {
+          'jupyter.lab.toolbars': {
+            dummyFactory: [
+              { name: 'cut', command: 'notebook:cut-cell', rank: 21 }
+            ]
+          },
+          type: 'object'
+        },
+        version: 'test'
+      };
+      const bar: ISettingRegistry.IPlugin = {
+        data: {
+          composite: {},
+          user: {}
+        },
+        id: pluginId,
+        raw: '{}',
+        schema: {
+          'jupyter.lab.toolbars': {
+            dummyFactory: [
+              {
+                name: 'insert',
+                command: 'notebook:insert-cell-below',
+                rank: 20
+              }
+            ]
+          },
+          'jupyter.lab.transform': true,
+          properties: {
+            toolbar: {
+              type: 'array'
+            }
+          },
+          type: 'object'
+        },
+        version: 'test'
+      };
+
+      const connector: IDataConnector<
+        ISettingRegistry.IPlugin,
+        string,
+        string,
+        string
+      > = {
+        fetch: jest.fn().mockImplementation((id: string) => {
+          switch (id) {
+            case bar.id:
+              return bar;
+            case foo.id:
+              return foo;
+            default:
+              return {};
+          }
+        }),
+        list: jest.fn(),
+        save: jest.fn(),
+        remove: jest.fn()
+      };
+
+      const settingRegistry = new SettingRegistry({
+        connector
+      });
+
+      const translator: ITranslator = {
+        load: jest.fn()
+      };
+
+      const factory = createToolbarFactory(
+        toolbarRegistry,
+        settingRegistry,
+        factoryName,
+        pluginId,
+        translator
+      );
+
+      await settingRegistry.load(bar.id);
+      // Trick push this test after all other promise in the hope they get resolve
+      // before going further - in particular we are looking at the update of the items
+      // factory in `createToolbarFactory`
+      await Promise.resolve();
+      await settingRegistry.load(foo.id);
+
+      const items = factory(null as any);
+      expect(items).toHaveLength(2);
     });
   });
 });

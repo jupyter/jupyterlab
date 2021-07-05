@@ -1,10 +1,17 @@
+import { IObservableList, ObservableList } from '@jupyterlab/observables';
 import { ISettingRegistry, SettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
+import { findIndex, toArray } from '@lumino/algorithm';
 import { JSONExt } from '@lumino/coreutils';
 import { Widget } from '@lumino/widgets';
 import { Dialog, showDialog } from '../dialog';
 import { IToolbarWidgetRegistry, ToolbarRegistry } from '../tokens';
 
+/**
+ * Display warning when the toolbar definition have been modified.
+ *
+ * @param trans Translation bundle
+ */
 async function displayInformation(trans: TranslationBundle): Promise<void> {
   const result = await showDialog({
     title: trans.__('Information'),
@@ -22,13 +29,23 @@ async function displayInformation(trans: TranslationBundle): Promise<void> {
   }
 }
 
+/**
+ * Accumulate the toolbar definition from all settings and set the default value from it.
+ *
+ * @param registry Application settings registry
+ * @param factoryName Widget factory name that needs a toolbar
+ * @param pluginId Settings plugin id
+ * @param translator Translator object
+ * @param propertyId Property holding the toolbar definition in the settings; default 'toolbar'
+ * @returns List of toolbar items
+ */
 async function getToolbarItems(
   registry: ISettingRegistry,
   factoryName: string,
   pluginId: string,
   translator: ITranslator,
   propertyId: string = 'toolbar'
-): Promise<ISettingRegistry.IToolbarItem[]> {
+): Promise<IObservableList<ISettingRegistry.IToolbarItem>> {
   const trans = translator.load('jupyterlab');
   let canonical: ISettingRegistry.ISchema | null;
   let loaded: { [name: string]: ISettingRegistry.IToolbarItem[] } = {};
@@ -113,47 +130,59 @@ async function getToolbarItems(
 
   const settings = await registry.load(pluginId);
 
-  const toolbarItems: ISettingRegistry.IToolbarItem[] =
-    JSONExt.deepCopy(settings.composite[propertyId] as any) ?? [];
+  const toolbarItems: IObservableList<ISettingRegistry.IToolbarItem> = new ObservableList(
+    {
+      values: JSONExt.deepCopy(settings.composite[propertyId] as any) ?? [],
+      itemCmp: (a, b) => JSONExt.deepEqual(a, b)
+    }
+  );
 
+  // React to customization by the user
   settings.changed.connect(() => {
-    // TODO
-    // As extension may change the context menu through API,
-    // prompt the user to reload if the menu has been updated.
+    // As extension may change the toolbar through API,
+    // prompt the user to reload if the toolbar definition has been updated.
     const newItems = (settings.composite[propertyId] as any) ?? [];
-    if (!JSONExt.deepEqual(toolbarItems, newItems)) {
+    if (!JSONExt.deepEqual(toArray(toolbarItems.iter()), newItems)) {
       void displayInformation(trans);
     }
   });
 
+  // React to plugin changes
   registry.pluginChanged.connect(async (sender, plugin) => {
-    // TODO
     if (plugin !== pluginId) {
-      // If the plugin changed its menu.
+      // If a plugin changed its toolbar items
       const oldItems = loaded[plugin] ?? [];
       const newItems =
         (registry.plugins[plugin]!.schema['jupyter.lab.toolbars'] ?? {})[
           factoryName
         ] ?? [];
       if (!JSONExt.deepEqual(oldItems, newItems)) {
-        //   if (loaded[plugin]) {
-        //     // The plugin has changed, request the user to reload the UI
-        await displayInformation(trans);
-        //   } else {
-        //     // The plugin was not yet loaded when the menu was built => update the menu
-        //     loaded[plugin] = JSONExt.deepCopy(newItems);
-        //     // Merge potential disabled state
-        //     const toAdd =
-        //       SettingRegistry.reconcileItems(
-        //         newItems,
-        //         toolbarItems,
-        //         false,
-        //         false
-        //       ) ?? [];
-        //     SettingRegistry.filterDisabledItems(toAdd).forEach(item => {
-        //       MenuFactory.addContextItem(item, contextMenu, menuFactory);
-        //     });
-        //   }
+        if (loaded[plugin]) {
+          // The plugin has changed, request the user to reload the UI
+          await displayInformation(trans);
+        } else {
+          // The plugin was not yet loaded => update the toolbar items list
+          loaded[plugin] = JSONExt.deepCopy(newItems);
+          const newList =
+            SettingRegistry.reconcileToolbarItems(
+              toArray(toolbarItems),
+              newItems,
+              false
+            ) ?? [];
+
+          // Existing items cannot be removed.
+          newList?.forEach(item => {
+            const index = findIndex(
+              toolbarItems,
+              value => item.name === value.name
+            );
+            if (index < 0) {
+              toolbarItems.push(item);
+            } else {
+              toolbarItems.set(index, item);
+            }
+          });
+        }
       }
     }
   });
@@ -182,6 +211,28 @@ export function createToolbarFactory(
   propertyId: string = 'toolbar'
 ): (widget: Widget) => ToolbarRegistry.IToolbarItem[] {
   const items: ToolbarRegistry.IWidget[] = [];
+  let rawItems: IObservableList<ToolbarRegistry.IWidget>;
+
+  const transfer = (
+    list: IObservableList<ToolbarRegistry.IWidget>,
+    change: IObservableList.IChangedArgs<ToolbarRegistry.IWidget>
+  ) => {
+    switch (change.type) {
+      case 'move':
+        break;
+      case 'add':
+      case 'remove':
+      case 'set':
+        items.length = 0;
+        items.push(
+          ...toArray(list)
+            .filter(item => !item.disabled)
+            .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity))
+        );
+        break;
+    }
+  };
+
   // Get toolbar definition from the settings
   getToolbarItems(
     settingsRegistry,
@@ -191,12 +242,16 @@ export function createToolbarFactory(
     propertyId
   )
     .then(candidates => {
-      items.length = 0;
-      items.push(
-        ...candidates
-          .filter(item => !item.disabled)
-          .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity))
-      );
+      rawItems = candidates;
+      rawItems.changed.connect(transfer);
+      // Force initialization of items
+      transfer(rawItems, {
+        type: 'add',
+        newIndex: 0,
+        newValues: [],
+        oldIndex: 0,
+        oldValues: []
+      });
     })
     .catch(reason => {
       console.error(

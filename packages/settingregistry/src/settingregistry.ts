@@ -1018,6 +1018,12 @@ export namespace SettingRegistry {
     return items;
   }
 
+  /**
+   * Remove disabled entries from menu items
+   *
+   * @param items Menu items
+   * @returns Filtered menu items
+   */
   export function filterDisabledItems<T extends ISettingRegistry.IMenuItem>(
     items: T[]
   ): T[] {
@@ -1130,6 +1136,14 @@ export namespace SettingRegistry {
     return user.concat(defaults).filter(shortcut => !shortcut.disabled);
   }
 
+  /**
+   * Merge two set of toolbar items.
+   *
+   * @param reference Reference set of toolbar items
+   * @param addition New items to add
+   * @param warn Whether to warn if item is duplicated; default to false
+   * @returns The merged set of items
+   */
   export function reconcileToolbarItems(
     reference?: ISettingRegistry.IToolbarItem[],
     addition?: ISettingRegistry.IToolbarItem[],
