@@ -52,7 +52,7 @@
 }
 
 .jp-DebuggerVariables-body .jp-DebuggerVariables-renderVariable:active {
-  transform: scale(1.272);
+  transform: scale(1.272) translateX(-4px);
   overflow: hidden;
 }
 
