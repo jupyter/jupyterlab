@@ -41,6 +41,7 @@ import 'codemirror/addon/search/searchcursor';
 import 'codemirror/addon/selection/active-line';
 import 'codemirror/addon/selection/mark-selection';
 import 'codemirror/addon/selection/selection-pointer';
+import 'codemirror/addon/edit/trailingspace.js';
 import 'codemirror/keymap/emacs.js';
 import 'codemirror/keymap/sublime.js';
 import { CodemirrorBinding } from 'y-codemirror';
