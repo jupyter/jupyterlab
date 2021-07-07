@@ -84,6 +84,8 @@ export namespace CommandIDs {
   export const paste = 'fileeditor:paste';
 
   export const selectAll = 'fileeditor:select-all';
+
+  export const showTrailingSpace = 'fileeditor:toggle-show-trailing-space';
 }
 
 export interface IFileTypeData extends ReadonlyJSONObject {
@@ -231,6 +233,8 @@ export namespace Commands {
     addPasteCommand(commands, tracker, trans, isEnabled);
 
     addSelectAllCommand(commands, tracker, trans, isEnabled);
+
+    addShowTrailingSpaceCommand(commands, settingRegistry, trans, id, isEnabled);
   }
 
   /**
@@ -831,6 +835,30 @@ export namespace Commands {
       },
       isEnabled: () => Boolean(isEnabled() && tracker.currentWidget?.content),
       label: trans.__('Select All')
+    });
+  }
+  /**
+   * Add show trailing space command
+   */
+  export function addShowTrailingSpaceCommand(
+    commands: CommandRegistry,
+    settingRegistry: ISettingRegistry,
+    trans: TranslationBundle,
+    id: string,
+    isEnabled: () => boolean
+  ): void {
+    commands.addCommand(CommandIDs.showTrailingSpace, {
+      execute: () => {
+        config.showTrailingSpace = !config.showTrailingSpace;
+        return settingRegistry
+          .set(id, 'editorConfig', (config as unknown) as JSONObject)
+          .catch((reason: Error) => {
+            console.error(`Failed to set ${id}: ${reason.message}`);
+          });
+      },
+      isEnabled,
+      isToggled: () => config.showTrailingSpace,
+      label: trans.__('Show Trailing Space')
     });
   }
 

@@ -198,6 +198,9 @@
         },
         "codeFolding": {
           "type": "boolean"
+        },
+        "showTrailingSpace": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -223,7 +226,8 @@
         "tabSize": 4,
         "wordWrapColumn": 80,
         "rulers": [],
-        "codeFolding": false
+        "codeFolding": false,
+        "showTrailingSpace": false
       }
     }
   },
