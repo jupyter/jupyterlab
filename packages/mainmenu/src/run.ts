@@ -73,7 +73,15 @@ export namespace IRunMenu {
     runLabel?: (n: number) => string;
 
     /**
-     * Return the label associated to the `runAllLabel` function.
+     * Return the caption associated to the `runAll` function.
+     *
+     * This function receives the number of items `n` to be able to provided
+     * correct pluralized forms of translations.
+     */
+    runAllCaption?: (n: number) => string;
+
+    /**
+     * Return the label associated to the `runAll` function.
      *
      * This function receives the number of items `n` to be able to provided
      * correct pluralized forms of translations.
