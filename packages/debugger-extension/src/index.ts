@@ -176,7 +176,7 @@ const notebooks: JupyterFrontEndPlugin<IDebugger.IHandler> = {
     service: IDebugger,
     notebookTracker: INotebookTracker,
     labShell: ILabShell | null
-  ):  Debugger.Handler => {
+  ): Debugger.Handler => {
     const handler = new Debugger.Handler({
       type: 'notebook',
       shell: app.shell,
@@ -207,7 +207,7 @@ const notebooks: JupyterFrontEndPlugin<IDebugger.IHandler> = {
       );
     }
 
-    return handler
+    return handler;
   }
 };
 
@@ -275,7 +275,13 @@ const sources: JupyterFrontEndPlugin<IDebugger.ISources> = {
 const variables: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlab/debugger-extension:variables',
   autoStart: true,
-  requires: [IDebugger, IDebuggerHandler, ITranslator, IRenderMimeRegistry, IDebuggerSidebar],
+  requires: [
+    IDebugger,
+    IDebuggerHandler,
+    ITranslator,
+    IRenderMimeRegistry,
+    IDebuggerSidebar
+  ],
   optional: [IThemeManager],
   activate: (
     app: JupyterFrontEnd,
@@ -379,13 +385,13 @@ const variables: JupyterFrontEndPlugin<void> = {
           frameId = service.model.callstack.frame?.id;
         }
 
-        const activeWidget = handler.activeWidget
-        let activeRendermime : IRenderMimeRegistry = rendermime
+        const activeWidget = handler.activeWidget;
+        let activeRendermime: IRenderMimeRegistry = rendermime;
 
-        if(activeWidget instanceof NotebookPanel ){
-          activeRendermime = activeWidget.content.rendermime
+        if (activeWidget instanceof NotebookPanel) {
+          activeRendermime = activeWidget.content.rendermime;
         }
-        
+
         const id = `jp-debugger-variable-mime-${name}`;
         if (
           !name || // Name is mandatory

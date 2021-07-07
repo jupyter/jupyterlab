@@ -111,9 +111,11 @@ export class DebuggerHandler implements DebuggerHandler.IHandler {
   /**
    * Get the active widget.
    */
-  get activeWidget(): DebuggerHandler.SessionWidget[DebuggerHandler.SessionType] | null {
-    return this._activeWidget
-  }  
+  get activeWidget():
+    | DebuggerHandler.SessionWidget[DebuggerHandler.SessionType]
+    | null {
+    return this._activeWidget;
+  }
 
   /**
    * Update a debug handler for the given widget, and
@@ -180,7 +182,7 @@ export class DebuggerHandler implements DebuggerHandler.IHandler {
     }
     connection.iopubMessage.connect(iopubMessage);
     this._iopubMessageHandlers[widget.id] = iopubMessage;
-    this._activeWidget = widget
+    this._activeWidget = widget;
 
     return this._update(widget, connection);
   }
@@ -399,7 +401,9 @@ export class DebuggerHandler implements DebuggerHandler.IHandler {
   private _shell: JupyterFrontEnd.IShell;
   private _service: IDebugger;
   private _previousConnection: Session.ISessionConnection | null;
-  private _activeWidget : DebuggerHandler.SessionWidget[DebuggerHandler.SessionType] | null
+  private _activeWidget:
+    | DebuggerHandler.SessionWidget[DebuggerHandler.SessionType]
+    | null;
   private _handlers: {
     [id: string]: DebuggerHandler.SessionHandler[DebuggerHandler.SessionType];
   } = {};
@@ -472,11 +476,12 @@ export namespace DebuggerHandler {
    * An interface for debugger handler.
    */
   export interface IHandler {
-
     /**
      * Get the active widget.
      */
-    activeWidget : DebuggerHandler.SessionWidget[DebuggerHandler.SessionType] | null;
+    activeWidget:
+      | DebuggerHandler.SessionWidget[DebuggerHandler.SessionType]
+      | null;
 
     /**
      * Update a debug handler for the given widget, and
@@ -488,7 +493,7 @@ export namespace DebuggerHandler {
     update(
       widget: DebuggerHandler.SessionWidget[DebuggerHandler.SessionType],
       connection: Session.ISessionConnection | null
-    ): Promise<void> ;
+    ): Promise<void>;
 
     /**
      * Update a debug handler for the given widget, and
@@ -500,7 +505,7 @@ export namespace DebuggerHandler {
     updateContext(
       widget: DebuggerHandler.SessionWidget[DebuggerHandler.SessionType],
       sessionContext: ISessionContext
-    ): Promise<void>
+    ): Promise<void>;
   }
 
   /**
