@@ -17,7 +17,7 @@
   "jupyter.lab.shortcuts": [
     {
       "command": "running:show-panel",
-      "keys": ["Accel Shift R"],
+      "keys": ["Accel Shift B"],
       "selector": "body"
     }
   ],

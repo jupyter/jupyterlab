@@ -25,7 +25,7 @@
   "jupyter.lab.shortcuts": [
     {
       "command": "toc:show-panel",
-      "keys": ["Accel Shift T"],
+      "keys": ["Accel Shift K"],
       "selector": "body"
     }
   ],

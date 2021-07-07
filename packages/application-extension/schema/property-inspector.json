@@ -17,7 +17,7 @@
   "jupyter.lab.shortcuts": [
     {
       "command": "property-inspector:show-panel",
-      "keys": ["Accel Shift G"],
+      "keys": ["Accel Shift U"],
       "selector": "body"
     }
   ],
