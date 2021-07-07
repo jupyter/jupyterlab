@@ -63,6 +63,9 @@ and a list of tabs in the main work area:
    :align: center
    :class: jp-screenshot
 
+The icons and labels column hat allows to switch between tabs is called
+Activity Bar in JupyterLab.
+
 .. _left-sidebar-toggle:
 
 The left sidebar can be collapsed or expanded by selecting "Show Left Sidebar"

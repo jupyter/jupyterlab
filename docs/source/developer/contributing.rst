@@ -821,6 +821,7 @@ The majority of names are written in lower case. These names include:
 The following sections of the user interface should be in title case,
 directly quoting a word in the UI:
 
+-  Activity Bar
 -  File menu
 -  Files tab
 -  Running panel
