@@ -22,17 +22,21 @@ export class VariableMimeRenderer extends MainAreaWidget<Panel> {
 
     dataLoader
       .then(async data => {
-        const mimeType = rendermime.preferredMimeType(data.data);
+        if (data.data) {
+          const mimeType = rendermime.preferredMimeType(data.data);
 
-        if (mimeType) {
-          const widget = rendermime.createRenderer(mimeType);
-          const model = new MimeModel(data);
-          await widget.renderModel(model);
+          if (mimeType) {
+            const widget = rendermime.createRenderer(mimeType);
+            const model = new MimeModel(data);
+            await widget.renderModel(model);
 
-          content.addWidget(widget);
-          loaded.resolve();
+            content.addWidget(widget);
+            loaded.resolve();
+          } else {
+            loaded.reject('Unable to determine the preferred mime type.');
+          }
         } else {
-          loaded.reject('Unable to determine the preferred mime type.');
+          loaded.reject('Unable to get a view on the variable.');
         }
       })
       .catch(reason => {
