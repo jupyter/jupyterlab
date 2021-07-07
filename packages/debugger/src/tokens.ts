@@ -15,6 +15,8 @@ import { Widget } from '@lumino/widgets';
 
 import { DebugProtocol } from 'vscode-debugprotocol';
 
+import {DebuggerHandler} from './handler'
+
 /**
  * An interface describing an application's visual debugger.
  */
@@ -222,6 +224,11 @@ export namespace IDebugger {
      */
     setTmpFileParams(params: IConfig.FileParams): void;
   }
+
+  /**
+   * An interface for debugger handler.
+   */
+  export interface IHandler extends DebuggerHandler.IHandler {}
 
   /**
    * An interface for a scope.
@@ -901,4 +908,11 @@ export const IDebuggerSources = new Token<IDebugger.ISources>(
  */
 export const IDebuggerSidebar = new Token<IDebugger.ISidebar>(
   '@jupyterlab/debugger:IDebuggerSidebar'
+);
+
+/**
+ * The debugger handler token.
+ */
+export const IDebuggerHandler = new Token<IDebugger.IHandler>(
+  '@jupyterlab/debugger:IDebuggerHandler'
 );

@@ -25,6 +25,7 @@ import {
   Debugger,
   IDebugger,
   IDebuggerConfig,
+  IDebuggerHandler,
   IDebuggerSidebar,
   IDebuggerSources
 } from '@jupyterlab/debugger';
@@ -164,9 +165,10 @@ const files: JupyterFrontEndPlugin<void> = {
 /**
  * A plugin that provides visual debugging support for notebooks.
  */
-const notebooks: JupyterFrontEndPlugin<void> = {
+const notebooks: JupyterFrontEndPlugin<IDebugger.IHandler> = {
   id: '@jupyterlab/debugger-extension:notebooks',
   autoStart: true,
+  provides: IDebuggerHandler,
   requires: [IDebugger, INotebookTracker],
   optional: [ILabShell],
   activate: (
@@ -174,7 +176,7 @@ const notebooks: JupyterFrontEndPlugin<void> = {
     service: IDebugger,
     notebookTracker: INotebookTracker,
     labShell: ILabShell | null
-  ) => {
+  ):  Debugger.Handler => {
     const handler = new Debugger.Handler({
       type: 'notebook',
       shell: app.shell,
@@ -197,14 +199,15 @@ const notebooks: JupyterFrontEndPlugin<void> = {
         }
         await updateHandlerAndCommands(widget);
       });
-      return;
+    } else {
+      notebookTracker.currentChanged.connect(
+        async (_, notebookPanel: NotebookPanel) => {
+          await updateHandlerAndCommands(notebookPanel);
+        }
+      );
     }
 
-    notebookTracker.currentChanged.connect(
-      async (_, notebookPanel: NotebookPanel) => {
-        await updateHandlerAndCommands(notebookPanel);
-      }
-    );
+    return handler
   }
 };
 
@@ -272,11 +275,12 @@ const sources: JupyterFrontEndPlugin<IDebugger.ISources> = {
 const variables: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlab/debugger-extension:variables',
   autoStart: true,
-  requires: [IDebugger, ITranslator, IRenderMimeRegistry, IDebuggerSidebar],
+  requires: [IDebugger, IDebuggerHandler, ITranslator, IRenderMimeRegistry, IDebuggerSidebar],
   optional: [IThemeManager],
   activate: (
     app: JupyterFrontEnd,
     service: IDebugger,
+    handler: Debugger.Handler,
     translator: ITranslator,
     rendermime: IRenderMimeRegistry,
     sidebar: IDebugger.ISidebar,
@@ -375,6 +379,13 @@ const variables: JupyterFrontEndPlugin<void> = {
           frameId = service.model.callstack.frame?.id;
         }
 
+        const activeWidget = handler.activeWidget
+        let activeRendermime : IRenderMimeRegistry = rendermime
+
+        if(activeWidget instanceof NotebookPanel ){
+          activeRendermime = activeWidget.content.rendermime
+        }
+        
         const id = `jp-debugger-variable-mime-${name}`;
         if (
           !name || // Name is mandatory
@@ -386,7 +397,7 @@ const variables: JupyterFrontEndPlugin<void> = {
 
         const widget = new Debugger.VariableRenderer({
           dataLoader: service.inspectRichVariable(name, frameId),
-          rendermime
+          rendermime: activeRendermime
         });
         widget.addClass('jp-DebuggerVariables');
         widget.id = id;
