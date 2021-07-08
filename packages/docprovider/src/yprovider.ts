@@ -50,14 +50,24 @@ export class WebSocketProviderWithLocks
     let color = '#' + env.getParam('--usercolor', getRandomColor().slice(1));
     let name = env.getParam('--username', getAnonymousUserName());
     const state = options.state;
-    const user = state.fetch(USER);
-    user.then(param => {
-      if (param === undefined) {
-        state.save(USER, `${name},${color}`);
-      } else {
-        name = (param as string).split(',')[0];
-        color = (param as string).split(',')[1];
-      }
+    if (state) {
+      const user = state.fetch(USER);
+      user.then(param => {
+        if (param === undefined) {
+          state.save(USER, `${name},${color}`);
+        } else {
+          name = (param as string).split(',')[0];
+          color = (param as string).split(',')[1];
+        }
+        // only set if this was not already set by another plugin
+        if (currState && currState.name == null) {
+          options.ymodel.awareness.setLocalStateField('user', {
+            name,
+            color
+          });
+        }
+      });
+    } else {
       // only set if this was not already set by another plugin
       if (currState && currState.name == null) {
         options.ymodel.awareness.setLocalStateField('user', {
@@ -65,7 +75,7 @@ export class WebSocketProviderWithLocks
           color
         });
       }
-    });
+    }
 
     // Message handler that confirms when a lock has been acquired
     this.messageHandlers[127] = (
@@ -280,6 +290,6 @@ export namespace WebSocketProviderWithLocks {
     /**
      * The state database
      */
-    state: IStateDB;
+    state: IStateDB | null;
   }
 }
