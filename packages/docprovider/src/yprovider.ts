@@ -98,7 +98,7 @@ export class WebSocketProviderWithLocks
         name = getAnonymousUserName();
       }
       if (color == '#') {
-        color = getRandomColor().slice(1);
+        color = '#' + getRandomColor().slice(1);
       }
       // only set if this was not already set by another plugin
       if (currState && currState.name == null) {
@@ -114,7 +114,7 @@ export class WebSocketProviderWithLocks
     user.then(param => {
       if (param === undefined) {
         name = getAnonymousUserName();
-        color = getRandomColor().slice(1);
+        color = '#' + getRandomColor().slice(1);
         state.save(USER, `${name},${color}`);
       } else {
         name = (param as string).split(',')[0];
