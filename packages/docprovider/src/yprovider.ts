@@ -47,35 +47,8 @@ export class WebSocketProviderWithLocks
 
     const awareness = options.ymodel.awareness;
     const currState = awareness.getLocalState();
-    let color = '#' + env.getParam('--usercolor', getRandomColor().slice(1));
-    let name = env.getParam('--username', getAnonymousUserName());
-    const state = options.state;
-    if (state) {
-      const user = state.fetch(USER);
-      user.then(param => {
-        if (param === undefined) {
-          state.save(USER, `${name},${color}`);
-        } else {
-          name = (param as string).split(',')[0];
-          color = (param as string).split(',')[1];
-        }
-        // only set if this was not already set by another plugin
-        if (currState && currState.name == null) {
-          options.ymodel.awareness.setLocalStateField('user', {
-            name,
-            color
-          });
-        }
-      });
-    } else {
-      // only set if this was not already set by another plugin
-      if (currState && currState.name == null) {
-        options.ymodel.awareness.setLocalStateField('user', {
-          name,
-          color
-        });
-      }
-    }
+    let color = '#' + env.getParam('--usercolor', '');
+    let name = env.getParam('--username', '');
 
     // Message handler that confirms when a lock has been acquired
     this.messageHandlers[127] = (
@@ -118,6 +91,43 @@ export class WebSocketProviderWithLocks
     this._isInitialized = false;
     this._onConnectionStatus = this._onConnectionStatus.bind(this);
     this.on('status', this._onConnectionStatus);
+
+    const state = options.state;
+    if (name != '' || color != '#' || state == null) {
+      if (name == '') {
+        name = getAnonymousUserName();
+      }
+      if (color == '#') {
+        color = getRandomColor().slice(1);
+      }
+      // only set if this was not already set by another plugin
+      if (currState && currState.name == null) {
+        options.ymodel.awareness.setLocalStateField('user', {
+          name,
+          color
+        });
+      }
+      return;
+    }
+
+    const user = state.fetch(USER);
+    user.then(param => {
+      if (param === undefined) {
+        name = getAnonymousUserName();
+        color = getRandomColor().slice(1);
+        state.save(USER, `${name},${color}`);
+      } else {
+        name = (param as string).split(',')[0];
+        color = (param as string).split(',')[1];
+      }
+      // only set if this was not already set by another plugin
+      if (currState && currState.name == null) {
+        options.ymodel.awareness.setLocalStateField('user', {
+          name,
+          color
+        });
+      }
+    });
   }
 
   setPath(newPath: string): void {
