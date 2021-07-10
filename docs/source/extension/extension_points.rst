@@ -730,7 +730,7 @@ Toolbar Registry
 ----------------
 
 As for the context menu and the main menu bar, JupyterLab provides an infrastructure to define
-and customized toolbar widgets of document widgets from the settings. A typical example is
+and customize toolbar widgets of document widgets from the settings. A typical example is
 the notebook toolbar as seen in the snippet below:
 
 .. code:: typescript
@@ -826,8 +826,8 @@ mapping. For example for the notebook panel:
      }
    }
 
-The settings registry will gather those definition within the provided setting plugin id
-under the ``toolbar`` property. That list will be used to create the toolbar. And the user
+The settings registry will gather those definitions within the provided setting plugin id
+under the ``toolbar`` property. That list will be used to create the toolbar. The user
 can customize it by adding new items or overriding existing one (like providing a different
 rank or add ``"disabled": true`` to remove the item).
 
