@@ -789,7 +789,7 @@ The registry ``registerFactory`` method allows an extension to provide special w
 toolbar definition from the settings and build the factory to pass to the widget factory.
 
 The default toolbar items can be defined across multiple extensions by providing an entry in the ``"jupyter.lab.toolbars"``
-mapping. For example for the html viewer:
+mapping. For example for the notebook panel:
 
 .. code:: json
  
