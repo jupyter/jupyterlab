@@ -7,13 +7,16 @@
         "id": "jp-mainmenu-view",
         "items": [
           {
-            "type": "separator"
+            "type": "separator",
+            "rank": 9.9
           },
           {
-            "command": "logconsole:open"
+            "command": "logconsole:open",
+            "rank": 9.9
           },
           {
-            "type": "separator"
+            "type": "separator",
+            "rank": 9.9
           }
         ]
       }

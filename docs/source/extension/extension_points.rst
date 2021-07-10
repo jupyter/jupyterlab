@@ -562,6 +562,9 @@ Here is the list of default menu ids:
 
 - Edit menu: ``jp-mainmenu-edit``
 - View menu: ``jp-mainmenu-view``
+
+  * Appearance submenu: ``jp-mainmenu-view-appearance``
+
 - Run menu: ``jp-mainmenu-run``
 - Kernel menu: ``jp-mainmenu-kernel``
 - Tabs menu: ``jp-mainmenu-tabs``

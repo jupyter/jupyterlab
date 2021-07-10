@@ -1,0 +1,27 @@
+{
+  "title": "Sessions",
+  "description": "Sessions Settings",
+  "jupyter.lab.menus": {
+    "main": [
+      {
+        "id": "jp-mainmenu-view",
+        "items": [
+          {
+            "command": "running:show-panel",
+            "rank": 3
+          }
+        ]
+      }
+    ]
+  },
+  "jupyter.lab.shortcuts": [
+    {
+      "command": "running:show-panel",
+      "keys": ["Accel Shift B"],
+      "selector": "body"
+    }
+  ],
+  "properties": {},
+  "additionalProperties": false,
+  "type": "object"
+}

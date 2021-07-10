@@ -7,16 +7,16 @@
         "id": "jp-mainmenu-view",
         "items": [
           {
-            "type": "separator",
-            "rank": 1
-          },
-          {
-            "command": "statusbar:toggle",
-            "rank": 1
-          },
-          {
-            "type": "separator",
-            "rank": 1
+            "type": "submenu",
+            "submenu": {
+              "id": "jp-mainmenu-view-appearance",
+              "items": [
+                {
+                  "command": "statusbar:toggle",
+                  "rank": 15
+                }
+              ]
+            }
           }
         ]
       }

@@ -73,11 +73,17 @@ namespace CommandIDs {
 
   export const setMode: string = 'application:set-mode';
 
+  export const showPropertyPanel: string = 'property-inspector:show-panel';
+
+  export const resetLayout: string = 'application:reset-layout';
+
   export const toggleMode: string = 'application:toggle-mode';
 
   export const toggleLeftArea: string = 'application:toggle-left-area';
 
   export const toggleRightArea: string = 'application:toggle-right-area';
+
+  export const toggleSideTabBar: string = 'application:toggle-side-tabbar';
 
   export const togglePresentationMode: string =
     'application:toggle-presentation-mode';
@@ -288,7 +294,7 @@ const mainCommands: JupyterFrontEndPlugin<void> = {
           }
         },
         isToggled: () => !labShell.leftCollapsed,
-        isVisible: () => !labShell.isEmpty('left')
+        isEnabled: () => !labShell.isEmpty('left')
       });
 
       commands.addCommand(CommandIDs.toggleRightArea, {
@@ -304,7 +310,29 @@ const mainCommands: JupyterFrontEndPlugin<void> = {
           }
         },
         isToggled: () => !labShell.rightCollapsed,
-        isVisible: () => !labShell.isEmpty('right')
+        isEnabled: () => !labShell.isEmpty('right')
+      });
+
+      commands.addCommand(CommandIDs.toggleSideTabBar, {
+        label: args =>
+          args.side === 'right'
+            ? trans.__('Show Right Activity Bar')
+            : trans.__('Show Left Activity Bar'),
+        execute: args => {
+          if (args.side === 'right') {
+            labShell.toggleSideTabBarVisibility('right');
+          } else {
+            labShell.toggleSideTabBarVisibility('left');
+          }
+        },
+        isToggled: args =>
+          args.side === 'right'
+            ? labShell.isSideTabBarVisible('right')
+            : labShell.isSideTabBarVisible('left'),
+        isEnabled: args =>
+          args.side === 'right'
+            ? !labShell.isEmpty('right')
+            : !labShell.isEmpty('left')
       });
 
       commands.addCommand(CommandIDs.togglePresentationMode, {
@@ -342,6 +370,36 @@ const mainCommands: JupyterFrontEndPlugin<void> = {
           return commands.execute(CommandIDs.setMode, args);
         }
       });
+
+      commands.addCommand(CommandIDs.resetLayout, {
+        label: trans.__('Reset Default Layout'),
+        execute: () => {
+          // Turn off presentation mode
+          if (labShell.presentationMode) {
+            commands
+              .execute(CommandIDs.togglePresentationMode)
+              .catch(reason => {
+                console.error('Failed to undo presentation mode.', reason);
+              });
+          }
+          // Display side tabbar
+          (['left', 'right'] as ('left' | 'right')[]).forEach(side => {
+            if (
+              !labShell.isSideTabBarVisible(side) &&
+              !labShell.isEmpty(side)
+            ) {
+              commands
+                .execute(CommandIDs.toggleSideTabBar, { side })
+                .catch(reason => {
+                  console.error(`Failed to show ${side} activity bar.`, reason);
+                });
+            }
+          });
+
+          // Some actions are also trigger indirectly
+          // - by listening to this command execution.
+        }
+      });
     }
 
     if (palette) {
@@ -357,8 +415,17 @@ const mainCommands: JupyterFrontEndPlugin<void> = {
         CommandIDs.toggleLeftArea,
         CommandIDs.toggleRightArea,
         CommandIDs.togglePresentationMode,
-        CommandIDs.toggleMode
+        CommandIDs.toggleMode,
+        CommandIDs.resetLayout
       ].forEach(command => palette.addItem({ command, category }));
+
+      ['right', 'left'].forEach(side => {
+        palette.addItem({
+          command: CommandIDs.toggleSideTabBar,
+          category,
+          args: { side }
+        });
+      });
     }
   }
 };
@@ -805,7 +872,7 @@ const sidebar: JupyterFrontEndPlugin<void> = {
     const trans = translator.load('jupyterlab');
     type overrideMap = { [id: string]: 'left' | 'right' };
     let overrides: overrideMap = {};
-    // const trans = translator.load("jupyterlab");
+
     const handleLayoutOverrides = () => {
       each(labShell.widgets('left'), widget => {
         if (overrides[widget.id] && overrides[widget.id] === 'right') {
@@ -859,6 +926,14 @@ const sidebar: JupyterFrontEndPlugin<void> = {
         const newOverrides = { ...overrides };
         newOverrides[id] = side;
         return settingRegistry.set(SIDEBAR_ID, 'overrides', newOverrides);
+      }
+    });
+
+    app.commands.commandExecuted.connect((registry, executed) => {
+      if (executed.id === CommandIDs.resetLayout) {
+        settingRegistry.set(SIDEBAR_ID, 'overrides', {}).catch(reason => {
+          console.error('Failed to reset sidebar sides.', reason);
+        });
       }
     });
   }
@@ -954,6 +1029,14 @@ const propertyInspector: JupyterFrontEndPlugin<IPropertyInspectorProvider> = {
     widget.title.caption = trans.__('Property Inspector');
     widget.id = 'jp-property-inspector';
     labshell.add(widget, 'right', { rank: 100 });
+
+    app.commands.addCommand(CommandIDs.showPropertyPanel, {
+      label: trans.__('Property Inspector'),
+      execute: () => {
+        labshell.activateById(widget.id);
+      }
+    });
+
     if (restorer) {
       restorer.add(widget, 'jp-property-inspector');
     }

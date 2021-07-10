@@ -3,6 +3,32 @@
   "jupyter.lab.setting-icon-label": "Table of Contents",
   "title": "Table of Contents",
   "description": "Table of contents settings.",
+  "jupyter.lab.menus": {
+    "main": [
+      {
+        "id": "jp-mainmenu-view",
+        "items": [
+          {
+            "command": "toc:show-panel",
+            "rank": 4
+          }
+        ]
+      }
+    ],
+    "context": [
+      {
+        "command": "toc:run-cells",
+        "selector": ".jp-tocItem"
+      }
+    ]
+  },
+  "jupyter.lab.shortcuts": [
+    {
+      "command": "toc:show-panel",
+      "keys": ["Accel Shift K"],
+      "selector": "body"
+    }
+  ],
   "properties": {
     "numberingH1": {
       "title": "Enable h1 numbering",

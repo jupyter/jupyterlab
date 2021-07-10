@@ -4,8 +4,11 @@
 import { galata, test } from '@jupyterlab/galata';
 
 const menuPaths = [
+  'File',
+  'File>New',
   'Edit',
   'View',
+  'View>Appearance',
   'Run',
   'Kernel',
   'Tabs',
