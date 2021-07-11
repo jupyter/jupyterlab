@@ -24,7 +24,7 @@ import { IStateDB } from '@jupyterlab/statedb';
  */
 const docProviderPlugin: JupyterFrontEndPlugin<IDocumentProviderFactory> = {
   id: '@jupyterlab/docprovider-extension:plugin',
-  requires: [IStateDB],
+  optional: [IStateDB],
   provides: IDocumentProviderFactory,
   activate: (
     app: JupyterFrontEnd,
