@@ -729,9 +729,9 @@ When the ``labStatus`` busy state changes, we update the text content of the
 Toolbar Registry
 ----------------
 
-As for the context menu and the main menu bar, JupyterLab provides an infrastructure to define
-and customize toolbar widgets of document widgets from the settings. A typical example is
-the notebook toolbar as seen in the snippet below:
+JupyterLab provides an infrastructure to define and customize toolbar widgets of ``DocumentWidget`` s
+from the settings, which is similar to that defining the context menu and the main menu
+bar. A typical example is the notebook toolbar as in the snippet below:
 
 .. code:: typescript
 
@@ -791,11 +791,16 @@ toolbar definition from the settings and build the factory to pass to the widget
 The default toolbar items can be defined across multiple extensions by providing an entry in the ``"jupyter.lab.toolbars"``
 mapping. For example for the notebook panel:
 
-.. code:: json
+.. code:: js
  
    "jupyter.lab.toolbars": {
-     "Notebook": [
-       { "name": "save", "rank": 10 },
+     "Notebook": [ // Factory name
+       // Item with non-default widget - it must be registered within an extension
+       { 
+         "name": "save", // Unique toolbar item name
+         "rank": 10 // Item rank
+       },
+       // Item with default button widget triggering a command
        { "name": "insert", "command": "notebook:insert-cell-below", "rank": 20 },
        { "name": "cut", "command": "notebook:cut-cell", "rank": 21 },
        { "name": "copy", "command": "notebook:copy-cell", "rank": 22 },
@@ -809,6 +814,7 @@ mapping. For example for the notebook panel:
          "rank": 33
        },
        { "name": "cellType", "rank": 40 },
+       // Horizontal spacer widget
        { "name": "spacer", "type": "spacer", "rank": 100 },
        { "name": "kernelName", "rank": 1000 },
        { "name": "kernelStatus", "rank": 1001 }
@@ -826,10 +832,14 @@ mapping. For example for the notebook panel:
      }
    }
 
-The settings registry will gather those definitions within the provided setting plugin id
-under the ``toolbar`` property. That list will be used to create the toolbar. The user
-can customize it by adding new items or overriding existing one (like providing a different
-rank or add ``"disabled": true`` to remove the item).
+
+The settings registry will merge those definitions from settings schema with any
+user-provided overrides (customizations) transparently and save them under the
+``toolbar`` property in the final settings object. The ``toolbar`` list will be used to
+create the toolbar. Both the source settings schema and the final settings object
+are identified by the plugin ID passed to ``createToolbarFactory``. The user can
+customize the toolbar by adding new items or overriding existing ones (like
+providing a different rank or adding ``"disabled": true`` to remove the item).
 
 .. note::
 
