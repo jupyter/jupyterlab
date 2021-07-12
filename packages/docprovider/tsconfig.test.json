@@ -6,6 +6,9 @@
       "path": "../shared-models"
     },
     {
+      "path": "../statedb"
+    },
+    {
       "path": "."
     },
     {
@@ -13,6 +16,9 @@
     },
     {
       "path": "../shared-models"
+    },
+    {
+      "path": "../statedb"
     }
   ]
 }

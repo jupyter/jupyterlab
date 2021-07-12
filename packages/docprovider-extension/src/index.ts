@@ -17,14 +17,19 @@ import {
   WebSocketProviderWithLocks
 } from '@jupyterlab/docprovider';
 import { ServerConnection } from '@jupyterlab/services';
+import { IStateDB } from '@jupyterlab/statedb';
 
 /**
  * The default document provider plugin
  */
 const docProviderPlugin: JupyterFrontEndPlugin<IDocumentProviderFactory> = {
   id: '@jupyterlab/docprovider-extension:plugin',
+  optional: [IStateDB],
   provides: IDocumentProviderFactory,
-  activate: (app: JupyterFrontEnd): IDocumentProviderFactory => {
+  activate: (
+    app: JupyterFrontEnd,
+    state: IStateDB | null
+  ): IDocumentProviderFactory => {
     const server = ServerConnection.makeSettings();
     const url = URLExt.join(server.wsUrl, 'api/yjs');
     const collaborative =
@@ -35,7 +40,8 @@ const docProviderPlugin: JupyterFrontEndPlugin<IDocumentProviderFactory> = {
       return collaborative
         ? new WebSocketProviderWithLocks({
             ...options,
-            url
+            url,
+            state
           })
         : new ProviderMock();
     };

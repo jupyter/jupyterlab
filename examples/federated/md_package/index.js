@@ -46,7 +46,6 @@ const plugin = {
  * Activate the markdown viewer plugin.
  */
 function activate(app, restorer, rendermime, settingRegistry, middleToken) {
-  console.log(middleToken);
   const { commands, docRegistry } = app;
   // Add the markdown renderer factory.
   rendermime.addFactory(markdownRendererFactory);
