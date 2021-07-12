@@ -28,7 +28,7 @@ const docProviderPlugin: JupyterFrontEndPlugin<IDocumentProviderFactory> = {
   provides: IDocumentProviderFactory,
   activate: (
     app: JupyterFrontEnd,
-    state: IStateDB
+    state: IStateDB | null
   ): IDocumentProviderFactory => {
     const server = ServerConnection.makeSettings();
     const url = URLExt.join(server.wsUrl, 'api/yjs');
