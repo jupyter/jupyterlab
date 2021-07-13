@@ -19,6 +19,9 @@
       "path": "../htmlviewer"
     },
     {
+      "path": "../settingregistry"
+    },
+    {
       "path": "../translation"
     },
     {

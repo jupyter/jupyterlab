@@ -10,10 +10,12 @@
 @import url('~@jupyterlab/codeeditor/style/index.css');
 @import url('~@jupyterlab/statusbar/style/index.css');
 @import url('~@jupyterlab/rendermime/style/index.css');
+@import url('~@jupyterlab/docregistry/style/index.css');
 @import url('~@jupyterlab/application/style/index.css');
 @import url('~@jupyterlab/docmanager/style/index.css');
 @import url('~@jupyterlab/filebrowser/style/index.css');
 @import url('~@jupyterlab/cells/style/index.css');
+@import url('~@jupyterlab/docmanager-extension/style/index.css');
 @import url('~@jupyterlab/launcher/style/index.css');
 @import url('~@jupyterlab/logconsole/style/index.css');
 @import url('~@jupyterlab/mainmenu/style/index.css');

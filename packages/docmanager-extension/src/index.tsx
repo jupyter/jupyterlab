@@ -12,11 +12,16 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import {
+  addCommandToolbarButtonClass,
+  CommandToolbarButtonComponent,
   Dialog,
   ICommandPalette,
   ISessionContextDialogs,
+  IToolbarWidgetRegistry,
+  ReactWidget,
   showDialog,
-  showErrorMessage
+  showErrorMessage,
+  UseSignal
 } from '@jupyterlab/apputils';
 import { IChangedArgs, Time } from '@jupyterlab/coreutils';
 import {
@@ -32,10 +37,14 @@ import { Contents, Kernel } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStatusBar } from '@jupyterlab/statusbar';
 import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
+import { saveIcon } from '@jupyterlab/ui-components';
 import { each, map, some, toArray } from '@lumino/algorithm';
+import { CommandRegistry } from '@lumino/commands';
 import { JSONExt } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
+import { ISignal } from '@lumino/signaling';
 import { Widget } from '@lumino/widgets';
+import * as React from 'react';
 
 /**
  * The command IDs used by the document manager plugin.
@@ -89,7 +98,8 @@ const docManagerPlugin: JupyterFrontEndPlugin<IDocumentManager> = {
     ICommandPalette,
     ILabShell,
     ISessionContextDialogs,
-    IDocumentProviderFactory
+    IDocumentProviderFactory,
+    IToolbarWidgetRegistry
   ],
   activate: (
     app: JupyterFrontEnd,
@@ -431,6 +441,35 @@ const plugins: JupyterFrontEndPlugin<any>[] = [
 ];
 export default plugins;
 
+/**
+ * Toolbar item factory
+ */
+export namespace ToolbarItems {
+  /**
+   * Create save button toolbar item.
+   *
+   */
+  export function createSaveButton(
+    commands: CommandRegistry,
+    fileChanged: ISignal<any, Contents.IModel>
+  ): Widget {
+    return addCommandToolbarButtonClass(
+      ReactWidget.create(
+        <UseSignal signal={fileChanged}>
+          {() => (
+            <CommandToolbarButtonComponent
+              commands={commands}
+              id={CommandIDs.save}
+              label={''}
+              args={{ toolbar: true }}
+            />
+          )}
+        </UseSignal>
+      )
+    );
+  }
+}
+
 /* Widget to display the revert to checkpoint confirmation. */
 class RevertConfirmWidget extends Widget {
   /**
@@ -652,11 +691,13 @@ function addCommands(
   commands.addCommand(CommandIDs.save, {
     label: () => trans.__('Save %1', fileType(shell.currentWidget, docManager)),
     caption: trans.__('Save and create checkpoint'),
+    icon: args => (args.toolbar ? saveIcon : ''),
     isEnabled: isWritable,
     execute: () => {
       // Checks that shell.currentWidget is valid:
       if (isEnabled()) {
-        const context = docManager.contextForWidget(shell.currentWidget!);
+        const widget = shell.currentWidget;
+        const context = docManager.contextForWidget(widget!);
         if (!context) {
           return showDialog({
             title: trans.__('Cannot Save'),
@@ -674,7 +715,11 @@ function addCommands(
 
           return context
             .save(true)
-            .then(() => context!.createCheckpoint())
+            .then(() => {
+              if (!widget?.isDisposed) {
+                return context!.createCheckpoint();
+              }
+            })
             .catch(err => {
               // If the save was canceled by user-action, do nothing.
               // FIXME-TRANS: Is this using the text on the button or?

@@ -3,15 +3,26 @@
 
 import { Widget } from '@lumino/widgets';
 import { simulate } from 'simulate-event';
-import { CSVDelimiter } from '../src';
+import { CSVDelimiter, CSVViewer } from '../src';
 
 const DELIMITERS = [',', ';', '\t'];
 
 describe('csvviewer/toolbar', () => {
+  let delimiter = DELIMITERS[0];
+  const mockViewer: jest.Mock<CSVViewer> = jest.fn().mockImplementation(() => {
+    return {
+      delimiter
+    };
+  });
+
+  beforeEach(() => {
+    delimiter = DELIMITERS[0];
+  });
+
   describe('CSVDelimiter', () => {
     describe('#constructor()', () => {
       it('should instantiate a `CSVDelimiter` toolbar widget', () => {
-        const widget = new CSVDelimiter({ selected: ',' });
+        const widget = new CSVDelimiter({ widget: mockViewer() });
         expect(widget).toBeInstanceOf(CSVDelimiter);
         expect(Array.from(widget.node.classList)).toEqual(
           expect.arrayContaining(['jp-CSVDelimiter'])
@@ -20,8 +31,8 @@ describe('csvviewer/toolbar', () => {
       });
 
       it('should allow pre-selecting the delimiter', () => {
-        const wanted = DELIMITERS[DELIMITERS.length - 1];
-        const widget = new CSVDelimiter({ selected: wanted });
+        const wanted = (delimiter = DELIMITERS[DELIMITERS.length - 1]);
+        const widget = new CSVDelimiter({ widget: mockViewer() });
         expect(widget.selectNode.value).toBe(wanted);
         widget.dispose();
       });
@@ -29,24 +40,36 @@ describe('csvviewer/toolbar', () => {
 
     describe('#delimiterChanged', () => {
       it('should emit a value when the dropdown value changes', () => {
-        const widget = new CSVDelimiter({ selected: ',' });
-        let delimiter = '';
+        const widget = new CSVDelimiter({ widget: mockViewer() });
+        let delimiterTest = '';
         const index = DELIMITERS.length - 1;
         const wanted = DELIMITERS[index];
         widget.delimiterChanged.connect((s, value) => {
-          delimiter = value;
+          delimiterTest = value;
         });
         Widget.attach(widget, document.body);
         widget.selectNode.selectedIndex = index;
         simulate(widget.selectNode, 'change');
-        expect(delimiter).toBe(wanted);
+        expect(delimiterTest).toBe(wanted);
+        widget.dispose();
+      });
+    });
+
+    describe('#handleEvent', () => {
+      it('should change the delimiter', () => {
+        const viewer = mockViewer();
+        const widget = new CSVDelimiter({ widget: viewer });
+        const wanted = DELIMITERS[1];
+        widget.selectNode.value = wanted;
+        widget.handleEvent({ type: 'change' } as any);
+        expect(viewer.delimiter).toBe(wanted);
         widget.dispose();
       });
     });
 
     describe('#selectNode', () => {
       it('should return the delimiter dropdown select tag', () => {
-        const widget = new CSVDelimiter({ selected: ',' });
+        const widget = new CSVDelimiter({ widget: mockViewer() });
         expect(widget.selectNode.tagName.toLowerCase()).toBe('select');
         widget.dispose();
       });
@@ -54,14 +77,14 @@ describe('csvviewer/toolbar', () => {
 
     describe('#dispose()', () => {
       it('should dispose of the resources held by the widget', () => {
-        const widget = new CSVDelimiter({ selected: ',' });
+        const widget = new CSVDelimiter({ widget: mockViewer() });
         expect(widget.isDisposed).toBe(false);
         widget.dispose();
         expect(widget.isDisposed).toBe(true);
       });
 
       it('should be safe to call multiple times', () => {
-        const widget = new CSVDelimiter({ selected: ',' });
+        const widget = new CSVDelimiter({ widget: mockViewer() });
         expect(widget.isDisposed).toBe(false);
         widget.dispose();
         widget.dispose();

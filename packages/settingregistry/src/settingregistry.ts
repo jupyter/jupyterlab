@@ -1018,6 +1018,12 @@ export namespace SettingRegistry {
     return items;
   }
 
+  /**
+   * Remove disabled entries from menu items
+   *
+   * @param items Menu items
+   * @returns Filtered menu items
+   */
   export function filterDisabledItems<T extends ISettingRegistry.IMenuItem>(
     items: T[]
   ): T[] {
@@ -1128,6 +1134,69 @@ export namespace SettingRegistry {
 
     // Return all the shortcuts that should be registered
     return user.concat(defaults).filter(shortcut => !shortcut.disabled);
+  }
+
+  /**
+   * Merge two set of toolbar items.
+   *
+   * @param reference Reference set of toolbar items
+   * @param addition New items to add
+   * @param warn Whether to warn if item is duplicated; default to false
+   * @returns The merged set of items
+   */
+  export function reconcileToolbarItems(
+    reference?: ISettingRegistry.IToolbarItem[],
+    addition?: ISettingRegistry.IToolbarItem[],
+    warn: boolean = false
+  ): ISettingRegistry.IToolbarItem[] | undefined {
+    if (!reference) {
+      return addition ? JSONExt.deepCopy(addition) : undefined;
+    }
+    if (!addition) {
+      return JSONExt.deepCopy(reference);
+    }
+
+    const items = JSONExt.deepCopy(reference);
+
+    // Merge array element depending on the type
+    addition.forEach(item => {
+      switch (item.type) {
+        case 'command':
+          if (item.command) {
+            const refIndex = items.findIndex(
+              ref =>
+                ref.name === item.name &&
+                ref.command === item.command &&
+                JSONExt.deepEqual(ref.args ?? {}, item.args ?? {})
+            );
+            if (refIndex < 0) {
+              items.push({ ...item });
+            } else {
+              if (warn) {
+                console.warn(
+                  `Toolbar item for command '${item.command}' is duplicated.`
+                );
+              }
+              items[refIndex] = { ...items[refIndex], ...item };
+            }
+          }
+          break;
+        case 'spacer':
+        default: {
+          const refIndex = items.findIndex(ref => ref.name === item.name);
+          if (refIndex < 0) {
+            items.push({ ...item });
+          } else {
+            if (warn) {
+              console.warn(`Toolbar item '${item.name}' is duplicated.`);
+            }
+            items[refIndex] = { ...items[refIndex], ...item };
+          }
+        }
+      }
+    });
+
+    return items;
   }
 }
 

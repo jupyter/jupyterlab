@@ -621,6 +621,29 @@ describe('@jupyterlab/settingregistry', () => {
     });
   });
 
+  describe('reconcileToolbarItems', () => {
+    it('should merge toolbar items list', () => {
+      const a: ISettingRegistry.IToolbarItem[] = [
+        { name: 'a' },
+        { name: 'b', command: 'command-b' }
+      ];
+      const b: ISettingRegistry.IToolbarItem[] = [
+        { name: 'b', disabled: true },
+        { name: 'c', type: 'spacer' },
+        { name: 'd', command: 'command-d' }
+      ];
+
+      const merged = SettingRegistry.reconcileToolbarItems(a, b);
+      expect(merged).toHaveLength(4);
+      expect(merged![0].name).toEqual('a');
+      expect(merged![1].name).toEqual('b');
+      expect(merged![1].disabled).toEqual(true);
+      expect(merged![2].name).toEqual('c');
+      expect(merged![2].type).toEqual('spacer');
+      expect(merged![3].name).toEqual('d');
+    });
+  });
+
   describe('filterDisabledItems', () => {
     it('should remove disabled menu item', () => {
       const a: ISettingRegistry.IContextMenuItem[] = [

@@ -2,9 +2,11 @@
 // Distributed under the terms of the Modified BSD License.
 
 import { IChangedArgs } from '@jupyterlab/coreutils';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { Token } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
 import { ISignal } from '@lumino/signaling';
+import { Widget } from '@lumino/widgets';
 import { ISessionContext } from './sessioncontext';
 
 /**
@@ -178,3 +180,96 @@ export namespace ISanitizer {
     allowedStyles?: { [key: string]: { [key: string]: RegExp[] } };
   }
 }
+
+/**
+ * The namespace for `IToolbarWidgetRegistry` related interfaces
+ */
+export namespace ToolbarRegistry {
+  /**
+   * Interface of item to be inserted in a toolbar
+   */
+  export interface IToolbarItem {
+    /**
+     * Unique item name
+     */
+    name: string;
+    /**
+     * Toolbar widget
+     */
+    widget: Widget;
+  }
+
+  /**
+   * Interface describing a toolbar item widget
+   */
+  export interface IWidget extends ISettingRegistry.IToolbarItem {}
+
+  /**
+   * Options to set up the toolbar widget registry
+   */
+  export interface IOptions {
+    /**
+     * Default toolbar widget factory
+     *
+     * The factory is receiving 3 arguments:
+     * @param widgetFactory The widget factory name that creates the toolbar
+     * @param widget The newly widget containing the toolbar
+     * @param toolbarItem The toolbar item definition
+     * @returns The widget to be inserted in the toolbar.
+     */
+    defaultFactory: (
+      widgetFactory: string,
+      widget: Widget,
+      toolbarItem: IWidget
+    ) => Widget;
+  }
+}
+
+/**
+ * Toolbar widget registry interface
+ */
+export interface IToolbarWidgetRegistry {
+  /**
+   * Default toolbar item factory
+   */
+  defaultFactory: (
+    widgetFactory: string,
+    widget: Widget,
+    toolbarItem: ToolbarRegistry.IWidget
+  ) => Widget;
+
+  /**
+   * Create a toolbar item widget
+   *
+   * @param widgetFactory The widget factory name that creates the toolbar
+   * @param widget The newly widget containing the toolbar
+   * @param toolbarItem The toolbar item definition
+   * @returns The widget to be inserted in the toolbar.
+   */
+  createWidget(
+    widgetFactory: string,
+    widget: Widget,
+    toolbarItem: ToolbarRegistry.IWidget
+  ): Widget;
+
+  /**
+   * Register a new toolbar item factory
+   *
+   * @param widgetFactory The widget factory name that creates the toolbar
+   * @param toolbarItemName The unique toolbar item
+   * @param factory The factory function that receives the widget containing the toolbar and returns the toolbar widget.
+   * @returns The previously defined factory
+   */
+  registerFactory<T extends Widget = Widget>(
+    widgetFactory: string,
+    toolbarItemName: string,
+    factory: (main: T) => Widget
+  ): ((main: T) => Widget) | undefined;
+}
+
+/**
+ * The toolbar registry token.
+ */
+export const IToolbarWidgetRegistry = new Token<IToolbarWidgetRegistry>(
+  '@jupyterlab/apputils:IToolbarWidgetRegistry'
+);

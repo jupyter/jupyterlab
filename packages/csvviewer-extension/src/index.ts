@@ -11,19 +11,23 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import {
+  createToolbarFactory,
   InputDialog,
   IThemeManager,
+  IToolbarWidgetRegistry,
   WidgetTracker
 } from '@jupyterlab/apputils';
 import {
+  CSVDelimiter,
   CSVViewer,
   CSVViewerFactory,
   TextRenderConfig,
   TSVViewerFactory
 } from '@jupyterlab/csvviewer';
-import { IDocumentWidget } from '@jupyterlab/docregistry';
+import { DocumentRegistry, IDocumentWidget } from '@jupyterlab/docregistry';
 import { ISearchProviderRegistry } from '@jupyterlab/documentsearch';
 import { IEditMenu, IMainMenu } from '@jupyterlab/mainmenu';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator } from '@jupyterlab/translation';
 import { DataGrid } from '@lumino/datagrid';
 import { CSVSearchProvider } from './searchprovider';
@@ -45,7 +49,9 @@ const csv: JupyterFrontEndPlugin<void> = {
     ILayoutRestorer,
     IThemeManager,
     IMainMenu,
-    ISearchProviderRegistry
+    ISearchProviderRegistry,
+    ISettingRegistry,
+    IToolbarWidgetRegistry
   ],
   autoStart: true
 };
@@ -61,7 +67,9 @@ const tsv: JupyterFrontEndPlugin<void> = {
     ILayoutRestorer,
     IThemeManager,
     IMainMenu,
-    ISearchProviderRegistry
+    ISearchProviderRegistry,
+    ISettingRegistry,
+    IToolbarWidgetRegistry
   ],
   autoStart: true
 };
@@ -100,13 +108,42 @@ function activateCsv(
   restorer: ILayoutRestorer | null,
   themeManager: IThemeManager | null,
   mainMenu: IMainMenu | null,
-  searchregistry: ISearchProviderRegistry | null
+  searchregistry: ISearchProviderRegistry | null,
+  settingRegistry: ISettingRegistry | null,
+  toolbarRegistry: IToolbarWidgetRegistry | null
 ): void {
+  let toolbarFactory:
+    | ((widget: IDocumentWidget<CSVViewer>) => DocumentRegistry.IToolbarItem[])
+    | undefined;
+
+  if (toolbarRegistry) {
+    toolbarRegistry.registerFactory<IDocumentWidget<CSVViewer>>(
+      FACTORY_CSV,
+      'delimiter',
+      widget =>
+        new CSVDelimiter({
+          widget: widget.content,
+          translator
+        })
+    );
+
+    if (settingRegistry) {
+      toolbarFactory = createToolbarFactory(
+        toolbarRegistry,
+        settingRegistry,
+        FACTORY_CSV,
+        csv.id,
+        translator
+      );
+    }
+  }
+
   const factory = new CSVViewerFactory({
     name: FACTORY_CSV,
     fileTypes: ['csv'],
     defaultFor: ['csv'],
     readOnly: true,
+    toolbarFactory,
     translator
   });
   const tracker = new WidgetTracker<IDocumentWidget<CSVViewer>>({
@@ -182,13 +219,42 @@ function activateTsv(
   restorer: ILayoutRestorer | null,
   themeManager: IThemeManager | null,
   mainMenu: IMainMenu | null,
-  searchregistry: ISearchProviderRegistry | null
+  searchregistry: ISearchProviderRegistry | null,
+  settingRegistry: ISettingRegistry | null,
+  toolbarRegistry: IToolbarWidgetRegistry | null
 ): void {
+  let toolbarFactory:
+    | ((widget: IDocumentWidget<CSVViewer>) => DocumentRegistry.IToolbarItem[])
+    | undefined;
+
+  if (toolbarRegistry) {
+    toolbarRegistry.registerFactory<IDocumentWidget<CSVViewer>>(
+      FACTORY_TSV,
+      'delimiter',
+      widget =>
+        new CSVDelimiter({
+          widget: widget.content,
+          translator
+        })
+    );
+
+    if (settingRegistry) {
+      toolbarFactory = createToolbarFactory(
+        toolbarRegistry,
+        settingRegistry,
+        FACTORY_TSV,
+        tsv.id,
+        translator
+      );
+    }
+  }
+
   const factory = new TSVViewerFactory({
     name: FACTORY_TSV,
     fileTypes: ['tsv'],
     defaultFor: ['tsv'],
     readOnly: true,
+    toolbarFactory,
     translator
   });
   const tracker = new WidgetTracker<IDocumentWidget<CSVViewer>>({

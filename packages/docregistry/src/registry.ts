@@ -1,7 +1,11 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { ISessionContext, Toolbar } from '@jupyterlab/apputils';
+import {
+  ISessionContext,
+  Toolbar,
+  ToolbarRegistry
+} from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import {
   IChangedArgs as IChangedArgsGeneric,
@@ -705,10 +709,8 @@ export namespace DocumentRegistry {
   /**
    * The item to be added to document toolbar.
    */
-  export interface IToolbarItem {
-    name: string;
-    widget: Widget;
-  }
+  export interface IToolbarItem extends ToolbarRegistry.IToolbarItem {}
+
   /**
    * The options used to create a document registry.
    */

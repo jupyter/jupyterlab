@@ -6,6 +6,9 @@
       "path": "../coreutils"
     },
     {
+      "path": "../observables"
+    },
+    {
       "path": "../services"
     },
     {
@@ -28,6 +31,9 @@
     },
     {
       "path": "../coreutils"
+    },
+    {
+      "path": "../observables"
     },
     {
       "path": "../services"

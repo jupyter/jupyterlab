@@ -55,6 +55,8 @@ might want to use the services in your extensions.
 - ``@jupyterlab/apputils:ISplashScreen``: A service for the splash screen for the application.
   Use this if you want to show the splash screen for your own purposes.
 - ``@jupyterlab/apputils:IThemeManager``: A service for the theme manager for the application. This is used primarily in theme extensions to register new themes.
+- ``@jupyterlab/apputils:IToolbarWidgetRegistry``: A registry for toolbar widgets. Require this
+  if you want to build the toolbar dynamically from a data definition (stored in settings for example).
 - ``@jupyterlab/apputils:IWindowResolver``: A service for a window resolver for the
   application. JupyterLab workspaces are given a name, which are determined using
   the window resolver. Require this if you want to use the name of the current workspace.
@@ -722,6 +724,127 @@ When the ``labStatus`` busy state changes, we update the text content of the
     });
 
 .. _widget-tracker:
+
+
+Toolbar Registry
+----------------
+
+JupyterLab provides an infrastructure to define and customize toolbar widgets of ``DocumentWidget`` s
+from the settings, which is similar to that defining the context menu and the main menu
+bar. A typical example is the notebook toolbar as in the snippet below:
+
+.. code:: typescript
+
+   function activatePlugin(
+     app: JupyterFrontEnd,
+     // ...
+     toolbarRegistry: IToolbarWidgetRegistry | null,
+     settingRegistry: ISettingRegistry | null
+   ): NotebookWidgetFactory.IFactory {
+     const { commands } = app;
+     let toolbarFactory:
+       | ((widget: NotebookPanel) => DocumentRegistry.IToolbarItem[])
+       | undefined;
+   
+     // Register notebook toolbar widgets
+     if (toolbarRegistry) {
+       toolbarRegistry.registerFactory<NotebookPanel>(FACTORY, 'cellType', panel =>
+         ToolbarItems.createCellTypeItem(panel, translator)
+       );
+       
+       toolbarRegistry.registerFactory<NotebookPanel>(
+         FACTORY,
+         'kernelStatus',
+         panel => Toolbar.createKernelStatusItem(panel.sessionContext, translator)
+       );
+       // etc... 
+     
+       if (settingRegistry) {
+         // Create the factory
+         toolbarFactory = createToolbarFactory(
+           toolbarRegistry,
+           settingRegistry,
+           // Factory name
+           FACTORY,
+           // Setting id in which the toolbar items are defined
+           '@jupyterlab/notebook-extension:panel',
+           translator
+         );
+       }
+     }
+   
+     const factory = new NotebookWidgetFactory({
+       name: FACTORY,
+       fileTypes: ['notebook'],
+       modelName: 'notebook',
+       defaultFor: ['notebook'],
+       // ...
+       toolbarFactory,
+       translator: translator
+     });
+     app.docRegistry.addWidgetFactory(factory);
+
+The registry ``registerFactory`` method allows an extension to provide special widget for a unique pair 
+(factory name, toolbar item name). Then the helper ``createToolbarFactory`` can be used to extract the
+toolbar definition from the settings and build the factory to pass to the widget factory.
+
+The default toolbar items can be defined across multiple extensions by providing an entry in the ``"jupyter.lab.toolbars"``
+mapping. For example for the notebook panel:
+
+.. code:: js
+ 
+   "jupyter.lab.toolbars": {
+     "Notebook": [ // Factory name
+       // Item with non-default widget - it must be registered within an extension
+       { 
+         "name": "save", // Unique toolbar item name
+         "rank": 10 // Item rank
+       },
+       // Item with default button widget triggering a command
+       { "name": "insert", "command": "notebook:insert-cell-below", "rank": 20 },
+       { "name": "cut", "command": "notebook:cut-cell", "rank": 21 },
+       { "name": "copy", "command": "notebook:copy-cell", "rank": 22 },
+       { "name": "paste", "command": "notebook:paste-cell-below", "rank": 23 },
+       { "name": "run", "command": "runmenu:run", "rank": 30 },
+       { "name": "interrupt", "command": "kernelmenu:interrupt", "rank": 31 },
+       { "name": "restart", "command": "kernelmenu:restart", "rank": 32 },
+       {
+         "name": "restart-and-run",
+         "command": "runmenu:restart-and-run-all",
+         "rank": 33
+       },
+       { "name": "cellType", "rank": 40 },
+       // Horizontal spacer widget
+       { "name": "spacer", "type": "spacer", "rank": 100 },
+       { "name": "kernelName", "rank": 1000 },
+       { "name": "kernelStatus", "rank": 1001 }
+     ]
+   },
+   "jupyter.lab.transform": true,
+   "properties": {
+     "toolbar": {
+       "title": "Notebook panel toolbar items",
+       "items": {
+         "$ref": "#/definitions/toolbarItem"
+       },
+       "type": "array",
+       "default": []
+     }
+   }
+
+
+The settings registry will merge those definitions from settings schema with any
+user-provided overrides (customizations) transparently and save them under the
+``toolbar`` property in the final settings object. The ``toolbar`` list will be used to
+create the toolbar. Both the source settings schema and the final settings object
+are identified by the plugin ID passed to ``createToolbarFactory``. The user can
+customize the toolbar by adding new items or overriding existing ones (like
+providing a different rank or adding ``"disabled": true`` to remove the item).
+
+.. note::
+
+   You need to set ``jupyter.lab.transform`` to ``true`` in the plugin id that will gather all items.
+
 
 Widget Tracker
 --------------

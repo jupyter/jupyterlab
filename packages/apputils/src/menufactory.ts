@@ -152,7 +152,7 @@ export namespace MenuFactory {
         const existingItem = menu?.items.find(
           (i, idx) =>
             i.type === entry.type &&
-            i.command === entry.command &&
+            i.command === (entry.command ?? '') &&
             i.submenu?.id === entry.submenu?.id
         );
 
