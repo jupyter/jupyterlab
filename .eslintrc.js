@@ -38,7 +38,7 @@ module.exports = {
     ],
     '@typescript-eslint/no-unused-vars': ['warn', { args: 'none' }],
     '@typescript-eslint/no-use-before-define': 'off',
-    '@typescript-eslint/camelcase': 'off',
+    '@typescript-eslint/camelcase': 'warn',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-namespace': 'off',
