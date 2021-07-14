@@ -14,7 +14,7 @@ export interface IConsoleHistory extends IDisposable {
   /**
    * The session context used by the foreign handler.
    */
-  readonly sessionContext: ISessionContext;
+  readonly sessionContext: ISessionContext | null;
 
   /**
    * The current editor used by the history widget.
@@ -74,15 +74,18 @@ export class ConsoleHistory implements IConsoleHistory {
    * Construct a new console history object.
    */
   constructor(options: ConsoleHistory.IOptions) {
-    this.sessionContext = options.sessionContext;
-    void this._handleKernel();
-    this.sessionContext.kernelChanged.connect(this._handleKernel, this);
+    const { sessionContext } = options;
+    if (sessionContext) {
+      this.sessionContext = sessionContext;
+      void this._handleKernel();
+      this.sessionContext.kernelChanged.connect(this._handleKernel, this);
+    }
   }
 
   /**
    * The client session used by the foreign handler.
    */
-  readonly sessionContext: ISessionContext;
+  readonly sessionContext: ISessionContext | null;
 
   /**
    * The current editor used by the history manager.
@@ -293,7 +296,7 @@ export class ConsoleHistory implements IConsoleHistory {
    * Handle the current kernel changing.
    */
   private async _handleKernel(): Promise<void> {
-    const kernel = this.sessionContext.session?.kernel;
+    const kernel = this.sessionContext?.session?.kernel;
     if (!kernel) {
       this._history.length = 0;
       return;
@@ -350,7 +353,7 @@ export namespace ConsoleHistory {
     /**
      * The client session used by the foreign handler.
      */
-    sessionContext: ISessionContext;
+    sessionContext?: ISessionContext;
   }
 }
 
