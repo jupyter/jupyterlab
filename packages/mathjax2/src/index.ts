@@ -95,7 +95,7 @@ export class MathJaxTypesetter implements IRenderMime.ILatexTypesetter {
         availableFonts: [],
         imageFont: null,
         preferredFont: null,
-        webFont: 'STIX-Web',
+        webFont: 'TeX',
         styles: { '.MathJax_Display': { margin: 0 } },
         linebreaks: { automatic: true }
       },
