@@ -153,6 +153,10 @@ export interface IDebugger {
     breakpoints: IDebugger.IBreakpoint[],
     path?: string
   ): Promise<void>;
+
+  getDebuggerState(): IDebugger.State;
+
+  restoreDebuggerState(state: IDebugger.State): Promise<boolean>;
 }
 
 /**
@@ -184,6 +188,21 @@ export namespace IDebugger {
    */
   export interface IBreakpoint extends DebugProtocol.Breakpoint {}
 
+  /*
+   * The state of the debugger, used for restoring a debugging session
+   * after restarting the kernel.
+   */
+  export type State = {
+    /**
+     * List of cells to dump after the kernel has restarted
+     */
+    cells: string[];
+    /**
+     * Map of breakpoints to send back to the kernel after it has restarted
+     */
+    breakpoints: Map<string, IDebugger.IBreakpoint[]>;
+  };
+
   /**
    * Debugger file and hashing configuration.
    */
@@ -209,6 +228,13 @@ export namespace IDebugger {
      * @param params - Temporary file prefix and suffix for a kernel.
      */
     setTmpFileParams(params: IConfig.FileParams): void;
+
+    /**
+     * Gets the parameters used for the temp files (e.e. cells) for a kernel.
+     *
+     * @param kernel - The kernel name from current session.
+     */
+    getTmpFileParams(kernel: string): IConfig.FileParams;
   }
 
   /**

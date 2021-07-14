@@ -303,17 +303,7 @@ export class DebuggerService implements IDebugger, IDisposable {
     const { breakpoints } = this._model.breakpoints;
     await this.stop();
     await this.start();
-
-    // Re-send the breakpoints to the kernel and update the model.
-    for (const [source, points] of breakpoints) {
-      await this._setBreakpoints(
-        points
-          .filter(({ line }) => typeof line === 'number')
-          .map(({ line }) => ({ line: line! })),
-        source
-      );
-    }
-    this._model.breakpoints.restoreBreakpoints(breakpoints);
+    await this._restoreBreakpoints(breakpoints);
   }
 
   /**
@@ -469,6 +459,46 @@ export class DebuggerService implements IDebugger, IDisposable {
     // Update the local model and finish kernel configuration.
     this._model.breakpoints.setBreakpoints(path, updatedBreakpoints);
     await this.session.sendRequest('configurationDone', {});
+  }
+
+  getDebuggerState(): IDebugger.State {
+    const breakpoints = this._model.breakpoints.breakpoints;
+    let cells: string[] = [];
+    for (const id of breakpoints.keys()) {
+      const editorList = this._debuggerSources!.find({
+        focus: false,
+        kernel: this.session?.connection?.kernel?.name ?? '',
+        path: this._session?.connection?.path ?? '',
+        source: id
+      });
+      const tmp_cells = editorList.map(e => e.model.value.text);
+      cells = cells.concat(tmp_cells);
+    }
+    return { cells, breakpoints };
+  }
+
+  async restoreDebuggerState(state: IDebugger.State): Promise<boolean> {
+    await this.start();
+
+    for (const cell of state.cells) {
+      await this._dumpCell(cell);
+    }
+
+    const breakpoints = new Map<string, IDebugger.IBreakpoint[]>();
+    const kernel = this.session?.connection?.kernel?.name ?? '';
+    const { prefix, suffix } = this._config.getTmpFileParams(kernel);
+    for (const item of state.breakpoints) {
+      const [id, list] = item;
+      const unsuffixedId = id.substr(0, id.length - suffix.length);
+      const codeHash = unsuffixedId.substr(unsuffixedId.lastIndexOf('/') + 1);
+      const newId = prefix.concat(codeHash).concat(suffix);
+      breakpoints.set(newId, list);
+    }
+
+    await this._restoreBreakpoints(breakpoints);
+    const config = await this.session!.sendRequest('configurationDone', {});
+    await this.restoreState(false);
+    return config.success;
   }
 
   /**
@@ -748,6 +778,26 @@ export class DebuggerService implements IDebugger, IDisposable {
       source: { path },
       sourceModified: false
     });
+  }
+
+  /**
+   * Re-send the breakpoints to the kernel and update the model.
+   *
+   * @param breakpoints The map of breakpoints to send
+   */
+  private async _restoreBreakpoints(
+    breakpoints: Map<string, IDebugger.IBreakpoint[]>
+  ): Promise<void> {
+    for (const [source, points] of breakpoints) {
+      console.log(source);
+      await this._setBreakpoints(
+        points
+          .filter(({ line }) => typeof line === 'number')
+          .map(({ line }) => ({ line: line! })),
+        source
+      );
+    }
+    this._model.breakpoints.restoreBreakpoints(breakpoints);
   }
 
   private _config: IDebugger.IConfig;

@@ -105,6 +105,8 @@ export namespace Debugger {
     export const inspectVariable = 'debugger:inspect-variable';
 
     export const evaluate = 'debugger:evaluate';
+
+    export const restartDebug = 'debugger:restart-debug';
   }
 
   /**

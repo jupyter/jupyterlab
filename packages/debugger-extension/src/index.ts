@@ -15,6 +15,7 @@ import {
   ICommandPalette,
   IThemeManager,
   MainAreaWidget,
+  sessionContextDialogs,
   WidgetTracker
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
@@ -31,7 +32,11 @@ import {
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
-import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
+import {
+  INotebookTracker,
+  NotebookActions,
+  NotebookPanel
+} from '@jupyterlab/notebook';
 import {
   standardRendererFactories as initialFactories,
   RenderMimeRegistry
@@ -166,12 +171,13 @@ const files: JupyterFrontEndPlugin<void> = {
 const notebooks: JupyterFrontEndPlugin<void> = {
   id: '@jupyterlab/debugger-extension:notebooks',
   autoStart: true,
-  requires: [IDebugger, INotebookTracker],
+  requires: [IDebugger, INotebookTracker, ITranslator],
   optional: [ILabShell],
   activate: (
     app: JupyterFrontEnd,
     service: IDebugger,
     notebookTracker: INotebookTracker,
+    translator: ITranslator,
     labShell: ILabShell | null
   ) => {
     const handler = new Debugger.Handler({
@@ -179,6 +185,34 @@ const notebooks: JupyterFrontEndPlugin<void> = {
       shell: app.shell,
       service
     });
+
+    const trans = translator.load('jupyterlab');
+    app.commands.addCommand(Debugger.CommandIDs.restartDebug, {
+      label: trans.__('Restart and Debug'),
+      caption: trans.__('Restart and Debug'),
+      isEnabled: () => {
+        return service.isStarted;
+      },
+      execute: async () => {
+        const state = service.getDebuggerState();
+        console.log(state.cells);
+        const { context, content } = notebookTracker.currentWidget!;
+
+        await service.stop();
+        const restarted = await sessionContextDialogs!.restart(
+          context.sessionContext
+        );
+        if (restarted) {
+          await service.restoreDebuggerState(state);
+          await handler.updateWidget(
+            notebookTracker.currentWidget!,
+            notebookTracker.currentWidget!.sessionContext.session
+          );
+          await NotebookActions.runAll(content, context.sessionContext);
+        }
+      }
+    });
+
     const updateHandlerAndCommands = async (
       widget: NotebookPanel
     ): Promise<void> => {

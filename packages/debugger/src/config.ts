@@ -64,6 +64,15 @@ export class DebuggerConfig implements IDebugger.IConfig {
     this._fileParams.set(kernel, { kernel, prefix, suffix });
   }
 
+  /**
+   * Gets the parameters used for the temp files (e.e. cells) for a kernel.
+   *
+   * @param kernel - The kernel name from current session.
+   */
+  getTmpFileParams(kernel: string): IDebugger.IConfig.FileParams {
+    return this._fileParams.get(kernel)!;
+  }
+
   private _fileParams = new Map<string, IDebugger.IConfig.FileParams>();
   private _hashMethods = new Map<string, (code: string) => string>();
 }
