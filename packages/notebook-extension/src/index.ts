@@ -589,6 +589,7 @@ function activateNotebookTools(
   const id = 'notebook-tools';
   const notebookTools = new NotebookTools({ tracker, translator });
   const activeCellTool = new NotebookTools.ActiveCellTool();
+  const cellTool = NotebookTools.createCellToolSelector(translator);
   const slideShow = NotebookTools.createSlideShowSelector(translator);
   const editorFactory = editorServices.factoryService.newInlineEditor;
   const cellMetadataEditor = new NotebookTools.CellMetadataEditorTool({
@@ -656,7 +657,7 @@ function activateNotebookTools(
         optionValueArray,
         translator
       );
-      notebookTools.addItem({ tool: nbConvert, section: 'common', rank: 3 });
+      notebookTools.addItem({ tool: nbConvert, section: 'common', rank: 4 });
     }
   });
   notebookTools.title.icon = buildIcon;
@@ -664,7 +665,8 @@ function activateNotebookTools(
   notebookTools.id = id;
 
   notebookTools.addItem({ tool: activeCellTool, section: 'common', rank: 1 });
-  notebookTools.addItem({ tool: slideShow, section: 'common', rank: 2 });
+  notebookTools.addItem({ tool: cellTool, section: 'common', rank: 2 });
+  notebookTools.addItem({ tool: slideShow, section: 'common', rank: 3 });
 
   notebookTools.addItem({
     tool: cellMetadataEditor,

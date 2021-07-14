@@ -859,6 +859,89 @@ export namespace NotebookTools {
     }
   }
 
+   /**
+   * Create a cell-tool selector.
+   */
+    export function createCellToolSelector(
+      translator?: ITranslator
+    ): KeySelector {
+      translator = translator || nullTranslator;
+      const trans = translator.load('jupyterlab');
+      trans.__('');
+      const options: KeySelector.IOptions = {
+        key: 'celltool',
+        title: trans.__('Cell Tool'),
+        optionValueArray: [
+          ['-', null],
+          [trans.__('Read-Only'), 'readOnly'],
+          [trans.__('Non-Deletable'), 'nonDeletable'],
+          [trans.__('Collapsed'), 'collapsed'],
+          [trans.__('Output-Scrolled'), 'outputScrolled']
+        ],
+        getter: cell => {
+          const value = cell.model.metadata.get('celltool') as
+            | ReadonlyPartialJSONObject
+            | undefined;
+          return value && value['cell_type'];
+        },
+        setter: (cell, value) => {
+          let data = cell.model.metadata.get('celltool') || Object.create(null);
+          if (value === null) {
+            // Make a shallow copy so we aren't modifying the original metadata.
+            data = { ...data };
+            delete data.cell_type;
+          }
+          else {
+            data = { ...data, cell_type: value };
+          }
+          if (Object.keys(data).length > 0) {
+            cell.model.metadata.set('celltool', data);
+          } else {
+            cell.model.metadata.delete('celltool');
+          }
+
+          /**
+           * Make the cell non-editable
+           */
+          if( value === 'readOnly'){
+            cell.model.metadata.set('editable', false);
+          } else {
+            cell.model.metadata.delete('editable');
+          }
+
+          /**
+           * Make the cell non-deletable
+           */
+          if( value === 'nonDeletable'){
+            cell.model.metadata.set('deletable', false);
+          } else {
+            cell.model.metadata.delete('deletable');
+          }
+
+          /**
+           * Make the cell's input collapsed
+           */
+          if( value === 'collapsed'){
+            let jupyter = cell.model.metadata.get('jupyter') || Object.create(null);
+            jupyter = { ...jupyter, source_hidden: true};    
+            cell.model.metadata.set('jupyter', jupyter);
+          } else{
+            cell.model.metadata.delete('jupyter');
+          }
+
+          /**
+           * Make the cell scrollable
+           */
+           if( value === 'outputScrolled'){
+            cell.model.metadata.set('scrolled', true);
+          } else {
+            cell.model.metadata.delete('scrolled');
+          }
+        }
+      };
+      return new KeySelector(options);
+    }
+
   /**
    * Create a slideshow selector.
    */
