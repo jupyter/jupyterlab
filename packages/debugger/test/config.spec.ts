@@ -25,6 +25,15 @@ describe('DebuggerConfig', () => {
       expect(codeId.endsWith(suffix)).toBe(true);
     });
 
+    it('should support other hash functions than Murmur2', () => {
+      const [prefix, suffix] = ['foo', 'bar'];
+      config.setHashParams({ method: 'Murmur3', seed: 'baz', kernel });
+      config.setTmpFileParams({ prefix, suffix, kernel });
+      const codeId = config.getCodeId('i = 0', kernel);
+      expect(codeId.startsWith(prefix)).toBe(true);
+      expect(codeId.endsWith(suffix)).toBe(true);
+    });
+
     it('should throw if the kernel does not have hash parameters', () => {
       config.setTmpFileParams({ prefix: 'foo', suffix: 'bar', kernel });
       expect(() => {

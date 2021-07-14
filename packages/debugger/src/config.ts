@@ -1,7 +1,7 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { murmur2 } from './hash';
+import { murmur2, murmur3 } from './hash';
 
 import { IDebugger } from './tokens';
 
@@ -45,6 +45,9 @@ export class DebuggerConfig implements IDebugger.IConfig {
     switch (method) {
       case 'Murmur2':
         this._hashMethods.set(kernel, code => murmur2(code, seed).toString());
+        break;
+      case 'Murmur3':
+        this._hashMethods.set(kernel, code => murmur3(code, seed).toString());
         break;
       default:
         throw new Error(`Hash method (${method}) is not supported.`);
