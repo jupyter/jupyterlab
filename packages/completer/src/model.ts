@@ -15,6 +15,15 @@ import { CompletionHandler } from './handler';
 import { Completer } from './widget';
 
 /**
+ * Escape HTML by native means of the browser.
+ */
+function escapeHTML(text: string) {
+  const node = document.createElement('span');
+  node.textContent = text;
+  return node.innerHTML;
+}
+
+/**
  * An implementation of a completer model.
  */
 export class CompleterModel implements Completer.IModel {
@@ -173,7 +182,18 @@ export class CompleterModel implements Completer.IModel {
     if (query) {
       return this._markup(query);
     }
-    return this._completionItems;
+    return this._completionItems.map(item => {
+      const newItem = Object.assign({}, item);
+      const newLabel = escapeHTML(newItem.label);
+      if (newLabel != newItem.label) {
+        // preserve the old label for insertText if not defined
+        if (typeof newItem.insertText === 'undefined') {
+          newItem.insertText = newItem.label;
+        }
+        newItem.label = newLabel;
+      }
+      return newItem;
+    });
   }
 
   /**
@@ -400,13 +420,14 @@ export class CompleterModel implements Completer.IModel {
       // e.g. Given label `foo(b, a, r)` and query `bar`,
       // don't count parameters, `b`, `a`, and `r` as matches.
       const index = item.label.indexOf('(');
-      const prefix = index > -1 ? item.label.substring(0, index) : item.label;
+      let prefix = index > -1 ? item.label.substring(0, index) : item.label;
+      prefix = escapeHTML(prefix);
       let match = StringExt.matchSumOfSquares(prefix, query);
       // Filter non-matching items.
       if (match) {
         // Highlight label text if there's a match
         let marked = StringExt.highlight(
-          item.label,
+          escapeHTML(item.label),
           match.indices,
           Private.mark
         );
@@ -440,15 +461,19 @@ export class CompleterModel implements Completer.IModel {
     const options = this._options || [];
     const query = this._query;
     if (!query) {
-      return map(options, option => ({ raw: option, text: option }));
+      return map(options, option => ({
+        raw: option,
+        text: escapeHTML(option)
+      }));
     }
     const results: Private.IMatch[] = [];
-    for (const option of options) {
+    for (const rawOption of options) {
+      const option = escapeHTML(rawOption);
       const match = StringExt.matchSumOfSquares(option, query);
       if (match) {
         const marked = StringExt.highlight(option, match.indices, Private.mark);
         results.push({
-          raw: option,
+          raw: rawOption,
           score: match.score,
           text: marked.join('')
         });

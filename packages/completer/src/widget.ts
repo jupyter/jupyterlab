@@ -1,7 +1,7 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { defaultSanitizer, HoverBox } from '@jupyterlab/apputils';
+import { HoverBox } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { LabIcon } from '@jupyterlab/ui-components';
 import { IIterator, IterableOrArrayLike, toArray } from '@lumino/algorithm';
@@ -949,9 +949,7 @@ export namespace Completer {
       const matchNode = document.createElement('code');
       matchNode.className = 'jp-Completer-match';
       // Use innerHTML because search results include <mark> tags.
-      matchNode.innerHTML = defaultSanitizer.sanitize(result, {
-        allowedTags: ['mark']
-      });
+      matchNode.innerHTML = result;
       return matchNode;
     }
 

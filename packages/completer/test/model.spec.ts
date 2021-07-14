@@ -256,6 +256,31 @@ describe('completer/model', () => {
         model.reset();
         expect(model.completionItems!()).toEqual(want);
       });
+
+      it('should escape HTML markup', () => {
+        let model = new CompleterModel();
+        let want: CompletionHandler.ICompletionItems = [
+          {
+            label: '&lt;foo&gt;&lt;/foo&gt;',
+            insertText: '<foo></foo>'
+          }
+        ];
+        model.setCompletionItems!([{ label: '<foo></foo>' }]);
+        expect(model.completionItems!()).toEqual(want);
+      });
+
+      it('should escape HTML with matches markup', () => {
+        let model = new CompleterModel();
+        let want: CompletionHandler.ICompletionItems = [
+          {
+            label: '&lt;foo&gt;<mark>smi</mark>le&lt;/foo&gt;',
+            insertText: '<foo>smile</foo>'
+          }
+        ];
+        model.setCompletionItems!([{ label: '<foo>smile</foo>' }]);
+        model.query = 'smi';
+        expect(model.completionItems!()).toEqual(want);
+      });
     });
 
     describe('#items()', () => {
@@ -299,6 +324,28 @@ describe('completer/model', () => {
         ];
         model.setOptions(['foo', 'bar', 'baz', 'qux', 'quux']);
         model.query = 'qu';
+        expect(toArray(model.items())).toEqual(want);
+      });
+
+      it('should escape HTML markup', () => {
+        let model = new CompleterModel();
+        let want: Completer.IItem[] = [
+          { raw: '<foo></foo>', text: '&lt;foo&gt;&lt;/foo&gt;' }
+        ];
+        model.setOptions(['<foo></foo>']);
+        expect(toArray(model.items())).toEqual(want);
+      });
+
+      it('should escape HTML with matches markup', () => {
+        let model = new CompleterModel();
+        let want: Completer.IItem[] = [
+          {
+            raw: '<foo>smile</foo>',
+            text: '&lt;foo&gt;<mark>smi</mark>le&lt;/foo&gt;'
+          }
+        ];
+        model.setOptions(['<foo>smile</foo>']);
+        model.query = 'smi';
         expect(toArray(model.items())).toEqual(want);
       });
     });
