@@ -384,9 +384,10 @@ all of MD as it is not optimized for dense, information rich UIs.
   );
   --jp-search-unselected-match-color: var(--jp-ui-inverse-font-color0);
 
-  /* Icon colors that work well with light or dark backgrounds */
-  --jp-icon-contrast-color0: var(--md-purple-600);
-  --jp-icon-contrast-color1: var(--md-green-600);
-  --jp-icon-contrast-color2: var(--md-pink-600);
-  --jp-icon-contrast-color3: var(--md-blue-600);
+  /* colors that work well with light or dark backgrounds */
+  --jp-contrast-blue: var(--md-blue-600);
+  --jp-contrast-green: var(--md-green-600);
+  --jp-contrast-pink: var(--md-pink-600);
+  --jp-contrast-purple: var(--md-purple-600);
+  --jp-contrast-red: var(--md-red-600);
 }
