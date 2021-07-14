@@ -21,27 +21,45 @@ function generate(editor: IDocumentWidget<FileEditor>): IHeading[] {
   // Iterate over the lines to get the heading level and text for each line:
   let headings: IHeading[] = [];
   let processingImports = false;
+  let indentationStack: number[] = [];
+  let current_indentation_level = 1;
   for (let i = 0; i < lines.length; i++) {
-    let line = lines[i].trim();
+    let raw_line = lines[i];
+    let line = raw_line.trim();
     if (line.indexOf('def ') === 0) {
       processingImports = false;
+      current_indentation_level = updateIndentationLevel(
+        current_indentation_level,
+        raw_line,
+        indentationStack
+      );
       headings.push({
         text: line.slice(0, -1),
-        level: 2,
+        level: current_indentation_level,
         onClick: onClick(i)
       });
     } else if (line.indexOf('class ') === 0) {
       processingImports = false;
+      current_indentation_level = updateIndentationLevel(
+        current_indentation_level,
+        raw_line,
+        indentationStack
+      );
       headings.push({
         text: line.slice(0, -1),
-        level: 1,
+        level: current_indentation_level,
         onClick: onClick(i)
       });
     } else if (line.indexOf('import ') == 0 && !processingImports) {
       processingImports = true;
+      current_indentation_level = updateIndentationLevel(
+        current_indentation_level,
+        raw_line,
+        indentationStack
+      );
       headings.push({
         text: line,
-        level: 2,
+        level: current_indentation_level,
         onClick: onClick(i)
       });
     }
@@ -62,6 +80,51 @@ function generate(editor: IDocumentWidget<FileEditor>): IHeading[] {
         column: 0
       });
     };
+  }
+
+  /**
+   * Update indentation level of toc entry based on indentation of this line of code and previous toc entries
+   *
+   * @private
+   * @param currentLevel - current indentation level
+   * @param line - line of code including leading whitespace
+   * @param indentationStack - stack of amount of whitespace for parent indentation levels
+   * @returns new indentation level
+   */
+  function updateIndentationLevel(
+    currentLevel: number,
+    line: string,
+    indentationStack: number[]
+  ): number {
+    let newIndentSpaces = line.search(/\S/);
+    let indentationChange = 0;
+    if (indentationStack.length == 0) {
+      indentationStack.push(newIndentSpaces);
+      indentationChange = 0;
+    } else {
+      let prevIndent = indentationStack[indentationStack.length - 1];
+      if (prevIndent == newIndentSpaces) {
+        indentationChange = 0;
+      } else if (prevIndent < newIndentSpaces) {
+        indentationStack.push(newIndentSpaces);
+        indentationChange = 1;
+      } else {
+        indentationChange = 0;
+        while (indentationStack.length > 0) {
+          prevIndent = indentationStack[indentationStack.length - 1];
+          if (prevIndent > newIndentSpaces) {
+            --indentationChange;
+            indentationStack.pop();
+          } else {
+            if (prevIndent < newIndentSpaces) {
+              indentationStack.push(newIndentSpaces);
+            }
+            break;
+          }
+        }
+      }
+    }
+    return Math.max(1, currentLevel + indentationChange);
   }
 }
 
