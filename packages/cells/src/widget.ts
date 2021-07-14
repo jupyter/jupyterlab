@@ -179,6 +179,16 @@ const RENDER_TIMEOUT = 1000;
  */
 const CONTENTS_MIME_RICH = 'application/x-jupyter-icontentsrich';
 
+/*
+ * The parameters tag
+ */
+const PARAMETERS_TAG = 'parameters';
+
+/*
+ * The class applied to cells with the the parameters tag.
+ */
+const PARAMETERS_CELL_CLASS = 'parameter-cell';
+
 /** ****************************************************************************
  * Cell
  ******************************************************************************/
@@ -540,6 +550,23 @@ export class Cell<T extends ICellModel = ICellModel> extends Widget {
       case 'editable':
         if (this.syncEditable) {
           this.loadEditableState();
+        }
+        break;
+      case 'tags':
+        if (args.type == 'add') {
+          if (Array.isArray(args.newValue)) {
+            if (args.newValue.includes(PARAMETERS_TAG)) {
+              this.addClass(PARAMETERS_CELL_CLASS);
+            }
+          }
+        } else if (args.type == 'remove') {
+          if (Array.isArray(args.newValue)) {
+            if (!args.newValue.includes(PARAMETERS_TAG)) {
+              this.removeClass(PARAMETERS_CELL_CLASS);
+            }
+          } else if (typeof args.newValue === 'undefined') {
+            this.removeClass(PARAMETERS_CELL_CLASS);
+          }
         }
         break;
       default:
