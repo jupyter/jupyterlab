@@ -50,33 +50,22 @@ Read the current JupyterLab documentation on [ReadTheDocs](http://jupyterlab.rea
 
 ### Installation
 
-JupyterLab can be installed using [conda](https://docs.conda.io/en/latest/), [mamba](https://mamba.readthedocs.io/en/latest/) or [pip](https://docs.python.org/3.6/installing/index.html). For more detailed instructions, consult the [installation guide](http://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html).
-
-Project installation instructions from the git sources are available in the [contributor documentation](CONTRIBUTING.md).
-
-### mamba and conda
-
-If you use `mamba` or `conda`, you can install it with:
+If you use [conda](https://docs.conda.io/en/latest/), [mamba](https://mamba.readthedocs.io/en/latest/), or [pip](https://docs.python.org/3/installing/index.html), you can install JupyterLab with:
 
 ```shell
-mamba install -c conda-forge jupyterlab
-```
-
-or
-
-```shell
+# conda
 conda install -c conda-forge jupyterlab
-```
 
-### pip
+# mamba
+mamba install -c conda-forge jupyterlab
 
-If you use `pip`, you can install it with:
-
-```shell
+# pip
 pip install jupyterlab
 ```
 
 If installing using `pip install --user`, you must add the user-level `bin` directory to your `PATH` environment variable in order to launch `jupyter lab`. If you are using a Unix derivative (FreeBSD, GNU / Linux, OS X), you can achieve this by using `export PATH="$HOME/.local/bin:$PATH"` command.
+
+For more detailed instructions, consult the [installation guide](http://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html). Project installation instructions from the git sources are available in the [contributor documentation](CONTRIBUTING.md).
 
 #### Installing with Previous Versions of Jupyter Notebook
 
