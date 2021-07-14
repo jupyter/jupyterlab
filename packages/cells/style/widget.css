@@ -43,6 +43,18 @@
   flex: 1 1 auto;
 }
 
+.jp-Cell-inputAreaCollapsed .CodeMirror {
+  max-height: 24px;
+}
+
+.jp-Cell-inputAreaCollapsed .CodeMirror-line {
+  display: none;
+}
+
+.jp-Cell-inputAreaCollapsed .CodeMirror-line:nth-child(1) {
+  display: initial;
+}
+
 /*-----------------------------------------------------------------------------
 | Collapser
 |----------------------------------------------------------------------------*/

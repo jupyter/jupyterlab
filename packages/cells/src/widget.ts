@@ -11,6 +11,8 @@ import { ISessionContext } from '@jupyterlab/apputils';
 
 import { ActivityMonitor, IChangedArgs, URLExt } from '@jupyterlab/coreutils';
 
+import { CodeMirrorEditor } from "@jupyterlab/codemirror";
+
 import { CodeEditor, CodeEditorWrapper } from '@jupyterlab/codeeditor';
 
 import { DirListing } from '@jupyterlab/filebrowser';
@@ -105,6 +107,11 @@ const CELL_OUTPUT_WRAPPER_CLASS = 'jp-Cell-outputWrapper';
  * The CSS class added to the cell input area.
  */
 const CELL_INPUT_AREA_CLASS = 'jp-Cell-inputArea';
+
+/**
+ * The CSS class added to the collapsed cell input area.
+ */
+const CELL_INPUT_AREA_COLLAPSED_CLASS = 'jp-Cell-inputAreaCollapsed';
 
 /**
  * The CSS class added to the cell output area.
@@ -773,6 +780,73 @@ export class CodeCell extends Cell<ICodeCellModel> {
   }
 
   /**
+   * Provide a method for checking whether or not the first line
+   * of the editor starts with a #
+   */
+  isFirstLineComment() {
+    const cm = (this.editor as CodeMirrorEditor)['_editor']; // Find a better way
+    return !!cm.getLine(0).startsWith('#');
+  }
+
+  /**
+   * Introduce properties for CodeCell which make it possible to display
+   * an intermediate state of input collapse, i.e. 'partial'
+   */
+  get partialCollapse(): boolean {
+    return this._partialCollapse;
+  }
+
+  set partialCollapse(value: boolean) {
+    this._partialCollapse = value;
+  }
+
+  /**
+   * Override the parent method of determining the view state of
+   * the input being hidden.
+   */
+  get inputHidden(): boolean {
+    return super.inputHidden;
+  }
+
+  set inputHidden(value: boolean) {
+    // We override this setter in order to piggyback
+    // the existing method of collapsing the input to
+    // add the partialCollapse state without needing more
+    // code elsewhere
+    if (!value && !this.partialCollapse) {
+        // If the input is not being hidden, reset everything
+        this.inputArea.removeClass(CELL_INPUT_AREA_COLLAPSED_CLASS);
+        super.inputHidden = value;
+        return
+    }
+    if (!this.partialCollapse && value) {
+        // If the input is being hidden, step to partial first
+        if (this.isFirstLineComment()) {
+            this.inputArea.addClass(CELL_INPUT_AREA_COLLAPSED_CLASS);
+            this.partialCollapse = true;
+            if (this.syncCollapse) {
+              this.saveCollapseState();
+            }
+            super.inputHidden = !value;
+            return
+        }
+    }
+    if (this.partialCollapse && !value) {
+        // In case we acquire a state where we have collapsed partially,
+        // but have not just clicked the collapser
+        if (this.isFirstLineComment()) {
+            this.inputArea.addClass(CELL_INPUT_AREA_COLLAPSED_CLASS);
+            this.partialCollapse = true;
+            return
+        }
+    }
+    // Otherwise, hide the input as per normal
+    super.inputHidden = value;
+    this.partialCollapse = false;
+    return
+  }
+
+  /**
    * Get the output area for the cell.
    */
   get outputArea(): OutputArea {
@@ -826,6 +900,12 @@ export class CodeCell extends Cell<ICodeCellModel> {
       const metadata = this.model.metadata;
       const collapsed = this.model.metadata.get('collapsed');
 
+      if (this.partialCollapse) {
+        metadata.set('partialCollapse', true);
+      } else {
+        metadata.delete('partialCollapse');
+      }
+
       if (
         (this.outputHidden && collapsed === true) ||
         (!this.outputHidden && collapsed === undefined)
@@ -852,6 +932,7 @@ export class CodeCell extends Cell<ICodeCellModel> {
    * being hidden.
    */
   loadCollapseState() {
+    this.partialCollapse = !!this.model.metadata.get('partialCollapse');
     super.loadCollapseState();
     this.outputHidden = !!this.model.metadata.get('collapsed');
   }
@@ -1020,6 +1101,11 @@ export class CodeCell extends Cell<ICodeCellModel> {
           this.loadCollapseState();
         }
         break;
+      case 'partialCollapse':
+        if (this.syncCollapse) {
+          this.loadCollapseState();
+        }
+        break;
       default:
         break;
     }
@@ -1035,6 +1121,7 @@ export class CodeCell extends Cell<ICodeCellModel> {
   }
 
   private _rendermime: IRenderMimeRegistry;
+  private _partialCollapse = false;
   private _outputHidden = false;
   private _outputsScrolled: boolean;
   private _outputWrapper: Widget;
