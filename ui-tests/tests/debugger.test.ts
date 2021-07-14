@@ -23,7 +23,13 @@ describe('Debugger Tests', () => {
   });
 
   test('Open Debugger on right', async () => {
+    const imageName = 'sidebar';
     await galata.sidebar.openTab('jp-debugger-sidebar');
+
+    const debuggerSidebar = await galata.sidebar.getContentPanel('right');
+    await galata.capture.screenshot(imageName, debuggerSidebar);
+
     expect(await galata.sidebar.isTabOpen('jp-debugger-sidebar')).toBeTruthy();
+    expect(await galata.capture.compareScreenshot(imageName)).toBe('same');
   });
 });
