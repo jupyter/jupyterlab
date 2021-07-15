@@ -1611,6 +1611,36 @@ export namespace NotebookActions {
   }
 
   /**
+   * Toggle the highlighting of trailing whitespace
+   *
+   * @param notebook - The target notebook widget.
+   *
+   * #### Notes
+   * The original state is based on the state of the active cell.
+   * The `mode` of the widget will be preserved.
+   */
+  export function toggleShowTrailingSpace(notebook : Notebook): any {
+    if (!notebook.model || !notebook.activeCell) {
+      return;
+    }
+
+    const state = Private.getState(notebook);
+    const config = notebook.editorConfig;
+    const showTrailingSpace = !(
+      config.code.showTrailingSpace &&
+      config.markdown.showTrailingSpace &&
+      config.raw.showTrailingSpace
+    );
+    const newConfig = {
+      code: { ...config.code, showTrailingSpace },
+      markdown: { ...config.markdown, showTrailingSpace},
+      raw: { ...config.raw, showTrailingSpace}
+    };
+
+    notebook.editorConfig = newConfig;
+    Private.handleState(notebook, state);
+  }
+  /**
    * Trust the notebook after prompting the user.
    *
    * @param notebook - The target notebook widget.

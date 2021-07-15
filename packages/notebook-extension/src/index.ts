@@ -253,6 +253,8 @@ namespace CommandIDs {
   export const expandAllCmd = 'Collapsible_Headings:Expand_All';
 
   export const copyToClipboard = 'notebook:copy-to-clipboard';
+
+  export const showTrailingSpace = 'notebook:toggle-show-trailing-space';
 }
 
 /**
@@ -2183,6 +2185,17 @@ function addCommands(
         return NotebookActions.expandAllHeadings(current.content);
       }
     }
+  });
+  commands.addCommand(CommandIDs.showTrailingSpace, {
+    label: trans.__('Toggle highlighting trailing whitespace'),
+    execute: args => {
+      const current = getCurrent(tracker, shell, args);
+
+      if(current) {
+        return NotebookActions.toggleShowTrailingSpace(current.content)
+      }
+    },
+    isEnabled
   });
 }
 

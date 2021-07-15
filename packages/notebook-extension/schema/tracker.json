@@ -633,6 +633,9 @@
         },
         "lineWiseCopyCut": {
           "type": "boolean"
+        },
+        "showTrailingSpace": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -659,7 +662,8 @@
         "wordWrapColumn": 80,
         "rulers": [],
         "codeFolding": false,
-        "lineWiseCopyCut": true
+        "lineWiseCopyCut": true,
+        "showTrailingSpace": false
       }
     },
     "defaultCell": {
@@ -694,7 +698,8 @@
         "wordWrapColumn": 80,
         "rulers": [],
         "codeFolding": false,
-        "lineWiseCopyCut": true
+        "lineWiseCopyCut": true,
+        "showTrailingSpace": false
       }
     },
     "rawCellConfig": {
@@ -716,7 +721,8 @@
         "wordWrapColumn": 80,
         "rulers": [],
         "codeFolding": false,
-        "lineWiseCopyCut": true
+        "lineWiseCopyCut": true,
+        "showTrailingSpace": false
       }
     },
     "scrollPastEnd": {
