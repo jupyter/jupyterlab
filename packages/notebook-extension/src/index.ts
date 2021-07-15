@@ -1890,7 +1890,11 @@ function addCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        return NotebookActions.moveUp(current.content);
+        NotebookActions.moveUp(current.content);
+        Private.raiseSilentNotification(
+          trans.__('Notebook cell shifted up successfully'),
+          current.node
+        );
       }
     },
     isEnabled
@@ -1901,7 +1905,11 @@ function addCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        return NotebookActions.moveDown(current.content);
+        NotebookActions.moveDown(current.content);
+        Private.raiseSilentNotification(
+          trans.__('Notebook cell shifted down successfully'),
+          current.node
+        );
       }
     },
     isEnabled
@@ -2581,6 +2589,42 @@ namespace Private {
       script: trans.__('Executable Script'),
       slides: trans.__('Reveal.js Slides')
     };
+  }
+
+  /**
+   * Raises a silent notification that is read by screen readers
+   *
+   * FIXME: Once a notificatiom API is introduced (https://github.com/jupyterlab/jupyterlab/issues/689),
+   * this can be refactored to use the same.
+   *
+   * More discussion at https://github.com/jupyterlab/jupyterlab/pull/9031#issuecomment-773541469
+   *
+   *
+   * @param message Message to be relayed to screen readers
+   * @param notebookNode DOM node to which the notification container is attached
+   */
+  export function raiseSilentNotification(
+    message: string,
+    notebookNode: HTMLElement
+  ) {
+    const hiddenAlertContainerId = `sr-message-container-${notebookNode.id}`;
+
+    const hiddenAlertContainer =
+      document.getElementById(hiddenAlertContainerId) ||
+      document.createElement('div');
+
+    // If the container is not available, append the newly created container
+    // to the current notebook panel and set related properties
+    if (hiddenAlertContainer.getAttribute('id') !== hiddenAlertContainerId) {
+      hiddenAlertContainer.classList.add('sr-only');
+      hiddenAlertContainer.setAttribute('id', hiddenAlertContainerId);
+      hiddenAlertContainer.setAttribute('role', 'alert');
+      hiddenAlertContainer.hidden = true;
+      notebookNode.appendChild(hiddenAlertContainer);
+    }
+
+    // Insert/Update alert container with the notification message
+    hiddenAlertContainer.innerText = message;
   }
 
   /**
