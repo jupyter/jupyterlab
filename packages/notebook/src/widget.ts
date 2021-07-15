@@ -1156,6 +1156,15 @@ export class Notebook extends StaticNotebook {
       cell.rendered = false;
     }
     this._ensureFocus();
+    if (
+      cell instanceof MarkdownCell &&
+      cell.numberChildNodes > 0 &&
+      cell.headingCollapsed
+    ) {
+      for (let i = newValue; i <= newValue + cell.numberChildNodes; i++) {
+        Private.selectedProperty.set(this.widgets[i], true);
+      }
+    }
     if (newValue === oldValue) {
       return;
     }
@@ -2107,19 +2116,6 @@ export class Notebook extends StaticNotebook {
       // the same notebook.
       event.dropAction = 'move';
       const toMove: Cell[] = event.mimeData.getData('internal:cells');
-
-      // For collapsed markdown headings with hidden "child" cells, move all
-      // child cells as well as the markdown heading.
-      const cell = toMove[toMove.length - 1];
-      if (cell instanceof MarkdownCell && cell.headingCollapsed) {
-        const nextParent = NotebookActions.findNextParentHeading(cell, source);
-        if (nextParent > 0) {
-          const index = findIndex(source.widgets, (possibleCell: Cell) => {
-            return cell.model.id === possibleCell.model.id;
-          });
-          toMove.push(...source.widgets.slice(index + 1, nextParent));
-        }
-      }
 
       // Compute the to/from indices for the move.
       let fromIndex = ArrayExt.firstIndexOf(this.widgets, toMove[0]);
