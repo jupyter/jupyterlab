@@ -21,8 +21,10 @@ export class CallstackModel implements IDebugger.Model.ICallstack {
    */
   set frames(newFrames: IDebugger.IStackFrame[]) {
     this._state = newFrames;
+    const currentFrameId =
+      this.frame !== null ? Private.getFrameId(this.frame) : '';
     const frame = newFrames.find(
-      frame => Private.getFrameId(frame) === Private.getFrameId(this.frame)
+      frame => Private.getFrameId(frame) === currentFrameId
     );
     // Default to the first frame if the previous one can't be found.
     // Otherwise keep the current frame selected.
@@ -35,14 +37,14 @@ export class CallstackModel implements IDebugger.Model.ICallstack {
   /**
    * Get the current frame.
    */
-  get frame(): IDebugger.IStackFrame {
+  get frame(): IDebugger.IStackFrame | null {
     return this._currentFrame;
   }
 
   /**
    * Set the current frame.
    */
-  set frame(frame: IDebugger.IStackFrame) {
+  set frame(frame: IDebugger.IStackFrame | null) {
     this._currentFrame = frame;
     this._currentFrameChanged.emit(frame);
   }
@@ -57,14 +59,16 @@ export class CallstackModel implements IDebugger.Model.ICallstack {
   /**
    * Signal emitted when the current frame has changed.
    */
-  get currentFrameChanged(): ISignal<this, IDebugger.IStackFrame> {
+  get currentFrameChanged(): ISignal<this, IDebugger.IStackFrame | null> {
     return this._currentFrameChanged;
   }
 
   private _state: IDebugger.IStackFrame[] = [];
-  private _currentFrame: IDebugger.IStackFrame;
+  private _currentFrame: IDebugger.IStackFrame | null = null;
   private _framesChanged = new Signal<this, IDebugger.IStackFrame[]>(this);
-  private _currentFrameChanged = new Signal<this, IDebugger.IStackFrame>(this);
+  private _currentFrameChanged = new Signal<this, IDebugger.IStackFrame | null>(
+    this
+  );
 }
 
 /**

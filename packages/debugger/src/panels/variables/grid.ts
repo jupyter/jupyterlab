@@ -48,6 +48,13 @@ export class VariablesBodyGrid extends Panel {
   }
 
   /**
+   * Get the latest hit variable
+   */
+  get latestSelection(): IDebugger.IVariableSelection | null {
+    return this._grid.latestSelection;
+  }
+
+  /**
    * Set the variable filter list.
    *
    * @param filter The variable filter to apply.
@@ -126,9 +133,18 @@ class Grid extends Panel {
     mouseHandler.doubleClicked.connect((_, hit) =>
       commands.execute(Debugger.CommandIDs.inspectVariable, {
         variableReference: dataModel.getVariableReference(hit.row),
-        title: dataModel.getVariableName(hit.row)
+        name: dataModel.getVariableName(hit.row)
       })
     );
+    mouseHandler.selected.connect((_, hit) => {
+      const { row } = hit;
+      this._latestSelection = {
+        name: dataModel.getVariableName(row),
+        value: dataModel.data('body', row, 1),
+        type: dataModel.data('body', row, 2),
+        variablesReference: dataModel.getVariableReference(row)
+      };
+    });
     grid.dataModel = dataModel;
     grid.keyHandler = new BasicKeyHandler();
     grid.mouseHandler = mouseHandler;
@@ -174,6 +190,13 @@ class Grid extends Panel {
   }
 
   /**
+   * Get the latest hit variable
+   */
+  get latestSelection(): IDebugger.IVariableSelection | null {
+    return this._latestSelection;
+  }
+
+  /**
    * Handle `after-attach` messages.
    *
    * @param message - The `after-attach` message.
@@ -193,6 +216,7 @@ class Grid extends Panel {
   }
 
   private _grid: DataGrid;
+  private _latestSelection: IDebugger.IVariableSelection | null = null;
 }
 
 /**
@@ -435,6 +459,26 @@ namespace Private {
     }
 
     /**
+     * A signal emitted when the variables grid received mouse down or context menu event.
+     */
+    get selected(): ISignal<this, DataGrid.HitTestResult> {
+      return this._selected;
+    }
+
+    /**
+     * Dispose of the resources held by the mouse handler.
+     */
+    dispose(): void {
+      if (this.isDisposed) {
+        return;
+      }
+
+      Signal.disconnectSender(this);
+
+      super.dispose();
+    }
+
+    /**
      * Handle a mouse double-click event.
      *
      * @param grid The datagrid clicked.
@@ -445,6 +489,41 @@ namespace Private {
       this._doubleClicked.emit(hit);
     }
 
+    /**
+     * Handle the mouse down event for the data grid.
+     *
+     * @param grid - The data grid of interest.
+     *
+     * @param event - The mouse down event of interest.
+     */
+    onMouseDown(grid: DataGrid, event: MouseEvent): void {
+      // Unpack the event.
+      let { clientX, clientY } = event;
+
+      // Hit test the grid.
+      let hit = grid.hitTest(clientX, clientY);
+
+      this._selected.emit(hit);
+    }
+
+    /**
+     * Handle the context menu event for the data grid.
+     *
+     * @param grid - The data grid of interest.
+     *
+     * @param event - The context menu event of interest.
+     */
+    onContextMenu(grid: DataGrid, event: MouseEvent): void {
+      // Unpack the event.
+      let { clientX, clientY } = event;
+
+      // Hit test the grid.
+      let hit = grid.hitTest(clientX, clientY);
+
+      this._selected.emit(hit);
+    }
+
     private _doubleClicked = new Signal<this, DataGrid.HitTestResult>(this);
+    private _selected = new Signal<this, DataGrid.HitTestResult>(this);
   }
 }

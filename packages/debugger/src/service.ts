@@ -260,6 +260,31 @@ export class DebuggerService implements IDebugger, IDisposable {
   }
 
   /**
+   * Request rich representation of a variable.
+   *
+   * @param variableName The variable name to request
+   * @param frameId The current frame id in which to request the variable
+   * @returns The mime renderer data model
+   */
+  async inspectRichVariable(
+    variableName: string,
+    frameId?: number
+  ): Promise<IDebugger.IRichVariable> {
+    if (!this.session) {
+      throw new Error('No active debugger session');
+    }
+    const reply = await this.session.sendRequest('richInspectVariables', {
+      variableName,
+      frameId
+    });
+    if (reply.success) {
+      return reply.body;
+    } else {
+      throw new Error(reply.message);
+    }
+  }
+
+  /**
    * Request variables for a given variable reference.
    *
    * @param variablesReference The variable reference to request.
@@ -273,7 +298,11 @@ export class DebuggerService implements IDebugger, IDisposable {
     const reply = await this.session.sendRequest('variables', {
       variablesReference
     });
-    return reply.body.variables;
+    if (reply.success) {
+      return reply.body.variables;
+    } else {
+      throw new Error(reply.message);
+    }
   }
 
   /**
@@ -328,9 +357,10 @@ export class DebuggerService implements IDebugger, IDisposable {
 
     const reply = await this.session.restoreState();
     const { body } = reply;
-    const breakpoints = this._mapBreakpoints(reply.body.breakpoints);
-    const stoppedThreads = new Set(reply.body.stoppedThreads);
+    const breakpoints = this._mapBreakpoints(body.breakpoints);
+    const stoppedThreads = new Set(body.stoppedThreads);
 
+    this._model.hasRichVariableRendering = body.richRendering === true;
     this._config.setHashParams({
       kernel: this.session?.connection?.kernel?.name ?? '',
       method: body.hashMethod,

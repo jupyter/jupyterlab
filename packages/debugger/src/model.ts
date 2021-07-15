@@ -16,7 +16,7 @@ import { VariablesModel } from './panels/variables/model';
 /**
  * A model for a debugger.
  */
-export class DebuggerModel {
+export class DebuggerModel implements IDebugger.Model.IService {
   /**
    * Instantiate a new DebuggerModel
    */
@@ -54,6 +54,16 @@ export class DebuggerModel {
    */
   get disposed(): ISignal<this, void> {
     return this._disposed;
+  }
+
+  /**
+   * Whether the kernel support rich variable rendering based on mime type.
+   */
+  get hasRichVariableRendering(): boolean {
+    return this._hasRichVariableRendering;
+  }
+  set hasRichVariableRendering(v: boolean) {
+    this._hasRichVariableRendering = v;
   }
 
   /**
@@ -128,6 +138,7 @@ export class DebuggerModel {
 
   private _disposed = new Signal<this, void>(this);
   private _isDisposed = false;
+  private _hasRichVariableRendering = false;
   private _stoppedThreads = new Set<number>();
   private _title = '-';
   private _titleChanged = new Signal<this, string>(this);
