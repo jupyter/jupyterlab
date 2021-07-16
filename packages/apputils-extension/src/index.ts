@@ -453,7 +453,7 @@ const state: JupyterFrontEndPlugin<IStateDB> = {
 
           // After the state has been cloned, navigate to the URL.
           void cloned.then(() => {
-            router.navigate(url);
+            router.navigate(url, { hard: true });
           });
 
           return cloned;
