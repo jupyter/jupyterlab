@@ -26,14 +26,14 @@ function generate(editor: IDocumentWidget<FileEditor>): IHeading[] {
     if (line.indexOf('def ') === 0) {
       processingImports = false;
       headings.push({
-        text: line.slice(0, -1),
+        text: clean_declaration_code_string(line),
         level: 2,
         onClick: onClick(i)
       });
     } else if (line.indexOf('class ') === 0) {
       processingImports = false;
       headings.push({
-        text: line.slice(0, -1),
+        text: clean_declaration_code_string(line),
         level: 1,
         onClick: onClick(i)
       });
@@ -62,6 +62,20 @@ function generate(editor: IDocumentWidget<FileEditor>): IHeading[] {
         column: 0
       });
     };
+  }
+
+  /**
+   * Clean a line of code that declares either a class or function/method
+   * keeps text until first open parenthesis or first colon
+   * i.e. strips out arguments of functions and superclass specification of classes
+   *
+   * @private
+   * @param line - line of python code to clean
+   * @returns cleaned line of code
+   */
+  function clean_declaration_code_string(line: string): string {
+    const candidates = [line.indexOf('('), line.indexOf(':'), line.length];
+    return line.slice(0, Math.min(...candidates.filter(n => n >= 0)));
   }
 }
 
