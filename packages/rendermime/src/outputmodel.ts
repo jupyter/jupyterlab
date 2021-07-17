@@ -278,7 +278,7 @@ namespace Private {
     } else if (nbformat.isError(output)) {
       bundle['application/vnd.jupyter.error'] = output;
       const traceback = output.traceback.join('\n');
-      bundle['application/vnd.jupyter.stderr'] =
+      bundle['application/vnd.jupyter.stdout'] =
         traceback || `${output.ename}: ${output.evalue}`;
     }
     return convertBundle(bundle);
