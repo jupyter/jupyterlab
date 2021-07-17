@@ -19,7 +19,7 @@
     "syncCollapseState": {
       "type": "boolean",
       "title": "syncCollapseState",
-      "description": "When set to true (default), when a header is collapsed in the ToC the corresponding section in the notebook is collapsed as well and vice versa.",
+      "description": "If set to true, when a header is collapsed in the ToC the corresponding section in the notebook is collapsed as well and vice versa.",
       "default": false
     }
   },
